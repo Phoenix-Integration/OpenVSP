@@ -27,42 +27,43 @@
 #include "textureMgr.h"
 #include "GridDensity.h"
 #include "DragFactors.h"
-
+#include "geomRenderer.h"
+#include "common.h"
 
 class TMesh;
 class TetraMassProp;
 class Part;
 class BaseSource;
 
-#define NO_SYM 0
-#define XY_SYM 1
-#define XZ_SYM 2
-#define YZ_SYM 3
-
-#define POS_ATTACH_NONE		0
-#define POS_ATTACH_FIXED	1
-#define POS_ATTACH_UV		2 
-#define POS_ATTACH_MATRIX	3
-
-#define GEOM_WIRE_FLAG		0
-#define GEOM_HIDDEN_FLAG	1
-#define GEOM_SHADE_FLAG		2
-#define GEOM_TEXTURE_FLAG	3
-
-//==== Update Tags ====//
-#define UPD_XFORM			101010			// General Update Tags	
-#define UPD_NUM_PNT_XSEC	(UPD_XFORM+1)
-#define UPD_POD				(UPD_XFORM+2)	// Pod Update Tags
-#define UPD_MW_ALL          (UPD_XFORM+3)	// Wing Update Tags
-#define UPD_MW_LOC_ROT      (UPD_XFORM+4)
-#define UPD_MW_NUM_PNTS     (UPD_XFORM+5)
-#define UPD_MW_AIRFOIL      (UPD_XFORM+6)
-#define UPD_MW_CONT_SURF    (UPD_XFORM+7)
-#define UPD_MW_SWEEP_LOC    (UPD_XFORM+8)
-#define UPD_FUSE_XSEC		(UPD_XFORM+9)	// Fuse Update Tags
-#define UPD_FUSE_BODY		(UPD_XFORM+10)
-#define UPD_HAVOC			(UPD_XFORM+11)	// Havoc
-#define UPD_EDIT_CRV		(UPD_XFORM+12)	// Edit Curve
+//#define NO_SYM 0
+//#define XY_SYM 1
+//#define XZ_SYM 2
+//#define YZ_SYM 3
+//
+//#define POS_ATTACH_NONE		0
+//#define POS_ATTACH_FIXED	1
+//#define POS_ATTACH_UV		2 
+//#define POS_ATTACH_MATRIX	3
+//
+//#define GEOM_WIRE_FLAG		0
+//#define GEOM_HIDDEN_FLAG	1
+//#define GEOM_SHADE_FLAG		2
+//#define GEOM_TEXTURE_FLAG	3
+//
+////==== Update Tags ====//
+//#define UPD_XFORM			101010			// General Update Tags	
+//#define UPD_NUM_PNT_XSEC	(UPD_XFORM+1)
+//#define UPD_POD				(UPD_XFORM+2)	// Pod Update Tags
+//#define UPD_MW_ALL          (UPD_XFORM+3)	// Wing Update Tags
+//#define UPD_MW_LOC_ROT      (UPD_XFORM+4)
+//#define UPD_MW_NUM_PNTS     (UPD_XFORM+5)
+//#define UPD_MW_AIRFOIL      (UPD_XFORM+6)
+//#define UPD_MW_CONT_SURF    (UPD_XFORM+7)
+//#define UPD_MW_SWEEP_LOC    (UPD_XFORM+8)
+//#define UPD_FUSE_XSEC		(UPD_XFORM+9)	// Fuse Update Tags
+//#define UPD_FUSE_BODY		(UPD_XFORM+10)
+//#define UPD_HAVOC			(UPD_XFORM+11)	// Havoc
+//#define UPD_EDIT_CRV		(UPD_XFORM+12)	// Edit Curve
 			
 
 class Aircraft;
@@ -137,7 +138,9 @@ public:
 	virtual void triggerDraw();
 
 	virtual void setRedFlag(int flag)			{ redFlag = flag; }
+	virtual int  getRedFlag()						{ return redFlag; }
 	virtual void setYellowFlag(int flag)		{ yellowFlag = flag; }
+	virtual int  getYellowFlag()					{ return yellowFlag; }
 											
 	virtual void setNoShowFlag(int flag);
 	virtual int  getNoShowFlag()				{ return noshowFlag; }
@@ -202,6 +205,7 @@ public:
 
 	virtual void fastDrawFlagOn()				{ fastDrawFlag = 1; }
 	virtual void fastDrawFlagOff()				{ fastDrawFlag = 0; }
+	virtual int getFastDrawFlag()			{ return fastDrawFlag; }
 
 	virtual void setRelXFormFlag( int f );
 	virtual int  getRelXFormFlag()				{ return relXFormFlag; }
@@ -289,6 +293,7 @@ public:
 	virtual vec3d getAeroCenter()					{ return aeroCenter; }
 
 	virtual vector< AppliedTex > getAppliedTexVec()	{ return appTexVec; }
+	virtual vector< Xsec_surf* > getXSectionSurfVec() { return surfVec; }
 	virtual int getNumTex();
 	virtual AppliedTex* getTex(int id);
 	virtual int  getCurrentTexID();
@@ -452,7 +457,6 @@ protected:
    vec3d aeroCenter;
    int autoAeroCenterFlag;
 
- 
 
 };
 
@@ -699,7 +703,6 @@ public:
 
 	Parm uAngle;
 	Parm wAngle;
-
 
 
 };

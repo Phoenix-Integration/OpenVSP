@@ -1114,7 +1114,6 @@ void FeaSlice::DrawSlicePlane()
 
 }
 
-
 void FeaSlice::Draw()
 {
 	glPointSize( 8.0 );
@@ -1147,6 +1146,33 @@ void FeaSlice::Draw()
 
 
 }
+
+/******************************************************
+*
+* Get Upper Chain Points.
+*
+*******************************************************/
+EndPoints FeaSlice::getUpperChainPnts()
+{
+	EndPoints chainPnts;
+	chainPnts.start = m_UpperStartChainPnt;
+	chainPnts.end = m_UpperEndChainPnt;
+	return chainPnts;
+}
+
+/******************************************************
+*
+* Get Lower Chain Points.
+*
+*******************************************************/
+EndPoints FeaSlice::getLowerChainPnts()
+{
+	EndPoints chainPnts;
+	chainPnts.start = m_LowerStartChainPnt;
+	chainPnts.end = m_LowerEndChainPnt;
+	return chainPnts;
+}
+
 
 //============================================================================//
 //============================================================================//

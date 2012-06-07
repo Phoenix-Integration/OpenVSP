@@ -99,6 +99,7 @@ public:
 	virtual Stringc GetQualString();
 
 	virtual Surf* GetSurf( int ind )							{ return m_SurfVec[ind]; }
+	virtual vector< Surf* > GetSurfVec()					{ return m_SurfVec; }
 
 //	virtual void AddISeg( Surf* sA, Surf* sB, vec2d & sAuw0, vec2d & sAuw1,  vec2d & sBuw0, vec2d & sBuw1 );
 	virtual void AddIntersectionSeg( SurfPatch& pA, SurfPatch& pB, vec3d & ip0, vec3d & ip1 );

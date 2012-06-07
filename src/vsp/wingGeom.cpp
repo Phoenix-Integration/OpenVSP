@@ -1580,136 +1580,169 @@ void WingGeom::update_bbox()
   update_xformed_bbox();			// Load Xform BBox
 }
 
+/******************************************************
+*
+* Overloading from Geom class. Return Cross Section
+* Surface Data.
+*
+*******************************************************/
+vector < Xsec_surf* > WingGeom::getXSectionSurfVec()
+{
+	/* Clean before Loading */
+	for ( int i = 0; i < ( int )surfVec.size(); i++ )
+	{
+		delete surfVec[i];
+	}
+	surfVec.clear();
+	/* Load Cross Section Data */
+	surfVec.push_back( &mwing_surf );
+	surfVec.push_back( &in_flap_surf );
+	surfVec.push_back( &out_flap_surf );
+	surfVec.push_back( &in_slat_surf );
+	surfVec.push_back( &out_slat_surf );
+
+	return surfVec;
+}
+
 void WingGeom::draw()
 {
-	if ( fastDrawFlag )
-	{
-		mwing_surf.fast_draw_on();
-		in_flap_surf.fast_draw_on();
-		out_flap_surf.fast_draw_on();
-		in_slat_surf.fast_draw_on();
-		out_slat_surf.fast_draw_on();
-	}
-	else
-	{
-		mwing_surf.fast_draw_off();
-		in_flap_surf.fast_draw_off();
-		out_flap_surf.fast_draw_off();
-		in_slat_surf.fast_draw_off();
-		out_slat_surf.fast_draw_off();
-	}
+	//if ( fastDrawFlag )
+	//{
+	//	mwing_surf.fast_draw_on();
+	//	in_flap_surf.fast_draw_on();
+	//	out_flap_surf.fast_draw_on();
+	//	in_slat_surf.fast_draw_on();
+	//	out_slat_surf.fast_draw_on();
+	//}
+	//else
+	//{
+	//	mwing_surf.fast_draw_off();
+	//	in_flap_surf.fast_draw_off();
+	//	out_flap_surf.fast_draw_off();
+	//	in_slat_surf.fast_draw_off();
+	//	out_slat_surf.fast_draw_off();
+	//}
 
-	//==== Draw Highlighting Boxes ====//
-	draw_highlight_boxes();
+	////==== Draw Highlighting Boxes ====//
+	//draw_highlight_boxes();
 
-	//==== Check Noshow Flag ====//
-	if ( noshowFlag ) return;	
+	////==== Check Noshow Flag ====//
+	//if ( noshowFlag ) return;	
 
-	if ( displayFlag == GEOM_WIRE_FLAG )
-	{
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
+	//if ( displayFlag == GEOM_WIRE_FLAG )
+	//{
+	//	glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
 
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-		mwing_surf.draw_wire();
-		in_flap_surf.draw_wire();
-		out_flap_surf.draw_wire();
-		in_slat_surf.draw_wire();
-		out_slat_surf.draw_wire();
-		glPopMatrix();
+	//	//==== Draw Geom ====//
+	//	glPushMatrix();
+	//	glMultMatrixf((GLfloat*)model_mat); 
+	//	mwing_surf.draw_wire();
+	//	in_flap_surf.draw_wire();
+	//	out_flap_surf.draw_wire();
+	//	in_slat_surf.draw_wire();
+	//	out_slat_surf.draw_wire();
+	//	glPopMatrix();
 
-		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-		mwing_surf.draw_refl_wire(sym_code);
-		in_flap_surf.draw_refl_wire(sym_code);
-		out_flap_surf.draw_refl_wire(sym_code);
-		in_slat_surf.draw_refl_wire(sym_code);
-		out_slat_surf.draw_refl_wire(sym_code);
-		glPopMatrix();
-	}
-	else if ( displayFlag == GEOM_SHADE_FLAG )
-	{
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
+	//	//==== Reflected Geom ====//
+	//	glPushMatrix();
+	//	glMultMatrixf((GLfloat*)reflect_mat); 
+	//	mwing_surf.draw_refl_wire(sym_code);
+	//	in_flap_surf.draw_refl_wire(sym_code);
+	//	out_flap_surf.draw_refl_wire(sym_code);
+	//	in_slat_surf.draw_refl_wire(sym_code);
+	//	out_slat_surf.draw_refl_wire(sym_code);
+	//	glPopMatrix();
+	//}
+	//else if ( displayFlag == GEOM_SHADE_FLAG )
+	//{
+	//	//==== Draw Geom ====//
+	//	glPushMatrix();
+	//	glMultMatrixf((GLfloat*)model_mat); 
 
-		Material* mat = matMgrPtr->getMaterial( materialID );
-		if ( mat )
-		{
-			mat->bind();
-			if ( mat->diff[3] > 0.99 )
-			{
-				mwing_surf.draw_shaded();
-			}
-		}
-		glPopMatrix();
+	//	Material* mat = matMgrPtr->getMaterial( materialID );
+	//	if ( mat )
+	//	{
+	//		mat->bind();
+	//		if ( mat->diff[3] > 0.99 )
+	//		{
+	//			mwing_surf.draw_shaded();
+	//		}
+	//	}
+	//	glPopMatrix();
 
-		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-		mat = matMgrPtr->getMaterial( materialID );
-		if ( mat )
-		{
-			mat->bind();
-			if  ( mat->diff[3] > 0.99 )
-				mwing_surf.draw_refl_shaded( sym_code);
-		}
-		glPopMatrix();
-	}
-	else if ( displayFlag == GEOM_HIDDEN_FLAG )
-	{
-		//==== Draw Hidden Surface ====//
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
+	//	//==== Reflected Geom ====//
+	//	glPushMatrix();
+	//	glMultMatrixf((GLfloat*)reflect_mat); 
+	//	mat = matMgrPtr->getMaterial( materialID );
+	//	if ( mat )
+	//	{
+	//		mat->bind();
+	//		if  ( mat->diff[3] > 0.99 )
+	//			mwing_surf.draw_refl_shaded( sym_code);
+	//	}
+	//	glPopMatrix();
+	//}
+	//else if ( displayFlag == GEOM_HIDDEN_FLAG )
+	//{
+	//	//==== Draw Hidden Surface ====//
+	//	glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
 
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-		mwing_surf.draw_hidden();
-		glPopMatrix();
+	//	//==== Draw Geom ====//
+	//	glPushMatrix();
+	//	glMultMatrixf((GLfloat*)model_mat); 
+	//	mwing_surf.draw_hidden();
+	//	glPopMatrix();
 
-		//==== Reflected Geom ====//
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-		mwing_surf.draw_refl_hidden(sym_code);
-		glPopMatrix();
-			
-	}
+	//	//==== Reflected Geom ====//
+	//	glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
+	//	glPushMatrix();
+	//	glMultMatrixf((GLfloat*)reflect_mat); 
+	//	mwing_surf.draw_refl_hidden(sym_code);
+	//	glPopMatrix();
+	//		
+	//}
+
+	geomRenderer* gRender = new wingRenderer( this );
+	gRender->init();
+	gRender->draw();
+	delete gRender;
 }
 
 //==== Draw If Alpha < 1 and Shaded ====//
 void WingGeom::drawAlpha()
 {
-	Material* mat = matMgrPtr->getMaterial( materialID );
-	if ( !mat )
-		return;
+	//Material* mat = matMgrPtr->getMaterial( materialID );
+	//if ( !mat )
+	//	return;
 
-	if ( mat->diff[3] > 0.99 )
-		return;
+	//if ( mat->diff[3] > 0.99 )
+	//	return;
+	//
+	//if ( displayFlag == GEOM_SHADE_FLAG )
+	//{
+	//	//==== Draw Geom ====//
+	//	glPushMatrix();
+	//	glMultMatrixf((GLfloat*)model_mat); 
+
+	//	mat->bind();
+	//	mwing_surf.draw_shaded();
+
+	//	glPopMatrix();
+
+	//	//==== Reflected Geom ====//
+	//	glPushMatrix();
+	//	glMultMatrixf((GLfloat*)reflect_mat); 
+
+	//	mat->bind();
+	//	mwing_surf.draw_refl_shaded( sym_code );
+
+	//	glPopMatrix();
+	//}
 	
-	if ( displayFlag == GEOM_SHADE_FLAG )
-	{
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
-		mat->bind();
-		mwing_surf.draw_shaded();
-
-		glPopMatrix();
-
-		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-
-		mat->bind();
-		mwing_surf.draw_refl_shaded( sym_code );
-
-		glPopMatrix();
-	}
-
+	geomRenderer* gRender = new wingRenderer( this );
+	gRender->init();
+	gRender->drawAlpha();
+	delete gRender;
 }
 //==== Set Strake and Aft On/Off Flag ====//
 void WingGeom::set_strake_aft_flag(int flag_in)

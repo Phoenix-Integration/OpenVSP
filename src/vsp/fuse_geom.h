@@ -53,19 +53,19 @@
 #define CORNER_RAD	5
 
 
-class ControlPnt
-{
-public:
-
-	enum {TOP, BOTTOM, SIDE, };
-
-	int xSecID;
-	int pntID;
-
-	vec3d pnt3d;
-	vec2d pnt2d;
-
-};
+//class ControlPnt
+//{
+//public:
+//
+//	enum {TOP, BOTTOM, SIDE, };
+//
+//	int xSecID;
+//	int pntID;
+//
+//	vec3d pnt3d;
+//	vec2d pnt2d;
+//
+//};
 
 class Fuse_geom : public Geom
 {

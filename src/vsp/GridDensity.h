@@ -114,6 +114,7 @@ public:
 	virtual ~PointSource()		{}
 
 	void SetLoc( const vec3d & loc )									{ m_Loc = loc; }
+	vec3d GetLoc()	{ return m_Loc; }
 	void SetUWLoc( const vec2d & uw )									{ m_UWLoc = uw; }
 	vec2d GetUWLoc()											{ return m_UWLoc; }	
 
@@ -157,6 +158,8 @@ public:
 	virtual void   AdjustLen( double val  );
 
 	void SetEndPnts( const vec3d & pnt1, const vec3d & pnt2 );
+	vec3d GetEndPnt1() { return m_Pnt1; }
+	vec3d GetEndPnt2() { return m_Pnt2; }
 	void UpdateBBox();
 
 	void SetNamedVal( Stringc name, double val );
@@ -256,6 +259,8 @@ public:
 	void RemoveSource( BaseSource* s );
 	void AddSource( BaseSource* s )				{ m_Sources.push_back( s ); }
 	int  GetNumSources()						{ return m_Sources.size(); }
+	
+	vector< BaseSource* > GetSources() { return m_Sources; }
 
 	void ScaleAllSources( double scale );
 

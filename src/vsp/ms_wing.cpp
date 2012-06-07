@@ -23,11 +23,11 @@
 #include "FeaMeshMgr.h"
 #include "parmLinkMgr.h"
 
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
+//#ifdef __APPLE__
+//#  include <OpenGL/gl.h>
+//#else
+//#  include <GL/gl.h>
+//#endif
 
 #include "defines.h"
 
@@ -1984,21 +1984,25 @@ void Ms_wing_geom::update_bbox()
 //==== Draw Multi Section Wing Geom ====//
 void Ms_wing_geom::draw()
 {
-	Geom::draw();
+	//Geom::draw();
 
-	if ( displayFlag == GEOM_WIRE_FLAG )
-	{
-		//==== Draw Hightlighted Stuff ====//
-		if ( redFlag )
-		{
-			glLineWidth(2);
-			glColor3f(0.75, 0, 0);
-			if ( highlightType != MSW_HIGHLIGHT_NONE )
-				draw_sect_box();
-		}
+	//if ( displayFlag == GEOM_WIRE_FLAG )
+	//{
+	//	//==== Draw Hightlighted Stuff ====//
+	//	if ( redFlag )
+	//	{
+	//		glLineWidth(2);
+	//		glColor3f(0.75, 0, 0);
+	//		if ( highlightType != MSW_HIGHLIGHT_NONE )
+	//			draw_sect_box();
+	//	}
 
-	}
+	//}
 
+	geomRenderer* gRenderer = new mswingRenderer( this );
+	gRenderer->init();
+	gRenderer->draw();
+	delete gRenderer;
 }
 
 //==== Draw If Alpha < 1 and Shaded ====//
@@ -2007,6 +2011,59 @@ void Ms_wing_geom::drawAlpha()
 	Geom::drawAlpha();
 }
 
+
+bbox Ms_wing_geom::get_sect_box()
+{
+	bbox box;
+
+	if ( fastDrawFlag )
+	{
+		box.update( vec3d( 0.0001, 0.0001, 0.0001 ) );
+		box.update( vec3d( -0.0001, -0.0001, -0.0001 ) );
+		return box;
+	}
+
+	int i;
+	vec3d pnt;
+
+	int num_pnts  = mwing_surf.get_num_pnts();
+
+	int minSectID = 0;
+	int maxSectID = 0;
+	for ( i = 0 ; i < currSect ; i++ )
+	{
+		minSectID += sects[i].num_actual_xsecs;
+	}
+
+	maxSectID = minSectID + sects[currSect].num_actual_xsecs;
+
+	if ( minSectID == 0 )
+		minSectID = 1;
+
+	if ( highlightType == MSW_HIGHLIGHT_JOINT )
+		minSectID = maxSectID;
+
+	if ( highlightType == MSW_HIGHLIGHT_FOIL && get_root_active() )
+		maxSectID = minSectID;
+
+	if ( highlightType == MSW_HIGHLIGHT_FOIL && !get_root_active() )
+		minSectID = maxSectID;
+
+
+	//==== Check Some Inlet And Nozzle Xsecs ====//
+	for ( int j = 0 ; j < num_pnts ; j++ )
+	{
+		vec3d p = mwing_surf.get_pnt(minSectID,j);
+		box.update(p.transform(model_mat));
+
+		if ( maxSectID != minSectID )
+		{
+			vec3d p = mwing_surf.get_pnt(maxSectID,j);
+			box.update(p.transform(model_mat));
+		}
+	}
+	return box;
+}
 
 //==== Update Bounding Box =====//
 void Ms_wing_geom::draw_sect_box()

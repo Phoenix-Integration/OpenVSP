@@ -150,6 +150,9 @@ public:
 
    virtual void set_num_pnts_all_afs();
 
+	/* Overloading to get all Wing Cross Sections */
+	virtual vector<Xsec_surf*> getXSectionSurfVec();
+
    Af* get_af_ptr();
    Af* get_root_af_ptr()                { return(root_foil); }
    Af* get_strake_af_ptr()              { return(strake_foil); }

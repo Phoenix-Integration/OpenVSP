@@ -20,6 +20,8 @@
 #include "Surf.h"
 #include "ISegChain.h"
 
+#include "common.h"
+
 #include <vector>				
 #include <algorithm>			
 using namespace std;
@@ -133,6 +135,7 @@ public:
 	virtual FeaSplice* FindClosestSplice( double x, double y );
 	FeaSplice* GetEditSplice()							{ return m_EditSplice; }
 	FeaSplice* GetHighlightSplice()						{ return m_HighlightSplice; }
+
 	virtual void ChangeEditSplice( int inc );
 
 	virtual void SetEditSpliceLoc( double xc );
@@ -147,7 +150,6 @@ public:
 
 	virtual void draw();
 	virtual void setGlWinWidthHeight( int w, int h )	{ winWidth = w; winHeight = h; }
-
 	virtual void setGlWinOrthoLRTB( double l, double r, double t, double b  )
 									{ winLeft = l; winRight = r; winTop = t;  winBot = b; }
 
@@ -168,6 +170,8 @@ public:
 	FeaSplice* m_HighlightSplice;
 
 	int m_Mode;
+
+	// TODO: Move this enum to common.h
 	enum { NORMAL_MODE, ADD_MODE, DEL_MODE, EDIT_MODE, };
 
 	int winWidth, winHeight;
@@ -290,6 +294,12 @@ public:
 	virtual void DrawSlicePlane();
 
 	virtual void SnapUpperLowerToSkin( vector < FeaNode* > & skinNodes );
+
+	virtual vector< vec3d > getUpperPnts() { return m_UpperPnts; }
+	virtual vector< vec3d > getLowerPnts() { return m_LowerPnts; }
+	virtual EndPoints getUpperChainPnts();
+	virtual EndPoints getLowerChainPnts();
+	virtual vec3d* getUpperEndPnts() { return m_UpperEndPnts; }
 
 	double m_Thick;
 

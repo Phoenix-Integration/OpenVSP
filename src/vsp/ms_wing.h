@@ -324,6 +324,7 @@ public:
    virtual int  get_highlight_type()							{ return highlightType; }
    virtual void set_highlight_type( int type )					{ highlightType = type; }
 
+	virtual bbox get_sect_box();
    virtual void draw_sect_box();
    virtual void draw_refl_sect_box();
    virtual void draw_bbox( bbox & box );

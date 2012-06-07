@@ -13,6 +13,7 @@
 #include "geom.h"
 #include "aircraft.h"
 #include "util.cpp"			// To get the templates to work??
+#include "feaMeshRenderer.h"
 
 //==== Singleton ====//
 FEAM_Single::FEAM_Single()
@@ -2391,197 +2392,200 @@ void FeaMeshMgr::Draw()
 	if ( !m_DrawFlag )
 		return;
 
-	GLboolean smooth_flag = glIsEnabled( GL_LINE_SMOOTH );
-	glDisable( GL_LINE_SMOOTH );
-	glDisable( GL_POINT_SMOOTH );
+	feaRenderer renderer = feaRenderer( this );
+	renderer.draw();
 
-	if ( !m_DrawMeshFlag )
-	{
-		FeaRib* curr_rib = GetCurrRib();
-		for ( int i = 0 ; i < (int)m_WingSections.size() ; i++ )
-		{
-			for ( int j = 0 ; j < (int)m_WingSections[i].m_RibVec.size() ; j++ )
-			{
-				FeaRib* rib = m_WingSections[i].m_RibVec[j];
-				if ( m_CurrEditType == RIB_EDIT && rib == curr_rib )
-					rib->Draw( true );
-				else
-					rib->Draw( false );
-			}
-		}
+	//GLboolean smooth_flag = glIsEnabled( GL_LINE_SMOOTH );
+	//glDisable( GL_LINE_SMOOTH );
+	//glDisable( GL_POINT_SMOOTH );
 
-		FeaSpar* curr_spar = GetCurrSpar();
-		for ( int i = 0 ; i < (int)m_WingSections.size() ; i++ )
-		{
-			for ( int j = 0 ; j < (int)m_WingSections[i].m_SparVec.size() ; j++ )
-			{
-				FeaSpar* spar = m_WingSections[i].m_SparVec[j];
-				if ( m_CurrEditType == SPAR_EDIT && spar == curr_spar )
-					spar->Draw( true );
-				else
-					spar->Draw( false );
-			}
-		}
-		
-		//==== Wing Sections ====//
-		for ( int i = 0 ; i < (int)m_WingSections.size() ; i++ )
-		{
-			if ( i == m_CurrSectID )
-			{
-				if ( m_CurrEditType == UP_SKIN_EDIT )
-					m_WingSections[i].m_UpperSkin.Draw( true );
-				else if ( m_CurrEditType == LOW_SKIN_EDIT )
-					m_WingSections[i].m_LowerSkin.Draw( true );
-				m_WingSections[i].Draw( true );
-			}
-			else
-			{
-				if ( m_CurrEditType == UP_SKIN_EDIT )
-					m_WingSections[i].m_UpperSkin.Draw( false );
-				else if ( m_CurrEditType == LOW_SKIN_EDIT )
-					m_WingSections[i].m_LowerSkin.Draw( false );
-				m_WingSections[i].Draw( false );
-			}
-		}
+	//if ( !m_DrawMeshFlag )
+	//{
+	//	FeaRib* curr_rib = GetCurrRib();
+	//	for ( int i = 0 ; i < (int)m_WingSections.size() ; i++ )
+	//	{
+	//		for ( int j = 0 ; j < (int)m_WingSections[i].m_RibVec.size() ; j++ )
+	//		{
+	//			FeaRib* rib = m_WingSections[i].m_RibVec[j];
+	//			if ( m_CurrEditType == RIB_EDIT && rib == curr_rib )
+	//				rib->Draw( true );
+	//			else
+	//				rib->Draw( false );
+	//		}
+	//	}
 
-	}
+	//	FeaSpar* curr_spar = GetCurrSpar();
+	//	for ( int i = 0 ; i < (int)m_WingSections.size() ; i++ )
+	//	{
+	//		for ( int j = 0 ; j < (int)m_WingSections[i].m_SparVec.size() ; j++ )
+	//		{
+	//			FeaSpar* spar = m_WingSections[i].m_SparVec[j];
+	//			if ( m_CurrEditType == SPAR_EDIT && spar == curr_spar )
+	//				spar->Draw( true );
+	//			else
+	//				spar->Draw( false );
+	//		}
+	//	}
+	//	
+	//	//==== Wing Sections ====//
+	//	for ( int i = 0 ; i < (int)m_WingSections.size() ; i++ )
+	//	{
+	//		if ( i == m_CurrSectID )
+	//		{
+	//			if ( m_CurrEditType == UP_SKIN_EDIT )
+	//				m_WingSections[i].m_UpperSkin.Draw( true );
+	//			else if ( m_CurrEditType == LOW_SKIN_EDIT )
+	//				m_WingSections[i].m_LowerSkin.Draw( true );
+	//			m_WingSections[i].Draw( true );
+	//		}
+	//		else
+	//		{
+	//			if ( m_CurrEditType == UP_SKIN_EDIT )
+	//				m_WingSections[i].m_UpperSkin.Draw( false );
+	//			else if ( m_CurrEditType == LOW_SKIN_EDIT )
+	//				m_WingSections[i].m_LowerSkin.Draw( false );
+	//			m_WingSections[i].Draw( false );
+	//		}
+	//	}
 
-	if ( m_DrawMeshFlag )
-	{
-		glPointSize( 6.0 );
-		//glColor4ub( 255, 0, 250, 255);
-		//glBegin( GL_POINTS );
-		//for ( int i = 0 ; i < debugPnts.size() ; i++ )
-		//{
-		//	glVertex3dv( debugPnts[i].data() );
+	//}
 
-		//}
-		//glEnd();
-		//////==== Collect All FeaNodes ====//
-		////vector< FeaNode* > nodeVec;
-		////for ( int i = 0 ; i < (int)m_SkinVec.size() ; i++ )
-		////	m_SkinVec[i]->LoadNodes( nodeVec );
-		////for ( int i = 0 ; i < (int)m_SliceVec.size() ; i++ )
-		////	m_SliceVec[i]->LoadNodes( nodeVec );
+	//if ( m_DrawMeshFlag )
+	//{
+	//	glPointSize( 6.0 );
+	//	////////glColor4ub( 255, 0, 250, 255);
+	//	////////glBegin( GL_POINTS );
+	//	////////for ( int i = 0 ; i < debugPnts.size() ; i++ )
+	//	////////{
+	//	////////	glVertex3dv( debugPnts[i].data() );
 
-		////for ( int i = 0 ; i < (int)nodeVec.size() ; i++ )
-		////{
-		////	if ( nodeVec[i]->m_Tags.size() > 0 )
-		////	{
-		////		glPointSize( 6.0 );
-		////		glColor4ub( 255, 0, 250, 255);
-		////		glBegin( GL_POINTS );
-		////			glVertex3dv( nodeVec[i]->m_Pnt.data() );
-		////		glEnd();
-		////	}
-		////}
+	//	////////}
+	//	////////glEnd();
+	//	////////////==== Collect All FeaNodes ====//
+	//	//////////vector< FeaNode* > nodeVec;
+	//	//////////for ( int i = 0 ; i < (int)m_SkinVec.size() ; i++ )
+	//	//////////	m_SkinVec[i]->LoadNodes( nodeVec );
+	//	//////////for ( int i = 0 ; i < (int)m_SliceVec.size() ; i++ )
+	//	//////////	m_SliceVec[i]->LoadNodes( nodeVec );
 
-		//==== Draw Ribs Spars ====//
-		glColor4ub( 0, 0, 250, 255);
-		for ( int i = 0 ; i < (int)m_SliceVec.size() ; i++ )
-		{
-			for ( int e = 0 ; e < (int)m_SliceVec[i]->m_Elements.size() ; e++ )
-			{
-				FeaElement* fe = m_SliceVec[i]->m_Elements[e];
-				glBegin( GL_POLYGON );
-				for ( int p = 0 ; p < (int)fe->m_Corners.size() ; p++ )
-					glVertex3dv( fe->m_Corners[p]->m_Pnt.data() );
-				glEnd();
-			}
-		}
-		glLineWidth(2.0);
-		glColor4ub( 0, 0, 0, 255 );
-		for ( int i = 0 ; i < (int)m_SliceVec.size() ; i++ )
-		{
-			for ( int e = 0 ; e < (int)m_SliceVec[i]->m_Elements.size() ; e++ )
-			{
-				FeaElement* fe = m_SliceVec[i]->m_Elements[e];
-				glBegin( GL_LINE_LOOP );
-				for ( int p = 0 ; p < (int)fe->m_Corners.size() ; p++ )
-					glVertex3dv( fe->m_Corners[p]->m_Pnt.data() );
-				glEnd();
-			}
-		}
+	//	//////////for ( int i = 0 ; i < (int)nodeVec.size() ; i++ )
+	//	//////////{
+	//	//////////	if ( nodeVec[i]->m_Tags.size() > 0 )
+	//	//////////	{
+	//	//////////		glPointSize( 6.0 );
+	//	//////////		glColor4ub( 255, 0, 250, 255);
+	//	//////////		glBegin( GL_POINTS );
+	//	//////////			glVertex3dv( nodeVec[i]->m_Pnt.data() );
+	//	//////////		glEnd();
+	//	//////////	}
+	//	//////////}
 
-		//==== Draw Potential Point Mass Attachment Points ====//
-		if ( m_CurrEditType == POINT_MASS_EDIT && m_DrawAttachPoints )
-		{
-			glPointSize(6.0);
-			glColor4ub( 100, 100, 100, 255 );
-			glBegin( GL_POINTS );
-			for ( int i = 0 ; i < (int)m_AttachPoints.size() ; i++ )
-			{
-				if ( i != m_ClosestAttachPoint )
-				{
-					glVertex3dv( m_AttachPoints[i].data() );
-				}	
-			}
-			glEnd();
+	//	//==== Draw Ribs Spars ====//
+	//	glColor4ub( 0, 0, 250, 255);
+	//	for ( int i = 0 ; i < (int)m_SliceVec.size() ; i++ )
+	//	{
+	//		for ( int e = 0 ; e < (int)m_SliceVec[i]->m_Elements.size() ; e++ )
+	//		{
+	//			FeaElement* fe = m_SliceVec[i]->m_Elements[e];
+	//			glBegin( GL_POLYGON );
+	//			for ( int p = 0 ; p < (int)fe->m_Corners.size() ; p++ )
+	//				glVertex3dv( fe->m_Corners[p]->m_Pnt.data() );
+	//			glEnd();
+	//		}
+	//	}
+	//	glLineWidth(2.0);
+	//	glColor4ub( 0, 0, 0, 255 );
+	//	for ( int i = 0 ; i < (int)m_SliceVec.size() ; i++ )
+	//	{
+	//		for ( int e = 0 ; e < (int)m_SliceVec[i]->m_Elements.size() ; e++ )
+	//		{
+	//			FeaElement* fe = m_SliceVec[i]->m_Elements[e];
+	//			glBegin( GL_LINE_LOOP );
+	//			for ( int p = 0 ; p < (int)fe->m_Corners.size() ; p++ )
+	//				glVertex3dv( fe->m_Corners[p]->m_Pnt.data() );
+	//			glEnd();
+	//		}
+	//	}
 
-			if ( m_ClosestAttachPoint >= 0 && m_ClosestAttachPoint < (int)m_AttachPoints.size() )
-			{
-				glPointSize(8.0);
-				glColor4ub( 255, 0, 0, 255 );
-				glBegin( GL_POINTS );
-				glVertex3dv( m_AttachPoints[m_ClosestAttachPoint].data() );
-				glEnd();
-			}
-		}
+	//	//==== Draw Potential Point Mass Attachment Points ====//
+	//	if ( m_CurrEditType == POINT_MASS_EDIT && m_DrawAttachPoints )
+	//	{
+	//		glPointSize(6.0);
+	//		glColor4ub( 100, 100, 100, 255 );
+	//		glBegin( GL_POINTS );
+	//		for ( int i = 0 ; i < (int)m_AttachPoints.size() ; i++ )
+	//		{
+	//			if ( i != m_ClosestAttachPoint )
+	//			{
+	//				glVertex3dv( m_AttachPoints[i].data() );
+	//			}	
+	//		}
+	//		glEnd();
 
-		//==== Draw Skin ====//
-		glCullFace( GL_BACK );						// Cull Back Faces For Trans
-		glEnable( GL_CULL_FACE );
+	//		if ( m_ClosestAttachPoint >= 0 && m_ClosestAttachPoint < (int)m_AttachPoints.size() )
+	//		{
+	//			glPointSize(8.0);
+	//			glColor4ub( 255, 0, 0, 255 );
+	//			glBegin( GL_POINTS );
+	//			glVertex3dv( m_AttachPoints[m_ClosestAttachPoint].data() );
+	//			glEnd();
+	//		}
+	//	}
 
-		glColor4ub( 150, 150, 150, 50 );
-		for ( int i = 0 ; i < (int)m_SkinVec.size() ; i++ )
-		{
-			for ( int e = 0 ; e < (int)m_SkinVec[i]->m_Elements.size() ; e++ )
-			{
-				FeaElement* fe = m_SkinVec[i]->m_Elements[e];
-				glBegin( GL_POLYGON );
-				for ( int p = 0 ; p < (int)fe->m_Corners.size() ; p++ )
-					glVertex3dv( fe->m_Corners[p]->m_Pnt.data() );
-				glEnd();
-			}
-		}
-		glLineWidth(2.0);
-		glColor4ub( 0, 0, 0, 100 );
-		for ( int i = 0 ; i < (int)m_SkinVec.size() ; i++ )
-		{
-			for ( int e = 0 ; e < (int)m_SkinVec[i]->m_Elements.size() ; e++ )
-			{
-				FeaElement* fe = m_SkinVec[i]->m_Elements[e];
-				glBegin( GL_LINE_LOOP );
-				for ( int p = 0 ; p < (int)fe->m_Corners.size() ; p++ )
-					glVertex3dv( fe->m_Corners[p]->m_Pnt.data() );
-				glEnd();
-			}
-		}
+	//	//==== Draw Skin ====//
+	//	glCullFace( GL_BACK );						// Cull Back Faces For Trans
+	//	glEnable( GL_CULL_FACE );
 
-		glDisable( GL_CULL_FACE );
-	}
+	//	glColor4ub( 150, 150, 150, 50 );
+	//	for ( int i = 0 ; i < (int)m_SkinVec.size() ; i++ )
+	//	{
+	//		for ( int e = 0 ; e < (int)m_SkinVec[i]->m_Elements.size() ; e++ )
+	//		{
+	//			FeaElement* fe = m_SkinVec[i]->m_Elements[e];
+	//			glBegin( GL_POLYGON );
+	//			for ( int p = 0 ; p < (int)fe->m_Corners.size() ; p++ )
+	//				glVertex3dv( fe->m_Corners[p]->m_Pnt.data() );
+	//			glEnd();
+	//		}
+	//	}
+	//	glLineWidth(2.0);
+	//	glColor4ub( 0, 0, 0, 100 );
+	//	for ( int i = 0 ; i < (int)m_SkinVec.size() ; i++ )
+	//	{
+	//		for ( int e = 0 ; e < (int)m_SkinVec[i]->m_Elements.size() ; e++ )
+	//		{
+	//			FeaElement* fe = m_SkinVec[i]->m_Elements[e];
+	//			glBegin( GL_LINE_LOOP );
+	//			for ( int p = 0 ; p < (int)fe->m_Corners.size() ; p++ )
+	//				glVertex3dv( fe->m_Corners[p]->m_Pnt.data() );
+	//			glEnd();
+	//		}
+	//	}
 
-	//==== Draw Potential Point Mass Attachment Points ====//
-	if ( m_CurrEditType == POINT_MASS_EDIT  )
-	{
-		for ( int i = 0 ; i < (int)m_PointMassVec.size() ; i++ )
-		{
-			if ( i == m_CurrPointMassID )
-				m_PointMassVec[i]->Draw( true );
-			else
-				m_PointMassVec[i]->Draw( false );
-		}
-	}
+	//	glDisable( GL_CULL_FACE );
+	//}
+
+	////==== Draw Potential Point Mass Attachment Points ====//
+	//if ( m_CurrEditType == POINT_MASS_EDIT  )
+	//{
+	//	for ( int i = 0 ; i < (int)m_PointMassVec.size() ; i++ )
+	//	{
+	//		if ( i == m_CurrPointMassID )
+	//			m_PointMassVec[i]->Draw( true );
+	//		else
+	//			m_PointMassVec[i]->Draw( false );
+	//	}
+	//}
 
 
 
 
 
-	if ( smooth_flag )
-	{
-		glEnable( GL_LINE_SMOOTH );
-		glEnable( GL_POINT_SMOOTH );
-	}
+	//if ( smooth_flag )
+	//{
+	//	glEnable( GL_LINE_SMOOTH );
+	//	glEnable( GL_POINT_SMOOTH );
+	//}
 
 }
 

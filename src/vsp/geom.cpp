@@ -10,13 +10,13 @@
 #include <windows.h>		
 #endif
 
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#  include <OpenGL/glu.h>
-#else
-#  include <GL/gl.h>
-#  include <GL/glu.h>
-#endif
+//#ifdef __APPLE__
+//#  include <OpenGL/gl.h>
+//#  include <OpenGL/glu.h>
+//#else
+//#  include <GL/gl.h>
+//#  include <GL/glu.h>
+//#endif
 
 #include "geom.h"
 #include "aircraft.h"
@@ -214,8 +214,9 @@ Geom::Geom( Aircraft* aptr ) : GeomBase()
 Geom::~Geom()
 {
 	for ( int i = 0 ; i < (int)partVec.size() ; i++ )
+	{
 		delete partVec[i];
-
+	}
 	partVec.clear();
 
 	DelAllSources();
@@ -1267,77 +1268,22 @@ void Geom::setColor( double r, double g, double b)
 //==== Draw Highlighting Boxes ====//
 void Geom::draw_highlight_boxes()
 {
-
-  //==== Draw Current Comp Box =====//
-  if ( redFlag == 1)
-    {
-      glLineWidth(2);
-      glColor3f(1.0, 0, 0);
-      draw_bbox(); 
-    }
-
-  //==== Draw Temp Highlight Box =====//
-  if ( yellowFlag == 1)
-    {
-      glLineWidth(2);
-      glColor3f(1.0, 1.0, 0);
-      draw_bbox(); 
-    }
+	geomRenderer* gRenderPtr = new geomRenderer( this );
+	//gRenderPtr->init( GENERAL_GEOM );
+	gRenderPtr->init();
+	gRenderPtr->draw_highlight_boxes();
+	delete gRenderPtr;
 } 
 
  
 //==== Compose Modeling Matrix ====//
 void Geom::draw_bbox()
 {
-  double temp[3];
-  temp[0] = bnd_box_xform.get_min(0);
-  temp[1] = bnd_box_xform.get_min(1);
-  temp[2] = bnd_box_xform.get_min(2);
-
-  glBegin( GL_LINE_STRIP );
-    glVertex3dv(temp);
-    temp[0] = bnd_box_xform.get_max(0);
-    glVertex3dv(temp);
-    temp[1] = bnd_box_xform.get_max(1);
-    glVertex3dv(temp);
-    temp[2] = bnd_box_xform.get_max(2);
-    glVertex3dv(temp);
-    temp[0] = bnd_box_xform.get_min(0);
-    glVertex3dv(temp);
-    temp[2] = bnd_box_xform.get_min(2);
-    glVertex3dv(temp);
-    temp[1] = bnd_box_xform.get_min(1);
-    glVertex3dv(temp);
-    temp[2] = bnd_box_xform.get_max(2);
-    glVertex3dv(temp);
-    temp[0] = bnd_box_xform.get_max(0);
-    glVertex3dv(temp);
-    temp[2] = bnd_box_xform.get_min(2);
-    glVertex3dv(temp);
-  glEnd();
-
-  glBegin( GL_LINE_STRIP );
-    temp[2] = bnd_box_xform.get_max(2);
-    glVertex3dv(temp);
-    temp[1] = bnd_box_xform.get_max(1);
-    glVertex3dv(temp);
-  glEnd();
-
-  glBegin( GL_LINE_STRIP );
-    temp[2] = bnd_box_xform.get_min(2);
-    glVertex3dv(temp);
-    temp[0] = bnd_box_xform.get_min(0);
-    glVertex3dv(temp);
-  glEnd();
-
-  glBegin( GL_LINE_STRIP );
-    temp[2] = bnd_box_xform.get_max(2);
-    glVertex3dv(temp);
-    temp[1] = bnd_box_xform.get_min(1);
-    glVertex3dv(temp);
-  glEnd();
-  
-
+	geomRenderer* gRenderPtr = new geomRenderer( this );
+	//gRenderPtr->init( GENERAL_GEOM );
+	gRenderPtr->init();
+	gRenderPtr->draw_bbox();
+	delete gRenderPtr;
 }
 
 //==== Write POV Input File ====//
@@ -1509,239 +1455,28 @@ void  Geom::buildVertexVec(vector<TMesh*> * meshVec, int surface, vector< Vertex
    
 void Geom::drawTextures(bool reflFlag)
 {
-	glEnable( GL_LIGHTING );
-
-	glEnable( GL_TEXTURE_2D );			// Turn On Texturing 
-	glDepthMask(GL_FALSE);				// Turn Off Depth Buffer
-	glDepthFunc(GL_EQUAL);
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	glEnable(GL_ALPHA_TEST);  
-	glAlphaFunc(GL_GREATER, 0);   
-
-	for ( int i = 0 ; i < (int)appTexVec.size() ; i++ )
-	{
-		// White Base Material For Textures
-		Material* mat = matMgrPtr->getMaterial( materialID );
-		Material wmat = matMgrPtr->getWhiteMaterial( (float)appTexVec[i].bright, mat->shine );	
-		wmat.diff[3] = (float)appTexVec[i].alpha;
-		wmat.bind();
-
-		glBindTexture(GL_TEXTURE_2D, appTexVec[i].texID );
-
-		if ( appTexVec[i].repeatFlag )
-		{
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		}
-		else
-		{
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		}
-
-		for ( int s = 0 ; s < (int)surfVec.size() ; s++ )
-		{
-			if ( surfVec[s]->get_draw_flag() )
-			{
-				if ( appTexVec[i].surfID == s || appTexVec[i].allSurfFlag )
-				{
-					if ( reflFlag )	
-						surfVec[s]->draw_refl_texture( appTexVec[i], sym_code );
-					else
-						surfVec[s]->draw_texture( appTexVec[i] );
-				}
-			}
-		}
-
-	}
-	glDepthMask(GL_TRUE);				// Turn On Depth Buffer
-	glDepthFunc(GL_LESS);
-	glDisable( GL_TEXTURE_2D );			// Turn Off Texturing
-	glDisable( GL_LIGHTING );
+	geomRenderer* gRenderPtr = new geomRenderer( this );
+	gRenderPtr->init();
+	gRenderPtr->drawTextures( reflFlag );
+	delete gRenderPtr;
 }
 
 
 void Geom::draw()
 {
-	int i;
-
-	//==== Draw Highlighting Boxes ====//
-	draw_highlight_boxes();
-
-	//==== Check Noshow Flag ====//
-	if ( noshowFlag ) return;	
-
-	if ( displayFlag == GEOM_WIRE_FLAG )
-	{
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
-		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
-		{
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-			if ( surfVec[i]->get_draw_flag() )
-			{
-				surfVec[i]->draw_wire();
-			}
-		}
-
-		glPopMatrix();
-
-		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-
-		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
-		{
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-			if ( surfVec[i]->get_draw_flag() )
-				surfVec[i]->draw_refl_wire(sym_code);
-		}
-
-		glPopMatrix();
-	}
-	else if ( displayFlag == GEOM_SHADE_FLAG || displayFlag == GEOM_TEXTURE_FLAG)
-	{
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
-		Material* mat = matMgrPtr->getMaterial( materialID );
-		if ( mat )
-		{
-			if ( mat->diff[3] > 0.99 )
-			{
-				mat->bind();
-
-				for ( i = 0 ; i < (int)surfVec.size() ; i++ )
-				{
-					if ( surfVec[i]->get_draw_flag() )
-						surfVec[i]->draw_shaded();
-				}
-
-				if ( displayFlag == GEOM_TEXTURE_FLAG )
-					drawTextures(false);
-			}
-		}
-		glPopMatrix();
-
-		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-		mat = matMgrPtr->getMaterial( materialID );
-		if ( mat )
-		{
-			mat->bind();
-			if  ( mat->diff[3] > 0.99 )
-			{
-				for ( i = 0 ; i < (int)surfVec.size() ; i++ )
-				{
-					if ( surfVec[i]->get_draw_flag() )
-						surfVec[i]->draw_refl_shaded(sym_code);
-				}
-
-				if ( displayFlag == GEOM_TEXTURE_FLAG )
-					drawTextures(true);
-			}
-		}
-		glPopMatrix();
-	}
-	else if ( displayFlag == GEOM_HIDDEN_FLAG )
-	{
-		//==== Draw Hidden Surface ====//
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
-		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
-		{
-			if ( surfVec[i]->get_draw_flag() )
-			{						
-				glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-				surfVec[i]->draw_hidden();
-			}
-		}
-		glPopMatrix();
-
-		//==== Reflected Geom ====//
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
-		{
-			if ( surfVec[i]->get_draw_flag() )
-			{
-				glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-				surfVec[i]->draw_refl_hidden(sym_code);
-			}
-		}
-		glPopMatrix();
-			
-	}
-	glDisable( GL_LIGHTING );
+	geomRenderer* gRenderPtr = new geomRenderer( this );
+	gRenderPtr->init();
+	gRenderPtr->draw();
+	delete gRenderPtr;
 }
 
 
-
-//==== Draw If Alpha < 1 and Shaded ====//
 void Geom::drawAlpha()
 {
-	int i;
-	Material* mat = matMgrPtr->getMaterial( materialID );
-	if ( !mat )
-		return;
-
-	if ( mat->diff[3] > 0.99 )
-		return;
-
-	//==== Check Noshow Flag ====//
-	if ( noshowFlag ) return;	
-	
-	if ( displayFlag == GEOM_SHADE_FLAG || displayFlag == GEOM_TEXTURE_FLAG )
-	{
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
-		mat->bind();
-//		body_surf.draw_shaded();
-
-		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
-		{
-			if ( surfVec[i]->get_draw_flag() )
-				surfVec[i]->draw_shaded();
-		}
-
-
-		if ( displayFlag == GEOM_TEXTURE_FLAG )
-			drawTextures(false);
-
-		glPopMatrix();
-
-		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-
-		mat->bind();
-//		body_surf.draw_refl_shaded( sym_code );
-		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
-		{
-			if ( surfVec[i]->get_draw_flag() )
-				surfVec[i]->draw_refl_shaded( sym_code );
-		}
-
-		if ( displayFlag == GEOM_TEXTURE_FLAG )
-			drawTextures(true);
-
-		glPopMatrix();
-	}
-
+	geomRenderer* gRenderPtr = new geomRenderer( this );
+	gRenderPtr->init();
+	gRenderPtr->drawAlpha();
+	delete gRenderPtr;
 }
 //=====================================================================================================//
 //=====================================================================================================//
@@ -2688,26 +2423,10 @@ void BlankGeom::resetScaleFactor()
 
 void BlankGeom::draw()
 {
-		//==== Check Noshow Flag ====//
-	if ( noshowFlag ) return;	
-
-	if ( displayFlag == GEOM_WIRE_FLAG && redFlag )
-	{
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
-			glColor3ub( 255, 0, 255 );
-			glPointSize( 10.0 );
-			glBegin( GL_POINTS );
-			glVertex3d( 0, 0, 0 );
-			glEnd();
-
-		glPopMatrix();
-	}
-
+	geomRenderer* bRender = new blankRenderer( this );
+	bRender->init();
+	bRender->draw();
+	delete bRender;
 }
 
 //==== Draw If Alpha < 1 and Shaded ====//
@@ -2744,7 +2463,12 @@ XSecGeom::XSecGeom(Aircraft* aptr) : Geom(aptr)
 
 	setName( Stringc(name) );
 
+	for ( int i = 0; i < ( int )surfVec.size(); i++ )
+	{
+		delete surfVec[i];
+	}
 	surfVec.clear();
+
 	for ( int i = 0 ; i < (int)xsecCompVec.size() ; i++ )
 		surfVec.push_back( &xsecCompVec[i] );
 

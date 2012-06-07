@@ -31,26 +31,26 @@
 #include "xsec_surf.h"
 #include "dl_list.h"
 
-#define NOSE 0
-#define AFT  1
-
-//===== Define Computed Parameters =====
-#define NUM_COMP_PARMS	6
-#define TOTAL_LENGTH	0
-#define NOSE_ASPECT	1
-#define AFT_ASPECT	2
-#define SEP_XSEC_AREA	3
-#define MAX_XSEC_AREA	4
-#define MAX_XSEC_WIDTH  5
-
-//===== Define Computed Slice Parameters =====
-#define NUM_SLICE_PARMS 6
-#define X_LOC		0
-#define BURY_FLAG	1
-#define AREA		2
-#define ASPECT		3
-#define CAMBER		4
-#define CORNER_RAD	5
+//#define NOSE 0
+//#define AFT  1
+//
+////===== Define Computed Parameters =====
+//#define NUM_COMP_PARMS	6
+//#define TOTAL_LENGTH	0
+//#define NOSE_ASPECT	1
+//#define AFT_ASPECT	2
+//#define SEP_XSEC_AREA	3
+//#define MAX_XSEC_AREA	4
+//#define MAX_XSEC_WIDTH  5
+//
+////===== Define Computed Slice Parameters =====
+//#define NUM_SLICE_PARMS 6
+//#define X_LOC		0
+//#define BURY_FLAG	1
+//#define AREA		2
+//#define ASPECT		3
+//#define CAMBER		4
+//#define CORNER_RAD	5
 
 
 class FuselageGeom : public Geom

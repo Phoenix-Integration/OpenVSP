@@ -45,6 +45,8 @@ public:
 	void ComputePerSpanChord( vec3d & pnt, double* per_span, double* per_chord );
 	void Draw( bool highlight );
 
+	vec3d* GetCornerPnts() { return m_CornerPnts; }
+
 	Surf* m_UpperSurfPtr;
 	Surf* m_LowerSurfPtr;
 
@@ -52,6 +54,7 @@ public:
 	vec3d m_ChordNormal;
 	double m_SweepLE;
 
+	// TODO: Move this enum to common.h
 	enum { UW00, UW10, UW01, UW11, NUM_CORNER_PNTS };
 	vec3d m_CornerPnts[NUM_CORNER_PNTS];
 
@@ -150,6 +153,7 @@ public:
 	virtual void AddPointMass();
 	virtual void DelCurrPointMass();
 
+	// TODO: Move this enum to common.h
 	enum { UP_SKIN_EDIT, LOW_SKIN_EDIT, SPAR_EDIT, RIB_EDIT, POINT_MASS_EDIT };
 	virtual void SetCurrEditType( int t )			{ m_CurrEditType = t; }
 	virtual int  GetCurrEditType()					{ return m_CurrEditType; }
@@ -164,6 +168,13 @@ public:
 	virtual bool GetBatchFlag()						{ return m_BatchFlag; }
 	virtual void SetDrawAttachPointsFlag( bool f )	{ m_DrawAttachPoints = f; }
 	virtual bool GetDrawAttachPointsFlag()			{ return m_DrawAttachPoints; }
+
+	virtual vector< FeaSlice* > GetSliceVec() { return m_SliceVec; }
+	virtual vector< FeaSkin* > GetSkinVec() { return m_SkinVec; }
+	virtual vector< FeaPointMass* > GetPointMassVec() { return m_PointMassVec; }
+	virtual vector< vec3d > GetAttachmentPoints() { return m_AttachPoints; }
+	virtual int GetClosestAttachPointIndex() { return m_ClosestAttachPoint; }
+	virtual int GetWingSectionSize() { return ( int )m_WingSections.size(); }
 
 	virtual void SaveData();
 	virtual void WriteFeaStructData( Geom* geom_ptr, xmlNodePtr root );

@@ -15,6 +15,8 @@
 #include "SurfPatch.h"
 #include "Tri.h"
 
+#include "cfdMeshRenderer.h"
+
 #ifdef DEBUG_CFD_MESH
 #include <direct.h>
 #endif
@@ -2611,111 +2613,119 @@ void CfdMeshMgr::TestStuff()
 
 void CfdMeshMgr::Draw()
 {
-	bool isShown = aircraftPtr->getScreenMgr()->getCfdMeshScreen()->isShown();
-	if ( !isShown )
-		return;
+	cfdRenderer* renderer = new cfdRenderer( this );
+	gridDensityRenderer* gdRenderer = new gridDensityRenderer( this->GetGridDensityPtr() );
+	renderer->init();
+	renderer->setValue( gdRenderer, R_CFD_GDENSITY_RENDER );
+	renderer->draw();
+	delete gdRenderer;
+	delete renderer;
 
-	glLineWidth( 1.0 );
-	glColor4ub( 255, 0, 0, 255 );
-
-	BaseSource* source = GetCurrSource();
-
-	if ( m_DrawSourceFlag )
-		m_GridDensity.Draw(source);
-
-	if ( m_DrawMeshFlag )
-	{
-	////////glLineWidth( 1.0 );
-	////////glColor4ub( 255, 0, 0, 255 );
-	////////glBegin( GL_LINES );
-	////////for ( int i = 0 ; i < debugPnts.size() ; i+=2 )
-	////////{
-	////////	if ( i%4 == 0 )
-	////////		glColor4ub( 255, 0, 0, 255 );
-	////////	else
-	////////		glColor4ub( 0, 0, 255, 255 );
-	////////	glVertex3dv( debugPnts[i].data() );
-	////////	glVertex3dv( debugPnts[i+1].data() );
-	////////}
-	////////glEnd();
-	////////glColor4ub( 0, 0, 0, 255 );
-	////////glPointSize(4.0);
-	////////glBegin( GL_POINTS );
-	////////for ( int i = 0 ; i < debugPnts.size() ; i++ )
-	////////{
-	////////	glVertex3dv( debugPnts[i].data() );
-	////////}
-	////////glEnd();
-
-
-		//==== Draw Mesh ====//
-		glPolygonOffset(2.0, 1);
-
-		glCullFace( GL_BACK );						// Cull Back Faces For Trans
-		glEnable( GL_CULL_FACE );
-
-#ifndef __APPLE__
-		glEnable(GL_POLYGON_OFFSET_EXT);
-#endif
- 
-		glColor4ub( 220, 220, 220, 255 );
-		for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
-		{
-			//list< Tri* >::iterator t;
-			//list <Tri*> tlist = m_SurfVec[i]->GetMesh()->GetTriList();
-
-			//for ( t = tlist.begin() ; t != tlist.end(); t++ )
-			//{
-			//	glBegin( GL_POLYGON );
-			//		glVertex3dv( (*t)->n0->pnt.data() );
-			//		glVertex3dv( (*t)->n1->pnt.data() );
-			//		glVertex3dv( (*t)->n2->pnt.data() );
-			//	glEnd();
-			//}
-
-			vector< vec3d > pVec = m_SurfVec[i]->GetMesh()->GetSimpPntVec();
-			for ( int t = 0 ; t < (int)m_SurfVec[i]->GetMesh()->GetSimpTriVec().size() ; t++ )
-			{
-				SimpTri* stri = &m_SurfVec[i]->GetMesh()->GetSimpTriVec()[t];
-				glBegin( GL_POLYGON );
-					glVertex3dv( pVec[stri->ind0].data() );
-					glVertex3dv( pVec[stri->ind1].data() );
-					glVertex3dv( pVec[stri->ind2].data() );
-				glEnd();
-			}
-		}
-
-		glLineWidth(1.0);
-		glColor4ub( 100, 0, 100, 255 );
-		for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
-		{
-			//list< Tri* >::iterator t;
-			//list <Tri*> tlist = m_SurfVec[i]->GetMesh()->GetTriList();
-
-			//for ( t = tlist.begin() ; t != tlist.end(); t++ )
-			//{
-			//	glBegin( GL_LINE_LOOP );
-			//		glVertex3dv( (*t)->n0->pnt.data() );
-			//		glVertex3dv( (*t)->n1->pnt.data() );
-			//		glVertex3dv( (*t)->n2->pnt.data() );
-			//	glEnd();
-			//}
-			vector< vec3d > pVec = m_SurfVec[i]->GetMesh()->GetSimpPntVec();
-			for ( int t = 0 ; t < (int)m_SurfVec[i]->GetMesh()->GetSimpTriVec().size() ; t++ )
-			{
-				SimpTri* stri = &m_SurfVec[i]->GetMesh()->GetSimpTriVec()[t];
-				glBegin( GL_LINE_LOOP );
-					glVertex3dv( pVec[stri->ind0].data() );
-					glVertex3dv( pVec[stri->ind1].data() );
-					glVertex3dv( pVec[stri->ind2].data() );
-				glEnd();
-			}
-		}
-		glDisable( GL_CULL_FACE );
-#ifndef __APPLE__
-		glDisable(GL_POLYGON_OFFSET_EXT);
-#endif
-	}
+//	bool isShown = aircraftPtr->getScreenMgr()->getCfdMeshScreen()->isShown();
+//	if ( !isShown )
+//		return;
+//
+//	glLineWidth( 1.0 );
+//	glColor4ub( 255, 0, 0, 255 );
+//
+//	BaseSource* source = GetCurrSource();
+//
+//	if ( m_DrawSourceFlag )
+//		m_GridDensity.Draw(source);
+//
+//	if ( m_DrawMeshFlag )
+//	{
+//	//////glLineWidth( 1.0 );
+//	//////glColor4ub( 255, 0, 0, 255 );
+//	//////glBegin( GL_LINES );
+//	//////for ( int i = 0 ; i < debugPnts.size() ; i+=2 )
+//	//////{
+//	//////	if ( i%4 == 0 )
+//	//////		glColor4ub( 255, 0, 0, 255 );
+//	//////	else
+//	//////		glColor4ub( 0, 0, 255, 255 );
+//	//////	glVertex3dv( debugPnts[i].data() );
+//	//////	glVertex3dv( debugPnts[i+1].data() );
+//	//////}
+//	//////glEnd();
+//	//////glColor4ub( 0, 0, 0, 255 );
+//	//////glPointSize(4.0);
+//	//////glBegin( GL_POINTS );
+//	//////for ( int i = 0 ; i < debugPnts.size() ; i++ )
+//	//////{
+//	//////	glVertex3dv( debugPnts[i].data() );
+//	//////}
+//	//////glEnd();
+//
+//
+//		//==== Draw Mesh ====//
+//		glPolygonOffset(2.0, 1);
+//
+//		glCullFace( GL_BACK );						// Cull Back Faces For Trans
+//		glEnable( GL_CULL_FACE );
+//
+//#ifndef __APPLE__
+//		glEnable(GL_POLYGON_OFFSET_EXT);
+//#endif
+// 
+//		glColor4ub( 220, 220, 220, 255 );
+//		for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
+//		{
+//			////list< Tri* >::iterator t;
+//			////list <Tri*> tlist = m_SurfVec[i]->GetMesh()->GetTriList();
+//
+//			////for ( t = tlist.begin() ; t != tlist.end(); t++ )
+//			////{
+//			////	glBegin( GL_POLYGON );
+//			////		glVertex3dv( (*t)->n0->pnt.data() );
+//			////		glVertex3dv( (*t)->n1->pnt.data() );
+//			////		glVertex3dv( (*t)->n2->pnt.data() );
+//			////	glEnd();
+//			////}
+//
+//			vector< vec3d > pVec = m_SurfVec[i]->GetMesh()->GetSimpPntVec();
+//			for ( int t = 0 ; t < (int)m_SurfVec[i]->GetMesh()->GetSimpTriVec().size() ; t++ )
+//			{
+//				SimpTri* stri = &m_SurfVec[i]->GetMesh()->GetSimpTriVec()[t];
+//				glBegin( GL_POLYGON );
+//					glVertex3dv( pVec[stri->ind0].data() );
+//					glVertex3dv( pVec[stri->ind1].data() );
+//					glVertex3dv( pVec[stri->ind2].data() );
+//				glEnd();
+//			}
+//		}
+//
+//		glLineWidth(1.0);
+//		glColor4ub( 100, 0, 100, 255 );
+//		for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
+//		{
+//			////list< Tri* >::iterator t;
+//			////list <Tri*> tlist = m_SurfVec[i]->GetMesh()->GetTriList();
+//
+//			////for ( t = tlist.begin() ; t != tlist.end(); t++ )
+//			////{
+//			////	glBegin( GL_LINE_LOOP );
+//			////		glVertex3dv( (*t)->n0->pnt.data() );
+//			////		glVertex3dv( (*t)->n1->pnt.data() );
+//			////		glVertex3dv( (*t)->n2->pnt.data() );
+//			////	glEnd();
+//			////}
+//			vector< vec3d > pVec = m_SurfVec[i]->GetMesh()->GetSimpPntVec();
+//			for ( int t = 0 ; t < (int)m_SurfVec[i]->GetMesh()->GetSimpTriVec().size() ; t++ )
+//			{
+//				SimpTri* stri = &m_SurfVec[i]->GetMesh()->GetSimpTriVec()[t];
+//				glBegin( GL_LINE_LOOP );
+//					glVertex3dv( pVec[stri->ind0].data() );
+//					glVertex3dv( pVec[stri->ind1].data() );
+//					glVertex3dv( pVec[stri->ind2].data() );
+//				glEnd();
+//			}
+//		}
+//		glDisable( GL_CULL_FACE );
+//#ifndef __APPLE__
+//		glDisable(GL_POLYGON_OFFSET_EXT);
+//#endif
+//	}
 
 
 #ifdef DEBUG_CFD_MESH

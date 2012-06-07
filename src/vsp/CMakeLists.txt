@@ -10,8 +10,8 @@ IF(WIN32)
     zlib
     rpcrt4)
   SET(OPENNURBS_LINK_DIR
-    ${VSP_SOURCE_DIR}/opennurbs/release
-    ${VSP_SOURCE_DIR}/opennurbs/zlib/Release)
+    ${VSP_SOURCE_DIR}/opennurbs/debug
+    ${VSP_SOURCE_DIR}/opennurbs/zlib/Debug)
 ELSE(WIN32)
   SET(OPENNURBS_LIBRARIES
     openNURBS)
@@ -28,7 +28,10 @@ INCLUDE_DIRECTORIES( ${VSP_SOURCE_DIR}
     ${JPEG_INCLUDE_DIR}
     ${FLTK_INCLUDE_DIR}
     ${LIBXML2_INCLUDE_DIR}
-    ${VSP_SOURCE_DIR}/opennurbs )
+    ${VSP_SOURCE_DIR}/opennurbs 
+    ${VSP_RENDERERS_INCLUDE_DIR}
+    ${VSP_SOURCE_DIR}/vsp_common
+)
 
 LINK_DIRECTORIES(
     ${OPENNURBS_LINK_DIR}
@@ -41,6 +44,7 @@ blankScreen.cpp
 cabinLayoutGeom.cpp
 cabinLayoutScreen.cpp
 CfdMeshMgr.cpp
+cfdMeshRenderer.cpp
 cfdMeshScreen.cpp
 curveEditScreen.cpp
 drawBase.cpp
@@ -52,6 +56,7 @@ engineScreen.cpp
 ext_geom.cpp
 extScreen.cpp
 FeaMeshMgr.cpp
+feaMeshRenderer.cpp
 FeaPart.cpp
 feaStructScreen.cpp
 fontMgr.cpp
@@ -62,6 +67,7 @@ FuselageScreen.cpp
 FuselageXSec.cpp
 fuseScreen.cpp
 geom.cpp
+geomRenderer.cpp
 geomScreen.cpp
 glfont2.cpp
 GridDensity.cpp
@@ -122,6 +128,7 @@ TARGET_LINK_LIBRARIES(vsp
     screens
     xmlvsp
     sixseries
+    vsp_renderers
     ${JPEG_LIBRARIES}
     ${LIBXML2_LIBRARIES}
     ${FLTK_LIBRARIES}

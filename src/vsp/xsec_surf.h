@@ -16,15 +16,15 @@
 #ifndef XSEC_SURF_H
 #define XSEC_SURF_H
 
-#ifdef WIN32
-#include <windows.h>		
-#endif
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
+//#ifdef WIN32
+//#include <windows.h>		
+//#endif
+//
+//#ifdef __APPLE__
+//#  include <OpenGL/gl.h>
+//#else
+//#  include <GL/gl.h>
+//#endif
 
 #pragma warning(disable:4786)
 
@@ -110,6 +110,8 @@ public:
    void set_pnt(int ixs, int ipnt, const vec3d& v_in)	
       { pnts_xsecs(ixs,ipnt) = v_in; }
    vec3d get_pnt(int ixs, int ipnt)	{ return pnts_xsecs(ixs,ipnt); }
+
+	array_2d< vec3d > get_pnts_xsecs() { return pnts_xsecs; }
 
    void get_xsec( int ixs, vector< vec3d > & pvec );
    void get_stringer( int ipnt, vector < vec3d > & pvec );

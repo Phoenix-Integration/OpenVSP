@@ -1,6 +1,5 @@
 
 // TODO:  Texture code is not working right now.
-// TDOO:  Relfected Geometries are not working right now.
 // TODO:  Need to implement Fuselage Geometries renderer.
 // TODO:  Need to implement User Created Geometry renderer.
 
@@ -489,7 +488,7 @@ void Renderer::draw_shade()
 void Renderer::draw_shade_refl()
 {
 	glPushMatrix();
-	glMultMatrixf( (GLfloat*)&reflect_mat ); 
+	glMultMatrixf( (GLfloat*)reflect_mat ); 
 	Material* mat = matMgrPtr->getMaterial( materialID );
 	if ( mat )
 	{
@@ -557,29 +556,33 @@ void Renderer::setValue( int value, int ID )
 {
 	switch ( ID )
 	{
-	case R_MATERIAL_ID:
-		materialID = value;
-		break;
+		case R_SYM_CODE:
+			sym_code = value;
+			break;
+
+		case R_MATERIAL_ID:
+			materialID = value;
+			break;
 		
-	case R_RED_FLAG:
-		redFlag = value;
-		break;
+		case R_RED_FLAG:
+			redFlag = value;
+			break;
 
-	case R_YELLOW_FLAG:
-		yellowFlag = value;
-		break;
+		case R_YELLOW_FLAG:
+			yellowFlag = value;
+			break;
 
-	case R_NOSHOW_FLAG:
-		noshowFlag = value;
-		break;
+		case R_NOSHOW_FLAG:
+			noshowFlag = value;
+			break;
 
-	case R_DISPLAY_FLAG:
-		displayFlag = value;
-		break;
+		case R_DISPLAY_FLAG:
+			displayFlag = value;
+			break;
 
-	case R_FASTDRAW_FLAG:
-		fastDrawFlag = value;
-		break;
+		case R_FASTDRAW_FLAG:
+			fastDrawFlag = value;
+			break;
 	}
 }
 
@@ -1051,7 +1054,6 @@ MSWingGeomRenderer::MSWingGeomRenderer() : Renderer()
 	section_Box.update( vec3d( 0.0001, 0.0001, 0.0001 ) );
 	section_Box.update( vec3d( -0.0001, -0.0001, -0.0001 ) ); 
 }
-
 MSWingGeomRenderer::~MSWingGeomRenderer()
 {
 }

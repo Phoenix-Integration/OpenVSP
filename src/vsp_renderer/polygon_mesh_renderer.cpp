@@ -300,9 +300,10 @@ void XSecSurfRenderer::draw_refl_wire( int sym_code_in )
 	for ( i = 0; i < num_pnts; i += fast_2 )
 	{
 		glBegin( GL_LINE_STRIP );
-		for ( j = 0; j < num_xsecs; j += fast_2 )
+		for ( j = 0; j < num_xsecs; j += fast_1 )
 		{
 			refl_pnts_xsecs( j, i ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
 		}
 		glEnd();
 	}
@@ -427,30 +428,30 @@ void XSecSurfRenderer::draw_refl_shaded( int sym_code_in )
 	glEnable( GL_BLEND );
 
 	/* Draw Cross Section */
-	for ( i = 0; i < num_pnts - 1; i += fast_1 )
+	for ( i = 0; i < num_xsecs - 1; i += fast_1 )
 	{
 		for ( j = 0; j < num_pnts - 1; j += fast_2 )
 		{
 			glBegin( GL_POLYGON );
-				refl_normals( i, j ).get_pnt( fpnt );
-				glNormal3fv( fpnt );
-				refl_pnts_xsecs( i, j ).get_pnt( dpnt );
-				glVertex3dv( dpnt );
+			refl_normals( i, j ).get_pnt( fpnt );
+			glNormal3fv( fpnt );
+			refl_pnts_xsecs( i, j ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
 
-				refl_normals( i, j + 1 ).get_pnt( fpnt );
-				glNormal3fv( fpnt );
-				refl_pnts_xsecs( i, j + 1 ).get_pnt( dpnt );
-				glVertex3dv( dpnt );
+			refl_normals( i, j + 1 ).get_pnt( fpnt );
+			glNormal3fv( fpnt );
+			refl_pnts_xsecs( i, j + 1 ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
 
-				refl_normals( i + 1, j + 1 ).get_pnt( fpnt );
-				glNormal3fv( fpnt );
-				refl_pnts_xsecs( i + 1, j + 1 ).get_pnt( dpnt );
-				glVertex3dv( dpnt );
+			refl_normals( i + 1, j + 1 ).get_pnt( fpnt );
+			glNormal3fv( fpnt );
+			refl_pnts_xsecs( i + 1, j + 1 ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
 
-				refl_normals( i + 1, j ).get_pnt( fpnt );
-				glNormal3fv( fpnt );
-				refl_pnts_xsecs( i + 1, j ).get_pnt( dpnt );
-				glVertex3dv( dpnt );
+			refl_normals( i + 1, j ).get_pnt( fpnt );
+			glNormal3fv( fpnt );
+			refl_pnts_xsecs( i + 1, j ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
 			glEnd();
 		}
 	}
@@ -801,7 +802,7 @@ void XSecSurfRenderer::load_refl_normals()
 	refl_normals.init(num_xsecs, num_pnts);
 	for ( i = 0; i < num_xsecs; i++ )
 	{
-		for ( j = 0; j < num_xsecs; j++ )
+		for ( j = 0; j < num_pnts; j++ )
 		{
 			refl_normals( i, j ) = normals( i, j ) * sym_vec;
 		}

@@ -132,7 +132,7 @@ void geomRenderer::drawAlpha()
 	/* Load Geometry Info */
 	load();
 	/* Render Surfaces */
-	renderPtr->drawAlpha();
+	renderPtr->draw_alpha();
 	/* Clean Up */
 	clean();
 }

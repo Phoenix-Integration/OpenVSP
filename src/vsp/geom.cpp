@@ -1269,7 +1269,6 @@ void Geom::setColor( double r, double g, double b)
 void Geom::draw_highlight_boxes()
 {
 	geomRenderer* gRenderPtr = new geomRenderer( this );
-	//gRenderPtr->init( GENERAL_GEOM );
 	gRenderPtr->init();
 	gRenderPtr->draw_highlight_boxes();
 	delete gRenderPtr;
@@ -1280,7 +1279,6 @@ void Geom::draw_highlight_boxes()
 void Geom::draw_bbox()
 {
 	geomRenderer* gRenderPtr = new geomRenderer( this );
-	//gRenderPtr->init( GENERAL_GEOM );
 	gRenderPtr->init();
 	gRenderPtr->draw_bbox();
 	delete gRenderPtr;

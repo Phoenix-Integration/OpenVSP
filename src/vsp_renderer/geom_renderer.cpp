@@ -114,10 +114,10 @@ void Renderer::draw()
 	else if ( displayFlag == GEOM_TEXTURE_FLAG )
 	{
 		/* Draw Texture */
-		draw_textures( false );
+		draw_textures();
 
 		/* Reflected Texture */
-		draw_textures( true );
+		draw_textures_refl();
 	}
 	else if ( displayFlag == GEOM_HIDDEN_FLAG )
 	{
@@ -134,7 +134,7 @@ void Renderer::draw()
 * Draw Geometry With Transparent Effect.
 *
 *******************************************************/
-void Renderer::drawAlpha()
+void Renderer::draw_alpha()
 {
 	int i;
 	Material* mat = matMgrPtr->getMaterial( materialID );
@@ -175,31 +175,64 @@ void Renderer::drawAlpha()
 * Draw Geometry Texture.
 *
 *******************************************************/
-void Renderer::draw_textures( bool reflFlag )
+void Renderer::draw_textures()
 {
+	/* Check if material exist */
 	Material* mat = matMgrPtr->getMaterial( materialID );
 	if ( !mat )
 		return;
 
-	if ( mat->diff[3] > 0.99 )
+	/* Check if diffuse light is vaild */
+	if ( mat->diff[3] <= 0.99 )
 		return;
 
-	/* Store Coordinate */
-	glPushMatrix();
-	glMultMatrixf( (GLfloat*)&model_mat ); 
+	mat->bind();
 
-	/* Update FastDraw Flag */
-	for ( int i = 0; i < (int)surfVec.size(); i++ )
-	{
-		if ( fastDrawFlag )
-		{
-			surfVec[i]->fast_draw_on();
-		}
-		else
-		{
-			surfVec[i]->fast_draw_off();
-		}
-	}
+	/* Draw Shade */
+	draw_shade();
+
+	/* Draw Texture */
+	draw_textures( false );
+
+}
+
+/******************************************************
+*
+* Draw Reflected Geometry Texture.
+*
+*******************************************************/
+void Renderer::draw_textures_refl()
+{
+	/* Check if material exist */
+	Material* mat = matMgrPtr->getMaterial( materialID );
+	if ( !mat )
+		return;
+
+	/* Check if diffuse light is vaild */
+	if ( mat->diff[3] <= 0.99 )
+		return;
+
+	mat->bind();
+
+	/* Draw Shade Reflection */
+	draw_shade_refl();
+
+	/* Draw Texture Reflection */
+	draw_textures( true );
+}
+
+/******************************************************
+*
+* Draw Geometry Texture.
+*
+*******************************************************/
+void Renderer::draw_textures( bool reflFlag )
+{
+	glPushMatrix();
+	if ( reflFlag )
+		glMultMatrixf((GLfloat*)model_mat);
+	else
+		glMultMatrixf((GLfloat*)reflect_mat);
 
 	/* Enable Lighting, Blend, and Depth Test */
 	glEnable( GL_LIGHTING );
@@ -405,12 +438,12 @@ void Renderer::storeModelMatrix(Matrix* viewMatrix, Matrix* modelMatrix, Matrix*
 	glGetFloatv(GL_MODELVIEW_MATRIX, viewMatrix->data());
 
 	glPushMatrix();
-	glMultMatrixf((GLfloat*)&model_mat);
+	glMultMatrixf((GLfloat*)model_mat);
 	glGetFloatv(GL_MODELVIEW_MATRIX, modelMatrix->data());
 	glPopMatrix();
 
 	glPushMatrix();
-	glMultMatrixf((GLfloat*)&reflect_mat);
+	glMultMatrixf((GLfloat*)reflect_mat);
 	glGetFloatv(GL_MODELVIEW_MATRIX, reflMatrix->data());
 	glPopMatrix();
 }

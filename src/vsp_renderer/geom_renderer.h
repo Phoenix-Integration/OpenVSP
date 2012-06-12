@@ -21,7 +21,7 @@ public:
 
 public:
 	virtual void draw();
-	virtual void drawAlpha();
+	virtual void draw_alpha();
 	virtual void draw_bbox();
 	virtual void draw_bbox( bbox &box );
 	virtual void draw_highlight_boxes();
@@ -44,6 +44,8 @@ protected:
 	virtual void draw_shade_refl();
 	virtual void draw_hidden();
 	virtual void draw_hidden_refl();
+	virtual void draw_textures();
+	virtual void draw_textures_refl();
 
 protected:
 	int materialID, sym_code, redFlag, yellowFlag, noshowFlag, displayFlag, fastDrawFlag;

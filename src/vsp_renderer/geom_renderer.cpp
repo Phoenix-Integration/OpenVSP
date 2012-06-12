@@ -144,7 +144,6 @@ void Renderer::draw_alpha()
 	if ( mat->diff[3] > 0.99 )
 		return;
 
-	//==== Check Noshow Flag ====//
 	if ( noshowFlag ) return;	
 
 	/* Update FastDraw Flag */
@@ -162,11 +161,22 @@ void Renderer::draw_alpha()
 
 	if ( displayFlag == GEOM_SHADE_FLAG || displayFlag == GEOM_TEXTURE_FLAG )
 	{
-		/* Draw Geom */
-		this->draw_shade();
+		/* Bind Material */
+		mat->bind();
 
-		/* Reflected Geom */
-		this->draw_shade_refl();
+		/* Draw Geom */
+		draw_shade();
+		if ( displayFlag == GEOM_TEXTURE_FLAG )
+		{
+			draw_textures();
+		}
+
+		/* Draw Reflected Geom */
+		draw_shade_refl();
+		if ( displayFlag == GEOM_TEXTURE_FLAG )
+		{
+			draw_textures_refl();
+		}
 	}
 }
 
@@ -186,6 +196,7 @@ void Renderer::draw_textures()
 	if ( mat->diff[3] <= 0.99 )
 		return;
 
+	/* Bind Material */
 	mat->bind();
 
 	/* Draw Shade */
@@ -212,6 +223,7 @@ void Renderer::draw_textures_refl()
 	if ( mat->diff[3] <= 0.99 )
 		return;
 
+	/* Bind Material */
 	mat->bind();
 
 	/* Draw Shade Reflection */
@@ -497,19 +509,13 @@ void Renderer::draw_shade()
 {
 	glPushMatrix();
 	glMultMatrixf( (GLfloat*)model_mat ); 
-	Material* mat = matMgrPtr->getMaterial( materialID );
-	if ( mat )
+
+	for ( int i = 0 ; i < (int)surfVec.size() ; i++ )
 	{
-		mat->bind();
-		if  ( mat->diff[3] > 0.99 )
-		{
-			for ( int i = 0 ; i < (int)surfVec.size() ; i++ )
-			{
-				if ( surfVec[i]->get_draw_flag() )
-					surfVec[i]->draw_shaded();
-			}
-		}
+		if ( surfVec[i]->get_draw_flag() )
+			surfVec[i]->draw_shaded();
 	}
+
 	glPopMatrix();
 }
 
@@ -522,19 +528,13 @@ void Renderer::draw_shade_refl()
 {
 	glPushMatrix();
 	glMultMatrixf( (GLfloat*)reflect_mat ); 
-	Material* mat = matMgrPtr->getMaterial( materialID );
-	if ( mat )
+
+	for ( int i = 0; i < (int)surfVec.size(); i++ )
 	{
-		mat->bind();
-		if  ( mat->diff[3] > 0.99 )
-		{
-			for ( int i = 0; i < (int)surfVec.size(); i++ )
-			{
-				if ( surfVec[i]->get_draw_flag() )
-					surfVec[i]->draw_refl_shaded( sym_code );
-			}
-		}
+		if ( surfVec[i]->get_draw_flag() )
+			surfVec[i]->draw_refl_shaded( sym_code );
 	}
+
 	glPopMatrix();
 }
 

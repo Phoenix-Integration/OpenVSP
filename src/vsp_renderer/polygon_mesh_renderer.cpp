@@ -170,17 +170,19 @@ void XSecSurfRenderer::draw_hidden()
 		for ( j = 0; j < num_pnts - 1; j += fast_2 )
 		{
 			glBegin( GL_POLYGON );
-				pnts_xsecs( i, j ).get_pnt( dpnt );
-				glVertex3dv( dpnt );
+				
+			pnts_xsecs( i, j ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
 
-				pnts_xsecs( i + 1, j ).get_pnt( dpnt );
-				glVertex3dv( dpnt );
+			pnts_xsecs( i + 1, j ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
 
-				pnts_xsecs( i + 1, j + 1 ).get_pnt( dpnt );
-				glVertex3dv( dpnt );
+			pnts_xsecs( i + 1, j + 1 ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
 
-				pnts_xsecs( i, j + 1 ).get_pnt( dpnt );
-				glVertex3dv( dpnt );
+			pnts_xsecs( i, j + 1 ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
+			
 			glEnd();
 		}
 	}
@@ -218,38 +220,43 @@ void XSecSurfRenderer::draw_shaded()
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	glEnable( GL_BLEND );
 
+	glCullFace( GL_BACK );
+	glEnable( GL_CULL_FACE );
+
 	/* Draw Cross Section */
 	for ( i = 0; i < num_xsecs - 1; i += fast_1 )
 	{
 		for ( j = 0; j < num_pnts - 1; j += fast_2 )
 		{
 			glBegin( GL_POLYGON );
-				normals( i, j ).get_pnt( fpnt );
-				glNormal3fv( fpnt );
-				pnts_xsecs( i, j ).get_pnt( dpnt );
-				glVertex3dv( dpnt );
+			
+			normals( i, j ).get_pnt( fpnt );
+			glNormal3fv( fpnt );
+			pnts_xsecs( i, j ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
 
-				normals( i + 1, j ).get_pnt( fpnt );
-				glNormal3fv( fpnt );
-				pnts_xsecs( i + 1, j ).get_pnt( dpnt );
-				glVertex3dv( dpnt );
+			normals( i + 1, j ).get_pnt( fpnt );
+			glNormal3fv( fpnt );
+			pnts_xsecs( i + 1, j ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
 
-				normals( i + 1, j + 1 ).get_pnt( fpnt );
-				glNormal3fv( fpnt );
-				pnts_xsecs( i + 1, j + 1 ).get_pnt( dpnt );
-				glVertex3dv( dpnt );
+			normals( i + 1, j + 1 ).get_pnt( fpnt );
+			glNormal3fv( fpnt );
+			pnts_xsecs( i + 1, j + 1 ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
 
-				normals( i, j + 1 ).get_pnt( fpnt );
-				glNormal3fv( fpnt );
-				pnts_xsecs( i, j + 1 ).get_pnt( dpnt );
-				glVertex3dv( dpnt );	
+			normals( i, j + 1 ).get_pnt( fpnt );
+			glNormal3fv( fpnt );
+			pnts_xsecs( i, j + 1 ).get_pnt( dpnt );
+			glVertex3dv( dpnt );	
+			
 			glEnd();
 		}
 	}
 
 	/* Diable Shading */
+	glDisable( GL_CULL_FACE );
 	glDisable( GL_LIGHTING );
-	glDisable( GL_BLEND );
 }
 
 /******************************************************
@@ -362,17 +369,19 @@ void XSecSurfRenderer::draw_refl_hidden( int sym_code_in )
 		for ( j = 0; j < num_pnts - 1; j += fast_2 )
 		{
 			glBegin( GL_POLYGON );
-				refl_pnts_xsecs( i, j ).get_pnt( dpnt );
-				glVertex3dv( dpnt );
+				
+			refl_pnts_xsecs( i, j ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
 
-				refl_pnts_xsecs( i + 1, j ).get_pnt( dpnt );
-				glVertex3dv( dpnt );
+			refl_pnts_xsecs( i + 1, j ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
 
-				refl_pnts_xsecs( i + 1, j + 1 ).get_pnt( dpnt );
-				glVertex3dv( dpnt );
+			refl_pnts_xsecs( i + 1, j + 1 ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
 
-				refl_pnts_xsecs( i, j + 1 ).get_pnt( dpnt );
-				glVertex3dv( dpnt );
+			refl_pnts_xsecs( i, j + 1 ).get_pnt( dpnt );
+			glVertex3dv( dpnt );
+			
 			glEnd();
 		}
 	}
@@ -427,6 +436,9 @@ void XSecSurfRenderer::draw_refl_shaded( int sym_code_in )
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	glEnable( GL_BLEND );
 
+	glCullFace( GL_BACK );
+	glEnable( GL_CULL_FACE );
+
 	/* Draw Cross Section */
 	for ( i = 0; i < num_xsecs - 1; i += fast_1 )
 	{
@@ -457,8 +469,8 @@ void XSecSurfRenderer::draw_refl_shaded( int sym_code_in )
 	}
 
 	/* Restore Previous Settings */
+	glDisable( GL_CULL_FACE );
 	glDisable( GL_LIGHTING );
-	glDisable( GL_BLEND );
 }
 
 /******************************************************
@@ -546,21 +558,23 @@ void XSecSurfRenderer::draw_texture( AppliedTex& apTex )
 			for ( j = 0; j < ( int )wArray.dimension() - 1; j++ )
 			{
 				glBegin( GL_POLYGON );
-					glNormal3dv( normals( i, j ).v );
-					glTexCoord2d( uArray( i ) / apTex.scaleu + apTex.u, wArray( j ) / apTex.scalew + apTex.w );
-					glVertex3dv( pnts_xsecs( i, j ).v );
+					
+				glNormal3dv( normals( i, j ).v );
+				glTexCoord2d( uArray( i ) / apTex.scaleu + apTex.u, wArray( j ) / apTex.scalew + apTex.w );
+				glVertex3dv( pnts_xsecs( i, j ).v );
 
-					glNormal3dv( normals( i + 1, j ).v );
-					glTexCoord2d( uArray( i + 1 ) / apTex.scaleu + apTex.u, wArray( j ) / apTex.scalew + apTex.w );
-					glVertex3dv( pnts_xsecs( i + 1, j ).v );
+				glNormal3dv( normals( i + 1, j ).v );
+				glTexCoord2d( uArray( i + 1 ) / apTex.scaleu + apTex.u, wArray( j ) / apTex.scalew + apTex.w );
+				glVertex3dv( pnts_xsecs( i + 1, j ).v );
 
-					glNormal3dv( normals( i + 1, j + 1 ).v );
-					glTexCoord2d( uArray( i + 1 ) / apTex.scaleu + apTex.u, wArray( j + 1 ) / apTex.scalew + apTex.w );
-					glVertex3dv( pnts_xsecs( i + 1, j + 1 ).v );
+				glNormal3dv( normals( i + 1, j + 1 ).v );
+				glTexCoord2d( uArray( i + 1 ) / apTex.scaleu + apTex.u, wArray( j + 1 ) / apTex.scalew + apTex.w );
+				glVertex3dv( pnts_xsecs( i + 1, j + 1 ).v );
 
-					glNormal3dv( normals( i, j + 1 ).v );
-					glTexCoord2d( uArray( i ) / apTex.scaleu + apTex.u, wArray( j + 1 ) / apTex.scalew + apTex.w );
-					glVertex3dv( pnts_xsecs( i, j + 1 ).v );
+				glNormal3dv( normals( i, j + 1 ).v );
+				glTexCoord2d( uArray( i ) / apTex.scaleu + apTex.u, wArray( j + 1 ) / apTex.scalew + apTex.w );
+				glVertex3dv( pnts_xsecs( i, j + 1 ).v );
+				
 				glEnd();
 			}
 		}
@@ -639,22 +653,25 @@ void XSecSurfRenderer::draw_refl_texture( AppliedTex& apTex, int sym_code_in )
 			{
 				int iw = wIndex[j];
 				int iwplus = wIndex[ j + 1 ];
+
 				glBegin( GL_POLYGON );
-					glNormal3dv( normals(iu, iw).v );
-					glTexCoord2d( uVal[i], wVal[j] );
-					glVertex3dv( pnts_xsecs( iu, iw ).v );
+					
+				glNormal3dv( normals(iu, iw).v );
+				glTexCoord2d( uVal[i], wVal[j] );
+				glVertex3dv( pnts_xsecs( iu, iw ).v );
 
-					glNormal3dv( normals(iuplus, iw).v );
-					glTexCoord2d( uVal[ i + 1 ], wVal[j] );
-					glVertex3dv( pnts_xsecs( iuplus, iw ).v );
+				glNormal3dv( normals(iuplus, iw).v );
+				glTexCoord2d( uVal[ i + 1 ], wVal[j] );
+				glVertex3dv( pnts_xsecs( iuplus, iw ).v );
 
-					glNormal3dv( normals(iuplus, iwplus).v );
-					glTexCoord2d( uVal[ i + 1 ], wVal[ j + 1 ] );
-					glVertex3dv( pnts_xsecs( iuplus, iwplus ).v );
+				glNormal3dv( normals(iuplus, iwplus).v );
+				glTexCoord2d( uVal[ i + 1 ], wVal[ j + 1 ] );
+				glVertex3dv( pnts_xsecs( iuplus, iwplus ).v );
 
-					glNormal3dv( normals(iu, iwplus).v );
-					glTexCoord2d( uVal[i], wVal[ j + 1 ] );
-					glVertex3dv( pnts_xsecs( iu, iwplus ).v );
+				glNormal3dv( normals(iu, iwplus).v );
+				glTexCoord2d( uVal[i], wVal[ j + 1 ] );
+				glVertex3dv( pnts_xsecs( iu, iwplus ).v );
+				
 				glEnd();
 			}
 		}
@@ -667,21 +684,23 @@ void XSecSurfRenderer::draw_refl_texture( AppliedTex& apTex, int sym_code_in )
 			for ( j = 0; j < ( int )wArray.dimension() - 1; j++ )
 			{
 				glBegin( GL_POLYGON );
-					glNormal3dv( normals( i, j ).v );
-					glTexCoord2d( uArray( i ) / apTex.scaleu + apTex.u, wArray( j ) / apTex.scalew + apTex.w );
-					glVertex3dv( pnts_xsecs( i, j ).v );
+				
+				glNormal3dv( normals( i, j ).v );
+				glTexCoord2d( uArray( i ) / apTex.scaleu + apTex.u, wArray( j ) / apTex.scalew + apTex.w );
+				glVertex3dv( pnts_xsecs( i, j ).v );
 
-					glNormal3dv( normals( i + 1, j ).v );
-					glTexCoord2d( uArray( i + 1 ) / apTex.scaleu + apTex.u, wArray( j ) / apTex.scalew + apTex.w );
-					glVertex3dv( pnts_xsecs( i + 1, j ).v );
+				glNormal3dv( normals( i + 1, j ).v );
+				glTexCoord2d( uArray( i + 1 ) / apTex.scaleu + apTex.u, wArray( j ) / apTex.scalew + apTex.w );
+				glVertex3dv( pnts_xsecs( i + 1, j ).v );
 
-					glNormal3dv( normals( i + 1, j + 1 ).v );
-					glTexCoord2d( uArray( i + 1 ) / apTex.scaleu + apTex.u, wArray( j + 1 ) / apTex.scalew + apTex.w );
-					glVertex3dv( pnts_xsecs( i + 1, j + 1 ).v );
+				glNormal3dv( normals( i + 1, j + 1 ).v );
+				glTexCoord2d( uArray( i + 1 ) / apTex.scaleu + apTex.u, wArray( j + 1 ) / apTex.scalew + apTex.w );
+				glVertex3dv( pnts_xsecs( i + 1, j + 1 ).v );
 
-					glNormal3dv( normals( i, j + 1 ).v );
-					glTexCoord2d( uArray( i ) / apTex.scaleu + apTex.u, wArray( j + 1 ) / apTex.scalew + apTex.w );
-					glVertex3dv( pnts_xsecs( i, j + 1 ).v );
+				glNormal3dv( normals( i, j + 1 ).v );
+				glTexCoord2d( uArray( i ) / apTex.scaleu + apTex.u, wArray( j + 1 ) / apTex.scalew + apTex.w );
+				glVertex3dv( pnts_xsecs( i, j + 1 ).v );
+				
 				glEnd();
 			}
 		}

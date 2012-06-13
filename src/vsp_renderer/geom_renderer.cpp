@@ -1,5 +1,4 @@
 
-// TODO:  Texture code is not working right now.
 // TODO:  Need to implement Fuselage Geometries renderer.
 // TODO:  Need to implement User Created Geometry renderer.
 
@@ -141,6 +140,7 @@ void Renderer::draw_alpha()
 	if ( !mat )
 		return;
 
+	/* draw_textures will render this */
 	if ( mat->diff[3] > 0.99 )
 		return;
 
@@ -161,21 +161,20 @@ void Renderer::draw_alpha()
 
 	if ( displayFlag == GEOM_SHADE_FLAG || displayFlag == GEOM_TEXTURE_FLAG )
 	{
-		/* Bind Material */
-		mat->bind();
-
 		/* Draw Geom */
 		draw_shade();
+
 		if ( displayFlag == GEOM_TEXTURE_FLAG )
 		{
-			draw_textures();
+			draw_textures( false );
 		}
 
 		/* Draw Reflected Geom */
 		draw_shade_refl();
+
 		if ( displayFlag == GEOM_TEXTURE_FLAG )
 		{
-			draw_textures_refl();
+			draw_textures( true );
 		}
 	}
 }
@@ -192,12 +191,9 @@ void Renderer::draw_textures()
 	if ( !mat )
 		return;
 
-	/* Check if diffuse light is vaild */
+	/* draw_alpha will render this */
 	if ( mat->diff[3] <= 0.99 )
 		return;
-
-	/* Bind Material */
-	mat->bind();
 
 	/* Draw Shade */
 	draw_shade();
@@ -219,12 +215,9 @@ void Renderer::draw_textures_refl()
 	if ( !mat )
 		return;
 
-	/* Check if diffuse light is vaild */
+	/* draw_alpha will render this */
 	if ( mat->diff[3] <= 0.99 )
 		return;
-
-	/* Bind Material */
-	mat->bind();
 
 	/* Draw Shade Reflection */
 	draw_shade_refl();
@@ -242,9 +235,9 @@ void Renderer::draw_textures( bool reflFlag )
 {
 	glPushMatrix();
 	if ( reflFlag )
-		glMultMatrixf((GLfloat*)model_mat);
-	else
 		glMultMatrixf((GLfloat*)reflect_mat);
+	else
+		glMultMatrixf((GLfloat*)model_mat);
 
 	/* Enable Lighting, Blend, and Depth Test */
 	glEnable( GL_LIGHTING );
@@ -295,7 +288,6 @@ void Renderer::draw_textures( bool reflFlag )
 	/* Restore To Previous Setting */
 	glDepthMask( GL_TRUE );
 	glDepthFunc( GL_LESS );
-	glDisable( GL_BLEND );
 	glDisable( GL_TEXTURE_2D );
 	glDisable( GL_LIGHTING );
 
@@ -507,15 +499,21 @@ void Renderer::draw_wire_refl()
 *******************************************************/
 void Renderer::draw_shade()
 {
+	/* Check if material exist */
+	Material* mat = matMgrPtr->getMaterial( materialID );
+	if ( !mat )
+		return;
+
 	glPushMatrix();
 	glMultMatrixf( (GLfloat*)model_mat ); 
+
+	mat->bind();
 
 	for ( int i = 0 ; i < (int)surfVec.size() ; i++ )
 	{
 		if ( surfVec[i]->get_draw_flag() )
 			surfVec[i]->draw_shaded();
 	}
-
 	glPopMatrix();
 }
 
@@ -526,15 +524,21 @@ void Renderer::draw_shade()
 *******************************************************/
 void Renderer::draw_shade_refl()
 {
+	/* Check if material exist */
+	Material* mat = matMgrPtr->getMaterial( materialID );
+	if ( !mat )
+		return;
+
 	glPushMatrix();
 	glMultMatrixf( (GLfloat*)reflect_mat ); 
+
+	mat->bind();
 
 	for ( int i = 0; i < (int)surfVec.size(); i++ )
 	{
 		if ( surfVec[i]->get_draw_flag() )
 			surfVec[i]->draw_refl_shaded( sym_code );
 	}
-
 	glPopMatrix();
 }
 
@@ -1381,7 +1385,7 @@ void WingGeomRenderer::draw_shade_refl()
 			Need implement something to identify cross 
 			section surfaces in vector. */
 
-			surfVec[0]->draw_shaded(); // mswing_surf
+			surfVec[0]->draw_refl_shaded( sym_code ); // mswing_surf
 		}
 	}
 	glPopMatrix();

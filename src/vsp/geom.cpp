@@ -74,6 +74,9 @@ Geom::Geom( Aircraft* aptr ) : GeomBase()
 	massPrior = 0;
 	shellFlag = 0;
 
+	renderer = new renderMgr();
+	renderer->init();
+
 	color = vec3d( 0, 0, 255 );
 
 	//==== Set Some Reasonable Values For Bounding Box ====//
@@ -1267,22 +1270,21 @@ void Geom::setColor( double r, double g, double b)
 //==== Draw Highlighting Boxes ====//
 void Geom::draw_highlight_boxes()
 {
-
   //==== Draw Current Comp Box =====//
   if ( redFlag == 1)
-    {
-      glLineWidth(2);
-      glColor3f(1.0, 0, 0);
-      draw_bbox(); 
-    }
+  {
+		renderer->setLineWidth( 2 );
+		renderer->setColor3ub( 255, 0, 0 );
+		draw_bbox(); 
+  }
 
   //==== Draw Temp Highlight Box =====//
   if ( yellowFlag == 1)
-    {
-      glLineWidth(2);
-      glColor3f(1.0, 1.0, 0);
+  {
+		renderer->setLineWidth( 2 );
+		renderer->setColor3ub( 255, 255, 0 );
       draw_bbox(); 
-    }
+  }
 } 
 
  
@@ -1294,50 +1296,85 @@ void Geom::draw_bbox()
   temp[1] = bnd_box_xform.get_min(1);
   temp[2] = bnd_box_xform.get_min(2);
 
-  glBegin( GL_LINE_STRIP );
-    glVertex3dv(temp);
-    temp[0] = bnd_box_xform.get_max(0);
-    glVertex3dv(temp);
-    temp[1] = bnd_box_xform.get_max(1);
-    glVertex3dv(temp);
-    temp[2] = bnd_box_xform.get_max(2);
-    glVertex3dv(temp);
-    temp[0] = bnd_box_xform.get_min(0);
-    glVertex3dv(temp);
-    temp[2] = bnd_box_xform.get_min(2);
-    glVertex3dv(temp);
-    temp[1] = bnd_box_xform.get_min(1);
-    glVertex3dv(temp);
-    temp[2] = bnd_box_xform.get_max(2);
-    glVertex3dv(temp);
-    temp[0] = bnd_box_xform.get_max(0);
-    glVertex3dv(temp);
-    temp[2] = bnd_box_xform.get_min(2);
-    glVertex3dv(temp);
-  glEnd();
+  vector< double > vdata;
 
-  glBegin( GL_LINE_STRIP );
-    temp[2] = bnd_box_xform.get_max(2);
-    glVertex3dv(temp);
-    temp[1] = bnd_box_xform.get_max(1);
-    glVertex3dv(temp);
-  glEnd();
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
+  temp[0] = bnd_box_xform.get_max(0);
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
+  temp[1] = bnd_box_xform.get_max(1);
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
+  temp[2] = bnd_box_xform.get_max(2);
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
+  temp[0] = bnd_box_xform.get_min(0);
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
+  temp[2] = bnd_box_xform.get_min(2);
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
+  temp[1] = bnd_box_xform.get_min(1);
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
+  temp[2] = bnd_box_xform.get_max(2);
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
+  temp[0] = bnd_box_xform.get_max(0);
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
+  temp[2] = bnd_box_xform.get_min(2);
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
 
-  glBegin( GL_LINE_STRIP );
-    temp[2] = bnd_box_xform.get_min(2);
-    glVertex3dv(temp);
-    temp[0] = bnd_box_xform.get_min(0);
-    glVertex3dv(temp);
-  glEnd();
+  renderer->draw(R_LINE_STRIP, 3, vdata);
+  vdata.clear();
 
-  glBegin( GL_LINE_STRIP );
-    temp[2] = bnd_box_xform.get_max(2);
-    glVertex3dv(temp);
-    temp[1] = bnd_box_xform.get_min(1);
-    glVertex3dv(temp);
-  glEnd();
-  
+  temp[2] = bnd_box_xform.get_max(2);
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
+  temp[1] = bnd_box_xform.get_max(1);
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
 
+  renderer->draw(R_LINE_STRIP, 3, vdata);
+  vdata.clear();
+
+  temp[2] = bnd_box_xform.get_min(2);
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
+  temp[0] = bnd_box_xform.get_min(0);
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
+
+  renderer->draw(R_LINE_STRIP, 3, vdata);
+  vdata.clear();
+
+  temp[2] = bnd_box_xform.get_max(2);
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
+  temp[1] = bnd_box_xform.get_min(1);
+  vdata.push_back(temp[0]);
+  vdata.push_back(temp[1]);
+  vdata.push_back(temp[2]);
+
+  renderer->draw(R_LINE_STRIP, 3, vdata);
 }
 
 //==== Write POV Input File ====//
@@ -1574,35 +1611,33 @@ void Geom::draw()
 
 	if ( displayFlag == GEOM_WIRE_FLAG )
 	{
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
+		renderer->setColor3ub((int)color.x(), (int)color.y(), (int)color.z());
 
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
+		//glPushMatrix();
+		//glMultMatrixf((GLfloat*)model_mat); 
 
 		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 		{
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
 			if ( surfVec[i]->get_draw_flag() )
 			{
 				surfVec[i]->draw_wire();
 			}
 		}
 
-		glPopMatrix();
+		//glPopMatrix();
 
 		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-
+		//glPushMatrix();
+		//glMultMatrixf((GLfloat*)reflect_mat); 
+		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
 		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 		{
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
 			if ( surfVec[i]->get_draw_flag() )
 				surfVec[i]->draw_refl_wire(sym_code);
 		}
 
-		glPopMatrix();
+		//glPopMatrix();
 	}
 	else if ( displayFlag == GEOM_SHADE_FLAG || displayFlag == GEOM_TEXTURE_FLAG)
 	{
@@ -1653,35 +1688,36 @@ void Geom::draw()
 	else if ( displayFlag == GEOM_HIDDEN_FLAG )
 	{
 		//==== Draw Hidden Surface ====//
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
+		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
 
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
+		//glPushMatrix();
+		//glMultMatrixf((GLfloat*)model_mat); 
 
 		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 		{
 			if ( surfVec[i]->get_draw_flag() )
 			{						
-				glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
 				surfVec[i]->draw_hidden();
 			}
 		}
-		glPopMatrix();
+		//glPopMatrix();
 
 		//==== Reflected Geom ====//
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
+		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
+
+		//glPushMatrix();
+		//glMultMatrixf((GLfloat*)reflect_mat); 
+
 		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 		{
 			if ( surfVec[i]->get_draw_flag() )
 			{
-				glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
 				surfVec[i]->draw_refl_hidden(sym_code);
 			}
 		}
-		glPopMatrix();
+
+		/*glPopMatrix()*/;
 			
 	}
 	glDisable( GL_LIGHTING );

@@ -25,6 +25,7 @@
 #include "xmlvsp.h"
 #include "matrix.h"
 #include "textureMgr.h"
+#include "renderMgr.h"
 #include "GridDensity.h"
 #include "DragFactors.h"
 
@@ -374,6 +375,8 @@ protected:
 
 	Geom* parentGeom;
 	vector< Geom* > childGeomVec;
+
+	renderMgr* renderer;
 
 	int displayChildrenFlag;
 

@@ -32,6 +32,9 @@
 //==== Constructor =====//
 Xsec_surf::Xsec_surf()
 {
+  surfRenderer = new renderMgr();
+  surfRenderer->init();
+
   num_xsecs = 0;
   num_pnts = 0;
 
@@ -311,224 +314,243 @@ vec3d Xsec_surf::comp_uv_pnt( double u, double v )
 //==== Draw Wire Frame =====//
 void Xsec_surf::draw_wire( )
 {
-  int i, j, fast_1, fast_2;
-  double dpnt[3];
-  double color[4];
+	int i, j, fast_1, fast_2;
+	double dpnt[3];
+	double color[4];
 
-  //==== Set Line Width ====//  
-  glLineWidth(1);
+	//==== Set Line Width ====//  
+	surfRenderer->setLineWidth( 1 );
 
-  fast_1 = fast_2 = 1;
-  if ( fast_draw_flag ) 
-  { 
-    fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
-    fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
+	fast_1 = fast_2 = 1;
+	if ( fast_draw_flag ) 
+	{ 
+		fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
+		fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
     
-    if ( num_xsecs <= 4 ) fast_1 = 1;
-    if ( num_pnts  <= 4 ) fast_2 = 1;   
-  }
+		if ( num_xsecs <= 4 ) fast_1 = 1;
+		if ( num_pnts  <= 4 ) fast_2 = 1;   
+	}
   
-  //==== Draw Cross Sections ====//  
-  for ( i = 0 ; i < num_xsecs ; i += fast_1 )
-  {
+	//==== Draw Cross Sections ====//
+	for ( i = 0 ; i < num_xsecs ; i += fast_1 )
+	{
+		if ( highlight_xsec_flag && i == highlight_xsec_id )
+		{
+			surfRenderer->getColor4d( color );
+			surfRenderer->setColor3d( highlight_xsec_color.x(), highlight_xsec_color.y(), highlight_xsec_color.z() );
+			surfRenderer->setLineWidth( 3.0 );
+		}
 
-      if ( highlight_xsec_flag && i == highlight_xsec_id )
-	  {
-//		  glPushAttrib(GL_CURRENT_BIT);
+		vector<double> data;
+		for ( j = 0 ; j < num_pnts ; j += fast_2 )
+		{
+			pnts_xsecs(i,j).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+		}
+		surfRenderer->draw( R_LINE_STRIP, 3, data );
 
-		  glGetDoublev(GL_CURRENT_COLOR, color);
-		  glColor3d( highlight_xsec_color.x(), highlight_xsec_color.y(), highlight_xsec_color.z() );
-		  glLineWidth( 3.0 );
-	  }
+		if ( highlight_xsec_flag && i == highlight_xsec_id )
+		{
+			surfRenderer->setColor3d( color[0], color[1], color[2] );
+			surfRenderer->setLineWidth( 1.0 );
+		}
+	}
 
-
-      glBegin( GL_LINE_STRIP );
-	  for ( j = 0 ; j < num_pnts ; j += fast_2 )
-        {
-          pnts_xsecs(i,j).get_pnt(dpnt);	glVertex3dv(dpnt);
-        }
-      glEnd();
-
-	  if ( highlight_xsec_flag && i == highlight_xsec_id )
-	  {
-//		  glPopAttrib();
-		  glColor3dv(color);
-		  glLineWidth( 1.0 );
-	  }
-
-  }
-
-  //==== Draw Stringers ====//  
-  for ( i = 0 ; i < num_pnts ; i += fast_2 )
-    {
-      glBegin( GL_LINE_STRIP );
+	//==== Draw Stringers ====//  
+	for ( i = 0 ; i < num_pnts ; i += fast_2 )
+   {
+		vector<double> data;
       for ( j = 0 ; j < num_xsecs ; j += fast_1 )
-        {
-			pnts_xsecs(j,i).get_pnt(dpnt);	glVertex3dv(dpnt);
-        }
-      glEnd();
+		{
+			pnts_xsecs(j,i).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+		}
+		surfRenderer->draw( R_LINE_STRIP, 3, data );
     }
 }
 
 //==== Draw Reflected Wire Frame =====//
 void Xsec_surf::draw_refl_wire( int sym_code_in) 
 {
-  if (sym_code_in == NO_SYM) return;
+	if (sym_code_in == NO_SYM) return;
 
-  int i, j, fast_1, fast_2;
-  double dpnt[3];
+	int i, j, fast_1, fast_2;
+	double dpnt[3];
 
-  fast_1 = fast_2 = 1;
-  if ( fast_draw_flag ) {
-  
-    fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
-    fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
+	fast_1 = fast_2 = 1;
+	if ( fast_draw_flag ) 
+	{
+		fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
+		fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
     
-    if ( num_xsecs <= 4 ) fast_1 = 1;
-    if ( num_pnts  <= 4 ) fast_2 = 1;
-    
-  }
+		if ( num_xsecs <= 4 ) fast_1 = 1;
+		if ( num_pnts  <= 4 ) fast_2 = 1;
+	}
   
-  if ( sym_code_in != refl_pnts_xsecs_code )
-    {
-      refl_pnts_xsecs_code =  sym_code_in;
-      load_refl_pnts_xsecs();  
-    }
+	if ( sym_code_in != refl_pnts_xsecs_code )
+	{
+		refl_pnts_xsecs_code =  sym_code_in;
+		load_refl_pnts_xsecs();  
+	}
 
-  //==== Set Line Width ====//  
-  glLineWidth(1);
+	//==== Set Line Width ====//  
+	surfRenderer->setLineWidth( 1.0 );
 
-  //==== Draw Cross Sections ====//  
-  for ( i = 0 ; i < num_xsecs ; i += fast_1 )
-    {
-      glBegin( GL_LINE_STRIP );
+	//==== Draw Cross Sections ====//  
+	vector<double> data;
+
+	for ( i = 0 ; i < num_xsecs ; i += fast_1 )
+	{
+		data.clear();
       for ( j = 0 ; j < num_pnts ; j += fast_2 )
-        {
-          refl_pnts_xsecs(i,j).get_pnt(dpnt);	glVertex3dv(dpnt);
-        }
-      glEnd();
-    }
+      {
+			refl_pnts_xsecs(i,j).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+		}
+		surfRenderer->draw( R_LINE_STRIP, 3, data );
+	}
 
-  //==== Draw Stringers ====//  
-  for ( i = 0 ; i < num_pnts ; i += fast_2 )
-    {
-      glBegin( GL_LINE_STRIP );
+	//==== Draw Stringers ====//  
+	for ( i = 0 ; i < num_pnts ; i += fast_2 )
+	{
+		data.clear();
       for ( j = 0 ; j < num_xsecs ; j += fast_1 )
-        {
-	  refl_pnts_xsecs(j,i).get_pnt(dpnt);	glVertex3dv(dpnt);
-        }
-      glEnd();
-    }
+      {
+			refl_pnts_xsecs(j,i).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+		}
+		surfRenderer->draw( R_LINE_STRIP, 3, data );
+	}
 }
 
 //==== Draw Hidden Surf =====//
 void Xsec_surf::draw_hidden()
 {
-  int i, j, fast_1, fast_2;
+	int i, j, fast_1, fast_2;
 
-  double dpnt[3];
-  draw_wire();
+	double dpnt[3];
+	draw_wire();
 
-  //==== Draw Hidden Surface ====//
-  glPolygonOffset(2.0, 1);
-#ifndef __APPLE__
-  glEnable(GL_POLYGON_OFFSET_EXT);
-#endif
-  glColor3f( 1.0f, 1.0f, 1.0f );
+	//==== Draw Hidden Surface ====//
+	surfRenderer->setColor3d( 1.0, 1.0, 1.0 );
 
- 
-
-  fast_1 = fast_2 = 1;
-  if ( fast_draw_flag ) {
-  
-    fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
-    fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
+	fast_1 = fast_2 = 1;
+	if ( fast_draw_flag ) 
+	{
+		fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
+		fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
     
-    if ( num_xsecs <= 4 ) fast_1 = 1;
-    if ( num_pnts  <= 4 ) fast_2 = 1;
-    
-  }
-    
-  for ( i = 0 ; i < num_xsecs-1 ; i += fast_1 )
-    {
+		if ( num_xsecs <= 4 ) fast_1 = 1;
+		if ( num_pnts  <= 4 ) fast_2 = 1; 
+	}
+   vector<double> data; 
+	for ( i = 0 ; i < num_xsecs-1 ; i += fast_1 )
+	{
       for ( j = 0 ; j < num_pnts-1 ; j += fast_2 )
-        {
-          glBegin( GL_POLYGON );
-           //hidden_surf(i,j).get_pnt(dpnt);	glVertex3dv(dpnt);
-           //hidden_surf(i+1,j).get_pnt(dpnt);	glVertex3dv(dpnt);
-           //hidden_surf(i+1,j+1).get_pnt(dpnt);	glVertex3dv(dpnt);
-           //hidden_surf(i,j+1).get_pnt(dpnt);	glVertex3dv(dpnt);
-           pnts_xsecs(i,j).get_pnt(dpnt);	glVertex3dv(dpnt);
-           pnts_xsecs(i+1,j).get_pnt(dpnt);	glVertex3dv(dpnt);
-           pnts_xsecs(i+1,j+1).get_pnt(dpnt);	glVertex3dv(dpnt);
-           pnts_xsecs(i,j+1).get_pnt(dpnt);	glVertex3dv(dpnt);
-          glEnd();
-         }
-     }
-#ifndef __APPLE__
-    glDisable(GL_POLYGON_OFFSET_EXT);
-#endif
+		{
+			pnts_xsecs(i,j).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
 
+         pnts_xsecs(i+1,j).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+
+         pnts_xsecs(i+1,j+1).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+
+         pnts_xsecs(i,j+1).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+		}
+	}
+
+	PolygonOffset offset;
+	offset.factor = 2.0;
+	offset.units = 1.0;
+
+	surfRenderer->draw( R_QUADS, 3, data, offset );
 }
 
 //==== Draw Reflected Hidden Surf =====//
 void Xsec_surf::draw_refl_hidden( int sym_code_in)
 {
-  if (sym_code_in == NO_SYM) return;
+	if (sym_code_in == NO_SYM) return;
 
-  int i, j, fast_1, fast_2;
-  double dpnt[3];
+	int i, j, fast_1, fast_2;
+	double dpnt[3];
 
-  fast_1 = fast_2 = 1;
-  if ( fast_draw_flag ) {
-  
-    fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
-    fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
+	fast_1 = fast_2 = 1;
+	if ( fast_draw_flag ) 
+	{
+		fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
+		fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
     
-    if ( num_xsecs <= 4 ) fast_1 = 1;
-    if ( num_pnts  <= 4 ) fast_2 = 1;
-    
-  }
+		if ( num_xsecs <= 4 ) fast_1 = 1;
+		if ( num_pnts  <= 4 ) fast_2 = 1;
+	}
   
-  if ( sym_code_in != refl_pnts_xsecs_code )
-    {
-      refl_pnts_xsecs_code =  sym_code_in;
+	if ( sym_code_in != refl_pnts_xsecs_code )
+   {
+		refl_pnts_xsecs_code =  sym_code_in;
       load_refl_pnts_xsecs();  
-    }
-  if ( sym_code_in != refl_hidden_code )
-    {
+   }
+	if ( sym_code_in != refl_hidden_code )
+   {
       refl_hidden_code =  sym_code_in;
       load_refl_hidden_surf();  
-    }
+   }
 
-  draw_refl_wire(sym_code_in);
+	draw_refl_wire(sym_code_in);
 
   //==== Draw Hidden Surface ====//
-  glColor3f( 1.0f, 1.0f, 1.0f );	
-  glPolygonOffset(2.0, 1);
-#ifndef __APPLE__
-  glEnable(GL_POLYGON_OFFSET_EXT);
-#endif
+	vector<double> data;
 
-  for ( i = 0 ; i < num_xsecs-1 ; i += fast_1 )
-    {
-      for ( j = 0 ; j < num_pnts-1 ; j += fast_2 )
-        {
-          glBegin( GL_POLYGON );
-	       refl_pnts_xsecs(i,j).get_pnt(dpnt);		glVertex3dv(dpnt);
-           refl_pnts_xsecs(i+1,j).get_pnt(dpnt);	glVertex3dv(dpnt);
-           refl_pnts_xsecs(i+1,j+1).get_pnt(dpnt);	glVertex3dv(dpnt);
-           refl_pnts_xsecs(i,j+1).get_pnt(dpnt);	glVertex3dv(dpnt);
- 	       //refl_hidden_surf(i,j).get_pnt(dpnt);		glVertex3dv(dpnt);
-         //  refl_hidden_surf(i+1,j).get_pnt(dpnt);	glVertex3dv(dpnt);
-         //  refl_hidden_surf(i+1,j+1).get_pnt(dpnt);	glVertex3dv(dpnt);
-         //  refl_hidden_surf(i,j+1).get_pnt(dpnt);	glVertex3dv(dpnt);
-         glEnd();
-         }
-     }
-#ifndef __APPLE__
-    glDisable(GL_POLYGON_OFFSET_EXT);
-#endif
+	surfRenderer->setColor3d( 1.0, 1.0, 1.0 );
+	for ( i = 0 ; i < num_xsecs-1 ; i += fast_1 )
+   {
+		for ( j = 0 ; j < num_pnts-1 ; j += fast_2 )
+      {
+	      refl_pnts_xsecs(i,j).get_pnt(dpnt);
+			data.push_back(dpnt[0]);
+			data.push_back(dpnt[1]);
+			data.push_back(dpnt[2]);
+
+         refl_pnts_xsecs(i+1,j).get_pnt(dpnt);
+			data.push_back(dpnt[0]);
+			data.push_back(dpnt[1]);
+			data.push_back(dpnt[2]);
+
+         refl_pnts_xsecs(i+1,j+1).get_pnt(dpnt);
+			data.push_back(dpnt[0]);
+			data.push_back(dpnt[1]);
+			data.push_back(dpnt[2]);
+
+         refl_pnts_xsecs(i,j+1).get_pnt(dpnt);
+			data.push_back(dpnt[0]);
+			data.push_back(dpnt[1]);
+			data.push_back(dpnt[2]);
+		}
+	}
+
+	PolygonOffset offset;
+	offset.factor = 2.0;
+	offset.units = 1.0;
+
+	surfRenderer->draw( R_QUADS, 3, data, offset );
 }
 
 //==== Draw Shaded Surf =====//

@@ -37,6 +37,7 @@
 #include "vec2d.h"
 #include "util.h"
 #include "textureMgr.h"
+#include "renderMgr.h"
 
 #include <vector>
 //using namespace std;
@@ -56,6 +57,8 @@ private:
  
 protected:
  
+	renderMgr* surfRenderer;
+
    int num_xsecs;
    int num_pnts;
 

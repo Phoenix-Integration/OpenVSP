@@ -478,11 +478,14 @@ void Xsec_surf::draw_hidden()
 		}
 	}
 
-	PolygonOffset offset;
-	offset.factor = 2.0;
-	offset.units = 1.0;
+	/* Set Rendering Properties */
+	RenderProperties rp;
 
-	surfRenderer->draw( R_QUADS, 3, data, offset );
+	rp.mode.polygonOffset.enabled = true;
+	rp.mode.polygonOffset.params.factor = 2.0;
+	rp.mode.polygonOffset.params.units = 1.0;
+
+	surfRenderer->draw( R_QUADS, rp, 3, data );
 }
 
 //==== Draw Reflected Hidden Surf =====//
@@ -546,11 +549,13 @@ void Xsec_surf::draw_refl_hidden( int sym_code_in)
 		}
 	}
 
-	PolygonOffset offset;
-	offset.factor = 2.0;
-	offset.units = 1.0;
+	RenderProperties rp;
+	
+	rp.mode.polygonOffset.enabled = true;
+	rp.mode.polygonOffset.params.factor = 2.0;
+	rp.mode.polygonOffset.params.units = 1.0;
 
-	surfRenderer->draw( R_QUADS, 3, data, offset );
+	surfRenderer->draw( R_QUADS, rp, 3, data);
 }
 
 //==== Draw Shaded Surf =====//
@@ -573,31 +578,72 @@ void Xsec_surf::draw_shaded()
   }
 
 	//==== jrg fix shading 
-	glEnable( GL_LIGHTING );
+	//glEnable( GL_LIGHTING );
           
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	glEnable( GL_BLEND );
+	//glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	//glEnable( GL_BLEND );
 //	glEnable( GL_CULL_FACE );
 //	glCullFace( GL_BACK );
+
+	vector<double> data;
+	vector<double> norms;
 
 	for ( i = 0 ; i < num_xsecs-1 ; i += fast_1 )
     {
       for ( j = 0 ; j < num_pnts-1 ; j += fast_2 )
-        {
-          glBegin( GL_POLYGON );
-           normals(i,j).get_pnt(fpnt);			glNormal3fv(fpnt);
-           pnts_xsecs(i,j).get_pnt(dpnt);		glVertex3dv(dpnt);
-           normals(i+1,j).get_pnt(fpnt);		glNormal3fv(fpnt);
-           pnts_xsecs(i+1,j).get_pnt(dpnt);		glVertex3dv(dpnt);
-           normals(i+1,j+1).get_pnt(fpnt);		glNormal3fv(fpnt);
-           pnts_xsecs(i+1,j+1).get_pnt(dpnt);		glVertex3dv(dpnt);
-           normals(i,j+1).get_pnt(fpnt);		glNormal3fv(fpnt);
-           pnts_xsecs(i,j+1).get_pnt(dpnt);		glVertex3dv(dpnt);
-          glEnd();
+      {
+           normals(i,j).get_pnt(fpnt);	
+			  norms.push_back( fpnt[0] );
+			  norms.push_back( fpnt[1] );
+			  norms.push_back( fpnt[2] );
+
+           pnts_xsecs(i,j).get_pnt(dpnt);
+			  data.push_back( dpnt[0] );
+			  data.push_back( dpnt[1] );
+			  data.push_back( dpnt[2] );
+			
+           normals(i+1,j).get_pnt(fpnt);
+			  norms.push_back( fpnt[0] );
+			  norms.push_back( fpnt[1] );
+			  norms.push_back( fpnt[2] );
+
+           pnts_xsecs(i+1,j).get_pnt(dpnt);
+			  data.push_back( dpnt[0] );
+			  data.push_back( dpnt[1] );
+			  data.push_back( dpnt[2] );
+
+           normals(i+1,j+1).get_pnt(fpnt);
+			  norms.push_back( fpnt[0] );
+			  norms.push_back( fpnt[1] );
+			  norms.push_back( fpnt[2] );
+
+           pnts_xsecs(i+1,j+1).get_pnt(dpnt);
+			  data.push_back( dpnt[0] );
+			  data.push_back( dpnt[1] );
+			  data.push_back( dpnt[2] );
+
+           normals(i,j+1).get_pnt(fpnt);
+			  norms.push_back( fpnt[0] );
+			  norms.push_back( fpnt[1] );
+			  norms.push_back( fpnt[2] );
+
+           pnts_xsecs(i,j+1).get_pnt(dpnt);
+			  data.push_back( dpnt[0] );
+			  data.push_back( dpnt[1] );
+			  data.push_back( dpnt[2] );
         }
      }
-  glDisable( GL_LIGHTING );
-  
+
+	/* Set Render Properties */
+	RenderProperties rp;
+
+	rp.mode.blend.enabled = true;
+	rp.mode.blend.params.sourcefactor = R_SRC_ALPHA;
+	rp.mode.blend.params.destinationfactor = R_ONE_MINUS_SRC_ALPHA;
+
+	rp.mode.lighting.enabled = true;
+
+	surfRenderer->draw( R_QUADS, rp, 3, data, norms );
 }
 //==== Remap Texture Coordinates - Handle Translation/Scale and Seams ====//
 void Xsec_surf::remap_texture( double upos, double width, bool wrapFlag, vector< double > & uVec, 
@@ -909,62 +955,92 @@ void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in )
 //==== Draw Reflected Shaded Surf =====//
 void Xsec_surf::draw_refl_shaded( int sym_code_in)
 {
-  if (sym_code_in == NO_SYM) return;
+	if (sym_code_in == NO_SYM) return;
 
-  int i, j;
-  int fast_1, fast_2;
-  float  fpnt[3];
-  double dpnt[3];
+	int i, j;
+	int fast_1, fast_2;
+	float  fpnt[3];
+	double dpnt[3];
 
-  fast_1 = fast_2 = 1;
-  if ( fast_draw_flag ) {
-  
-    fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
-    fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
+	fast_1 = fast_2 = 1;
+	if ( fast_draw_flag ) 
+	{  
+		fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
+		fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
     
-    if ( num_xsecs <= 6 ) fast_1 = 1;
-    if ( num_pnts  <= 6 ) fast_2 = 1;
-    
-  }
+		if ( num_xsecs <= 6 ) fast_1 = 1;
+		if ( num_pnts  <= 6 ) fast_2 = 1;
+	}
   
-  glEnable( GL_LIGHTING );
-
-  if ( sym_code_in != refl_pnts_xsecs_code )
-    {
-      refl_pnts_xsecs_code =  sym_code_in;
+	if ( sym_code_in != refl_pnts_xsecs_code )
+   {
+		refl_pnts_xsecs_code =  sym_code_in;
       load_refl_pnts_xsecs();  
-    }
-  if ( sym_code_in != refl_normals_code )
-    {
+   }
+	if ( sym_code_in != refl_normals_code )
+   {
       refl_normals_code =  sym_code_in;
       load_refl_normals();  
-    }
+   }
 
-	glEnable( GL_LIGHTING );
-          
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	glEnable( GL_BLEND );
-//	glEnable( GL_CULL_FACE );
-//	glCullFace( GL_BACK );
+	vector<double> data;
+	vector<double> norms;
 
-  for ( i = 0 ; i < num_xsecs-1 ; i += fast_1 )
-    {
-      for ( j = 0 ; j < num_pnts-1 ; j += fast_2 )
-        {
-          glBegin( GL_POLYGON );
-           refl_normals(i,j).get_pnt(fpnt);		glNormal3fv(fpnt);
-           refl_pnts_xsecs(i,j).get_pnt(dpnt);		glVertex3dv(dpnt);
-           refl_normals(i,j+1).get_pnt(fpnt);		glNormal3fv(fpnt);
-           refl_pnts_xsecs(i,j+1).get_pnt(dpnt);	glVertex3dv(dpnt);
-           refl_normals(i+1,j+1).get_pnt(fpnt);		glNormal3fv(fpnt);
-           refl_pnts_xsecs(i+1,j+1).get_pnt(dpnt);	glVertex3dv(dpnt);
-           refl_normals(i+1,j).get_pnt(fpnt);		glNormal3fv(fpnt);
-           refl_pnts_xsecs(i+1,j).get_pnt(dpnt);	glVertex3dv(dpnt);
-          glEnd();
-        }
-     }
-  glDisable( GL_LIGHTING );
+	for ( i = 0 ; i < num_xsecs-1 ; i += fast_1 )
+   {
+		for ( j = 0 ; j < num_pnts-1 ; j += fast_2 )
+      {
+			refl_normals(i,j).get_pnt(fpnt);
+			norms.push_back( fpnt[0] );
+			norms.push_back( fpnt[1] );
+			norms.push_back( fpnt[2] );
 
+         refl_pnts_xsecs(i,j).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+
+         refl_normals(i,j+1).get_pnt(fpnt);
+			norms.push_back( fpnt[0] );
+			norms.push_back( fpnt[1] );
+			norms.push_back( fpnt[2] );
+
+         refl_pnts_xsecs(i,j+1).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+
+         refl_normals(i+1,j+1).get_pnt(fpnt);
+			norms.push_back( fpnt[0] );
+			norms.push_back( fpnt[1] );
+			norms.push_back( fpnt[2] );
+
+         refl_pnts_xsecs(i+1,j+1).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+
+         refl_normals(i+1,j).get_pnt(fpnt);
+			norms.push_back( fpnt[0] );
+			norms.push_back( fpnt[1] );
+			norms.push_back( fpnt[2] );
+
+         refl_pnts_xsecs(i+1,j).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+		}
+	}
+
+	RenderProperties rp;
+
+	rp.mode.blend.enabled = true;
+	rp.mode.blend.params.sourcefactor = R_SRC_ALPHA;
+	rp.mode.blend.params.destinationfactor = R_ONE_MINUS_SRC_ALPHA;
+
+	rp.mode.lighting.enabled = true;
+
+	surfRenderer->draw( R_QUADS, rp, 3, data, norms );
 }
 
 //==== Load Reflected Pnts And Xsec Array =====//

@@ -26,11 +26,13 @@ public:
 	virtual void setPointSize( float size );
 
 public:
-	virtual void draw( Primitive mode, vector<vec3d> data );
 	virtual void draw( Primitive mode, int size, vector<double> data );
-	virtual void draw( Primitive mode, int size, vector<double> data, PolygonOffset offset );
+
 	virtual void draw( Primitive mode, int size, float* matrix, vector<double> data );
-	
+
+	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data );
+	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals );
+
 protected:
 	IRenderer* renderPtr;
 };

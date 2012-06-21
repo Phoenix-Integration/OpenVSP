@@ -17,6 +17,25 @@ enum Primitive
 	R_POLYGON,
 };
 
+enum BlendMask
+{
+	R_ZERO,
+	R_ONE,
+	R_SRC_COLOR,
+	R_ONE_MINUS_SRC_COLOR,
+	R_DST_COLOR,
+	R_ONE_MINUS_DST_COLOR,
+	R_SRC_ALPHA,
+	R_ONE_MINUS_SRC_ALPHA,
+	R_DST_ALPHA,
+	R_ONE_MINUS_DST_ALPHA,
+	R_CONSTANT_COLOR,
+	R_ONE_MINUS_CONSTANT_COLOR,
+	R_CONSTANT_ALPHA,
+	R_ONE_MINUS_CONSTANT_ALPHA,
+	R_SRC_ALPHA_SATURATE,
+};
+
 struct Color
 {
 	unsigned char red;
@@ -25,10 +44,53 @@ struct Color
 	unsigned char alpha;
 };
 
-struct PolygonOffset
+struct BlendMode
 {
-	float factor;
-	float units;
+	bool enabled;
+	struct Params
+	{
+		BlendMask sourcefactor;
+		BlendMask destinationfactor;
+		
+		Params():sourcefactor( R_ZERO ), destinationfactor( R_ZERO ) {}
+	}	params ;
+
+	BlendMode():enabled(false), params() {}
+};
+
+struct PolygonOffsetMode
+{
+	bool enabled;	
+	struct Params
+	{
+		float factor;
+		float units;
+
+		Params():factor(0), units(0) {}
+	}	params;
+
+	PolygonOffsetMode():enabled(false), params() {}
+}; 
+
+struct LightingMode
+{
+	bool enabled;
+
+	LightingMode():enabled(false) {}
+};
+
+struct RenderProperties
+{
+	struct RenderMode
+	{
+		BlendMode blend;
+		PolygonOffsetMode polygonOffset;
+		LightingMode lighting;
+
+		RenderMode():blend(), polygonOffset(), lighting() {}
+	}	mode;
+
+	RenderProperties():mode() {}
 };
 
 class IRenderer
@@ -50,14 +112,18 @@ public:
 	virtual void setPointSize( float size ) {}
 
 public:
-	virtual void draw( Primitive mode, vector<vec3d> vData ) {}
-	virtual void draw( Primitive mode, int size, vector<double> vData ) {}
-	virtual void draw( Primitive mode, int size, vector<double> vData, PolygonOffset offset ) {}
-	virtual void draw( Primitive mode, int size, float* matrix, vector<double> vData ) {}
-	virtual void draw( Primitive mode, Color color, vector<vec3d> vData ) {}
-	virtual void draw( Primitive mode, vector<Color> colors, vector<vec3d> vData ) {}
+	virtual void draw( Primitive mode, int size, vector<double> data ) {}
+
+	virtual void draw( Primitive mode, Color color, vector<vec3d> data ) {}
+	virtual void draw( Primitive mode, vector<Color> colors, vector<vec3d> data ) {}
+
+	virtual void draw( Primitive mode, int size, float* matrix, vector<double> data ) {}
+
+	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data ) {}
+	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals ) {}
 
 protected:
 	virtual unsigned int getGLPrimitiveMode( Primitive mode ) { return 0; }
+	virtual unsigned int getGLBlendMode( BlendMask mask ) { return 0; }
 };
 #endif

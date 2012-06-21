@@ -14,6 +14,7 @@
 #endif
 
 #include "GL11Renderer.h"
+#include <assert.h>
 
 /******************************************************
 *
@@ -102,20 +103,6 @@ void GL11Renderer::setPointSize( float size )
 * Draw Geometry.
 *
 *******************************************************/
-void GL11Renderer::draw( Primitive mode, vector<vec3d> data )
-{
-	glVertexPointer( 3, GL_DOUBLE, 0, &data[0] );
-
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glDrawArrays( getGLPrimitiveMode( mode ), 0, data.size() * 3 );
-	glDisableClientState( GL_VERTEX_ARRAY );
-}
-
-/******************************************************
-*
-* Draw Geometry.
-*
-*******************************************************/
 void GL11Renderer::draw( Primitive mode, int size, vector<double> data )
 {
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
@@ -123,36 +110,6 @@ void GL11Renderer::draw( Primitive mode, int size, vector<double> data )
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glDrawArrays( getGLPrimitiveMode( mode ), 0, data.size() / size );
 	glDisableClientState( GL_VERTEX_ARRAY );
-}
-
-/******************************************************
-*
-* Draw Geometry with glPolygonOffset.
-*
-*******************************************************
-*
-* mode - rendering mode. Example: R_POINT, R_LINES.
-* size - number of the coordinate per vertex.  Example; 2, 3, 4.
-* data - vector of doubles.
-*
-*******************************************************/
-void GL11Renderer::draw( Primitive mode, int size, vector<double> data, PolygonOffset offset )
-{
-	glPolygonOffset( offset.factor, offset.units );
-
-#ifndef __APPLE__
-	glEnable( GL_POLYGON_OFFSET_EXT );
-#endif
-	
-	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
-
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glDrawArrays( getGLPrimitiveMode( mode ), 0, data.size() / size );
-	glDisableClientState( GL_VERTEX_ARRAY );
-
-#ifndef __APPLE__
-	glDisable( GL_POLYGON_OFFSET_EXT );
-#endif
 }
 
 /******************************************************
@@ -190,6 +147,51 @@ void GL11Renderer::draw( Primitive mode, Color color, vector<vec3d> data )
 	glDisableClientState( GL_VERTEX_ARRAY );
 }
 
+void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<double> data )
+{
+	/* PolygonOffset */
+	if ( rp.mode.polygonOffset.enabled )
+	{
+		glPolygonOffset( rp.mode.polygonOffset.params.factor, rp.mode.polygonOffset.params.units );
+
+#ifndef __APPLE__
+		glEnable( GL_POLYGON_OFFSET_EXT );
+#endif
+	}
+
+	/* Blend */
+	if ( rp.mode.blend.enabled )
+	{
+		glBlendFunc( rp.mode.blend.params.sourcefactor, rp.mode.blend.params.destinationfactor );
+		glEnable( GL_BLEND );
+	}
+
+	/* Lighting */
+	if ( rp.mode.lighting.enabled )
+		glEnable( GL_LIGHTING );
+
+	/* Draw */
+	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glDrawArrays( getGLPrimitiveMode( mode ), 0, data.size() / size );
+	glDisableClientState( GL_VERTEX_ARRAY );
+
+	/* Restore Settings */
+	if ( rp.mode.lighting.enabled )
+		glDisable( GL_LIGHTING );
+
+	if ( rp.mode.blend.enabled )
+		glDisable( GL_BLEND );
+
+	if ( rp.mode.polygonOffset.enabled )
+	{
+#ifndef __APPLE__
+		glDisable( GL_POLYGON_OFFSET_EXT );
+#endif
+	}
+}
+
 /******************************************************
 *
 * Draw Geometry.
@@ -205,6 +207,54 @@ void GL11Renderer::draw( Primitive mode, vector<Color> colors, vector<vec3d> dat
 	glDrawArrays( getGLPrimitiveMode( mode ), 0, data.size() * 3 );
 	glDisableClientState( GL_COLOR_ARRAY );
 	glDisableClientState( GL_VERTEX_ARRAY );
+}
+
+void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals )
+{
+	/* PolygonOffset */
+	if ( rp.mode.polygonOffset.enabled )
+	{
+		glPolygonOffset( rp.mode.polygonOffset.params.factor, rp.mode.polygonOffset.params.units );
+
+#ifndef __APPLE__
+		glEnable( GL_POLYGON_OFFSET_EXT );
+#endif
+	}
+
+	/* Blend */
+	if ( rp.mode.blend.enabled )
+	{
+		glBlendFunc( rp.mode.blend.params.sourcefactor, rp.mode.blend.params.destinationfactor );
+		glEnable( GL_BLEND );
+	}
+
+	/* Lighting */
+	if ( rp.mode.lighting.enabled )
+		glEnable( GL_LIGHTING );
+
+	/* Draw */
+	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
+	glNormalPointer( GL_DOUBLE, 0, &normals[0] );
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_NORMAL_ARRAY );
+	glDrawArrays( getGLPrimitiveMode( mode ), 0, data.size() / size );
+	glDisableClientState( GL_NORMAL_ARRAY );
+	glDisableClientState( GL_VERTEX_ARRAY );
+
+	/* Restore Settings */
+	if ( rp.mode.lighting.enabled )
+		glDisable( GL_LIGHTING );
+
+	if ( rp.mode.blend.enabled )
+		glDisable( GL_BLEND );
+
+	if ( rp.mode.polygonOffset.enabled )
+	{
+#ifndef __APPLE__
+		glDisable( GL_POLYGON_OFFSET_EXT );
+#endif
+	}
 }
 
 /******************************************************
@@ -262,4 +312,79 @@ unsigned int GL11Renderer::getGLPrimitiveMode( Primitive mode )
 			break;
 	}
 	return openglMode;
+}
+
+unsigned int GL11Renderer::getGLBlendMode( BlendMask mask )
+{
+	unsigned int blendMode;
+
+	switch ( mask )
+	{
+		case R_ZERO:
+			blendMode = GL_ZERO;
+			break;
+
+		case R_ONE:
+			blendMode = GL_ONE;
+			break;
+	
+		case R_SRC_COLOR:
+			blendMode = GL_SRC_COLOR;
+			break;
+
+		case R_ONE_MINUS_SRC_COLOR:
+			blendMode = GL_ONE_MINUS_SRC_COLOR;
+			break;
+
+		case R_DST_COLOR:
+			blendMode = GL_DST_COLOR;
+			break;
+
+		case R_ONE_MINUS_DST_COLOR:
+			blendMode = GL_ONE_MINUS_DST_COLOR;
+			break;
+
+		case R_SRC_ALPHA:
+			blendMode = GL_SRC_ALPHA;
+			break;
+
+		case R_ONE_MINUS_SRC_ALPHA:
+			blendMode = GL_ONE_MINUS_SRC_ALPHA;
+			break;
+
+		case R_DST_ALPHA:
+			blendMode = GL_DST_ALPHA;
+			break;
+
+		case R_ONE_MINUS_DST_ALPHA:
+			blendMode = GL_ONE_MINUS_DST_ALPHA;
+			break;
+
+		case R_CONSTANT_COLOR:
+			blendMode = GL_CONSTANT_COLOR;
+			break;
+
+		case R_ONE_MINUS_CONSTANT_COLOR:
+			blendMode = GL_ONE_MINUS_CONSTANT_COLOR;
+			break;
+
+		case R_CONSTANT_ALPHA:
+			blendMode = GL_CONSTANT_ALPHA;
+			break;
+
+		case R_ONE_MINUS_CONSTANT_ALPHA:
+			blendMode = GL_ONE_MINUS_CONSTANT_ALPHA;
+			break;
+
+		case R_SRC_ALPHA_SATURATE:
+			blendMode = GL_SRC_ALPHA_SATURATE;
+			break;
+
+		default:
+			/* Shouldn't reach here, something must went wrong */
+			assert( false );
+			blendMode = GL_ONE;
+			break;
+	}
+	return blendMode;
 }

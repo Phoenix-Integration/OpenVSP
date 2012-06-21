@@ -54,19 +54,9 @@ void renderMgr::setPointSize( float size )
 	renderPtr->setPointSize( size );
 }
 
-void renderMgr::draw( Primitive mode, vector<vec3d> data )
-{
-	renderPtr->draw( mode, data );
-}
-
 void renderMgr::draw( Primitive mode, int size, vector< double > data )
 {
 	renderPtr->draw( mode, size, data );
-}
-
-void renderMgr::draw( Primitive mode, int size, vector<double> data, PolygonOffset offset )
-{
-	renderPtr->draw( mode, size, data, offset );
 }
 
 void renderMgr::draw( Primitive mode, int size, float* matrix, vector<double> data )
@@ -74,5 +64,12 @@ void renderMgr::draw( Primitive mode, int size, float* matrix, vector<double> da
 	renderPtr->draw( mode, size, matrix, data );
 }
 
+void renderMgr::draw( Primitive mode, RenderProperties rp, int size, vector<double> data )
+{
+	renderPtr->draw( mode, rp, size, data );
+}
 
-
+void renderMgr::draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals )
+{
+	renderPtr->draw( mode, rp, size, data, normals );
+}

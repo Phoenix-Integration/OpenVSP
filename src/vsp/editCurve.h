@@ -14,6 +14,8 @@
 #include "geom.h"
 #include "bezier_curve.h"
 #include "herm_curve.h"
+#include "renderMgr.h"
+
 #include <vector>
 
 class CurveEditScreen;

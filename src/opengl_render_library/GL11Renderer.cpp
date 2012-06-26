@@ -23,9 +23,11 @@
 *******************************************************/
 GL11Renderer::GL11Renderer() : IRenderer()
 {
+	commonUtil = new GLCommon();
 }
 GL11Renderer::~GL11Renderer()
 {
+	delete commonUtil;
 }
 
 /******************************************************
@@ -105,10 +107,13 @@ void GL11Renderer::setPointSize( float size )
 *******************************************************/
 void GL11Renderer::draw( Primitive mode, int size, vector<double> data )
 {
+	unsigned int pMode = 0;
+	commonUtil->getGLPrimitiveMode( mode, pMode );
+
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
 
 	glEnableClientState( GL_VERTEX_ARRAY );
-	glDrawArrays( getGLPrimitiveMode( mode ), 0, data.size() / size );
+	glDrawArrays( pMode, 0, data.size() / size );
 	glDisableClientState( GL_VERTEX_ARRAY );
 }
 
@@ -117,15 +122,38 @@ void GL11Renderer::draw( Primitive mode, int size, vector<double> data )
 * Draw Geometry.
 *
 *******************************************************/
-void GL11Renderer::draw( Primitive mode, int size, float* matrix, vector<double> data )
+void GL11Renderer::draw( Primitive mode, int csize, vector<double> colors, int size, vector<double> data )
 {
+	unsigned int pMode = 0;
+	commonUtil->getGLPrimitiveMode( mode, pMode );
+
+	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
+	glColorPointer( csize, GL_DOUBLE, 0, &colors[0] );
+
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_COLOR_ARRAY );
+	glDrawArrays( pMode, 0, data.size() / size );
+	glDisableClientState( GL_COLOR_ARRAY );
+	glDisableClientState( GL_VERTEX_ARRAY );
+}
+
+/******************************************************
+*
+* Draw Geometry.
+*
+*******************************************************/
+void GL11Renderer::draw( Primitive mode, float* matrix, int size, vector<double> data )
+{
+	unsigned int pMode = 0;
+	commonUtil->getGLPrimitiveMode( mode, pMode );
+
 	glPushMatrix();
 	glMultMatrixf( (GLfloat*)matrix );
 
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
 
 	glEnableClientState( GL_VERTEX_ARRAY );
-	glDrawArrays( getGLPrimitiveMode( mode ), 0, data.size() / 3 );
+	glDrawArrays( pMode, 0, data.size() / size );
 	glDisableClientState( GL_VERTEX_ARRAY );
 
 	glPopMatrix();
@@ -136,60 +164,24 @@ void GL11Renderer::draw( Primitive mode, int size, float* matrix, vector<double>
 * Draw Geometry.
 *
 *******************************************************/
-void GL11Renderer::draw( Primitive mode, Color color, vector<vec3d> data )
+void GL11Renderer::draw( Primitive mode, float* matrix, int csize, vector<double> colors, int size, vector<double> data )
 {
-	glVertexPointer( 3, GL_DOUBLE, 0, &data[0] );
-	
-	glColor4ub( color.red, color.green, color.blue, color.alpha );
+	unsigned int pMode = 0;
+	commonUtil->getGLPrimitiveMode( mode, pMode );
 
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glDrawArrays( getGLPrimitiveMode( mode ), 0, data.size() * 3 );
-	glDisableClientState( GL_VERTEX_ARRAY );
-}
+	glPushMatrix();
+	glMultMatrixf( (GLfloat*)matrix );
 
-void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<double> data )
-{
-	/* PolygonOffset */
-	if ( rp.mode.polygonOffset.enabled )
-	{
-		glPolygonOffset( rp.mode.polygonOffset.params.factor, rp.mode.polygonOffset.params.units );
-
-#ifndef __APPLE__
-		glEnable( GL_POLYGON_OFFSET_EXT );
-#endif
-	}
-
-	/* Blend */
-	if ( rp.mode.blend.enabled )
-	{
-		glBlendFunc( rp.mode.blend.params.sourcefactor, rp.mode.blend.params.destinationfactor );
-		glEnable( GL_BLEND );
-	}
-
-	/* Lighting */
-	if ( rp.mode.lighting.enabled )
-		glEnable( GL_LIGHTING );
-
-	/* Draw */
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
+	glColorPointer( csize, GL_DOUBLE, 0, &colors[0] );
 
 	glEnableClientState( GL_VERTEX_ARRAY );
-	glDrawArrays( getGLPrimitiveMode( mode ), 0, data.size() / size );
+	glEnableClientState( GL_COLOR_ARRAY );
+	glDrawArrays( pMode, 0, data.size() / size );
+	glDisableClientState( GL_COLOR_ARRAY );
 	glDisableClientState( GL_VERTEX_ARRAY );
 
-	/* Restore Settings */
-	if ( rp.mode.lighting.enabled )
-		glDisable( GL_LIGHTING );
-
-	if ( rp.mode.blend.enabled )
-		glDisable( GL_BLEND );
-
-	if ( rp.mode.polygonOffset.enabled )
-	{
-#ifndef __APPLE__
-		glDisable( GL_POLYGON_OFFSET_EXT );
-#endif
-	}
+	glPopMatrix();
 }
 
 /******************************************************
@@ -197,194 +189,229 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 * Draw Geometry.
 *
 *******************************************************/
-void GL11Renderer::draw( Primitive mode, vector<Color> colors, vector<vec3d> data )
+void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<double> data )
 {
-	glVertexPointer( 3, GL_DOUBLE, 0, &data[0] );
-	glVertexPointer( 4, GL_UNSIGNED_BYTE, 0, &colors[0] );
+	unsigned int pMode = 0;
+	commonUtil->getGLPrimitiveMode( mode, pMode );
+
+	/* Apply Properties */
+	apply( rp );
+
+	/* Draw */
+	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
 
 	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_COLOR_ARRAY );
-	glDrawArrays( getGLPrimitiveMode( mode ), 0, data.size() * 3 );
-	glDisableClientState( GL_COLOR_ARRAY );
+	glDrawArrays( pMode, 0, data.size() / size );
 	glDisableClientState( GL_VERTEX_ARRAY );
+
+	/* Restore Settings */
+	retract( rp );
 }
 
+/******************************************************
+*
+* Draw Geometry.
+*
+*******************************************************/
 void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals )
 {
+	unsigned int pMode = 0;
+	commonUtil->getGLPrimitiveMode( mode, pMode );
+
+	/* Apply Properties */
+	apply( rp );
+
+	/* Set Rendering Data */
+	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
+	glNormalPointer( GL_DOUBLE, 0, &normals[0] );
+
+	/* Draw */
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_NORMAL_ARRAY );
+	glDrawArrays( pMode, 0, data.size() / size );
+	glDisableClientState( GL_NORMAL_ARRAY );
+	glDisableClientState( GL_VERTEX_ARRAY );
+
+	/* Restore Settings */
+	retract( rp );
+}
+
+/******************************************************
+*
+* Draw Geometry.
+*
+*******************************************************/
+void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals, vector<double> texcoords )
+{
+	unsigned int pMode = 0;
+	commonUtil->getGLPrimitiveMode( mode, pMode );
+
+	/* Apply Properties */
+	apply( rp );
+
+	/* Set Rendering Data */
+	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
+	glNormalPointer( GL_DOUBLE, 0, &normals[0] );
+	glTexCoordPointer( 2, GL_DOUBLE, 0, &texcoords[0] );
+
+	/* Draw */
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_NORMAL_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+	glDrawArrays( pMode, 0, data.size() / size );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+	glDisableClientState( GL_NORMAL_ARRAY );
+	glDisableClientState( GL_VERTEX_ARRAY );
+
+	/* Restore Settings */
+	retract( rp );
+}
+
+/******************************************************
+*
+* Draw Geometry.
+*
+*******************************************************/
+void GL11Renderer::draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data )
+{
+	glPushMatrix();
+	glMultMatrixf( (GLfloat*)matrix );
+
+	draw( mode, rp, size, data );
+
+	glPopMatrix();
+}
+
+/******************************************************
+*
+* Draw Geometry.
+*
+*******************************************************/
+void GL11Renderer::draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals )
+{
+	glPushMatrix();
+	glMultMatrixf( (GLfloat*)matrix );
+
+	draw( mode, rp, size, data, normals );
+
+	glPopMatrix();
+}
+
+/******************************************************
+*
+* Draw Geometry.
+*
+*******************************************************/
+void GL11Renderer::draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals, vector<double> texcoords )
+{
+	glPushMatrix();
+	glMultMatrixf( (GLfloat*)matrix );
+
+	draw( mode, rp, size, data, normals, texcoords );
+
+	glPopMatrix();
+}
+
+/******************************************************
+*
+* Apply Customized Rendering Properties.
+*
+*******************************************************/
+void GL11Renderer::apply( RenderProperties rp )
+{
 	/* PolygonOffset */
-	if ( rp.mode.polygonOffset.enabled )
+	if ( rp.mode.polygonOffsetMode.enabled )
 	{
-		glPolygonOffset( rp.mode.polygonOffset.params.factor, rp.mode.polygonOffset.params.units );
+		glPolygonOffset( rp.mode.polygonOffsetMode.polygonOffset.factor, rp.mode.polygonOffsetMode.polygonOffset.units );
 
 #ifndef __APPLE__
 		glEnable( GL_POLYGON_OFFSET_EXT );
 #endif
 	}
 
-	/* Blend */
-	if ( rp.mode.blend.enabled )
+	/* DepthMask */
+	unsigned int depthfunc = 0;
+	commonUtil->getGLParameter( rp.mode.depthMaskMode.depthfunc.func, depthfunc );
+
+	if ( rp.mode.depthMaskMode.enabled )
 	{
-		glBlendFunc( rp.mode.blend.params.sourcefactor, rp.mode.blend.params.destinationfactor );
+		glDepthFunc( depthfunc );
+		glDepthMask( GL_TRUE );
+	}
+
+	/* Alpha test */
+	unsigned int alphaTestfunc = 0;
+	commonUtil->getGLParameter( rp.mode.alphaTestMode.alphafunc.func, alphaTestfunc );
+
+	if ( rp.mode.alphaTestMode.enabled )
+	{
+		glAlphaFunc( alphaTestfunc, rp.mode.alphaTestMode.alphafunc.ref );
+		glEnable( GL_ALPHA_TEST );
+	}
+
+	/* Texture 2D */
+	if ( rp.mode.texture2DMode.enabled )
+	{
+		assert( rp.mode.texture2DMode.texParameteri.pname.size() == rp.mode.texture2DMode.texParameteri.param.size() );
+
+		glBindTexture( GL_TEXTURE_2D, rp.mode.texture2DMode.bindTexture.texture );
+
+		unsigned int pname, param;
+		pname = param = 0;
+		for ( int i = 0; i < rp.mode.texture2DMode.texParameteri.pname.size(); i++ )
+		{
+			commonUtil->getGLTexParamName( rp.mode.texture2DMode.texParameteri.pname[i], pname );
+			commonUtil->getGLParameter( rp.mode.texture2DMode.texParameteri.param[i], param );
+			glTexParameteri( GL_TEXTURE_2D, pname, param );
+		}
+		glEnable( GL_TEXTURE_2D );
+	}
+
+	/* Blend */
+	unsigned int sfactor, dfactor;
+	sfactor = dfactor = 0;
+	commonUtil->getGLBlendMode( rp.mode.blendMode.blendfunc.sfactor, sfactor );
+	commonUtil->getGLBlendMode( rp.mode.blendMode.blendfunc.dfactor, dfactor );
+
+	if ( rp.mode.blendMode.enabled )
+	{
+		glBlendFunc( sfactor, dfactor );
 		glEnable( GL_BLEND );
 	}
 
 	/* Lighting */
-	if ( rp.mode.lighting.enabled )
+	if ( rp.mode.lightingMode.enabled )
 		glEnable( GL_LIGHTING );
+}
 
-	/* Draw */
-	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
-	glNormalPointer( GL_DOUBLE, 0, &normals[0] );
-
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_NORMAL_ARRAY );
-	glDrawArrays( getGLPrimitiveMode( mode ), 0, data.size() / size );
-	glDisableClientState( GL_NORMAL_ARRAY );
-	glDisableClientState( GL_VERTEX_ARRAY );
-
+/******************************************************
+*
+* Retract the changes.
+*
+*******************************************************/
+void GL11Renderer::retract( RenderProperties rp )
+{
 	/* Restore Settings */
-	if ( rp.mode.lighting.enabled )
+
+	if ( rp.mode.lightingMode.enabled )
 		glDisable( GL_LIGHTING );
 
-	if ( rp.mode.blend.enabled )
+	if ( rp.mode.blendMode.enabled )
 		glDisable( GL_BLEND );
 
-	if ( rp.mode.polygonOffset.enabled )
+	if ( rp.mode.alphaTestMode.enabled )
+		glDisable( GL_ALPHA_TEST );
+
+	if ( rp.mode.texture2DMode.enabled )
+		glDisable( GL_TEXTURE_2D );
+
+	if ( rp.mode.depthMaskMode.enabled )
+		glDepthMask( GL_FALSE );
+
+	if ( rp.mode.polygonOffsetMode.enabled )
 	{
 #ifndef __APPLE__
 		glDisable( GL_POLYGON_OFFSET_EXT );
 #endif
 	}
-}
-
-/******************************************************
-*
-* Get GL primitive enum.
-*
-*******************************************************/
-unsigned int GL11Renderer::getGLPrimitiveMode( Primitive mode )
-{
-	unsigned int openglMode;
-	switch ( mode )
-	{
-		case R_POINT:
-			openglMode = GL_POINT;
-			break;
-
-		case R_LINE:
-			openglMode = GL_LINE;
-			break;
-
-		case R_LINE_STRIP:
-			openglMode = GL_LINE_STRIP;
-			break;
-
-		case R_LINE_LOOP:
-			openglMode = GL_LINE_LOOP;
-			break;
-
-		case R_TRIANGLES:
-			openglMode = GL_TRIANGLES;
-			break;
-
-		case R_TRIANGLE_STRIP:
-			openglMode = GL_TRIANGLE_STRIP;
-			break;
-
-		case R_TRIANGLE_FAN:
-			openglMode = GL_TRIANGLE_FAN;
-			break;
-
-		case R_QUADS:
-			openglMode = GL_QUADS;
-			break;
-
-		case R_QUAD_STRIP:
-			openglMode = GL_QUAD_STRIP;
-			break;
-
-		case R_POLYGON:
-			openglMode = GL_POLYGON;
-			break;
-
-		default:
-			openglMode = GL_POINT;
-			break;
-	}
-	return openglMode;
-}
-
-unsigned int GL11Renderer::getGLBlendMode( BlendMask mask )
-{
-	unsigned int blendMode;
-
-	switch ( mask )
-	{
-		case R_ZERO:
-			blendMode = GL_ZERO;
-			break;
-
-		case R_ONE:
-			blendMode = GL_ONE;
-			break;
-	
-		case R_SRC_COLOR:
-			blendMode = GL_SRC_COLOR;
-			break;
-
-		case R_ONE_MINUS_SRC_COLOR:
-			blendMode = GL_ONE_MINUS_SRC_COLOR;
-			break;
-
-		case R_DST_COLOR:
-			blendMode = GL_DST_COLOR;
-			break;
-
-		case R_ONE_MINUS_DST_COLOR:
-			blendMode = GL_ONE_MINUS_DST_COLOR;
-			break;
-
-		case R_SRC_ALPHA:
-			blendMode = GL_SRC_ALPHA;
-			break;
-
-		case R_ONE_MINUS_SRC_ALPHA:
-			blendMode = GL_ONE_MINUS_SRC_ALPHA;
-			break;
-
-		case R_DST_ALPHA:
-			blendMode = GL_DST_ALPHA;
-			break;
-
-		case R_ONE_MINUS_DST_ALPHA:
-			blendMode = GL_ONE_MINUS_DST_ALPHA;
-			break;
-
-		case R_CONSTANT_COLOR:
-			blendMode = GL_CONSTANT_COLOR;
-			break;
-
-		case R_ONE_MINUS_CONSTANT_COLOR:
-			blendMode = GL_ONE_MINUS_CONSTANT_COLOR;
-			break;
-
-		case R_CONSTANT_ALPHA:
-			blendMode = GL_CONSTANT_ALPHA;
-			break;
-
-		case R_ONE_MINUS_CONSTANT_ALPHA:
-			blendMode = GL_ONE_MINUS_CONSTANT_ALPHA;
-			break;
-
-		case R_SRC_ALPHA_SATURATE:
-			blendMode = GL_SRC_ALPHA_SATURATE;
-			break;
-
-		default:
-			/* Shouldn't reach here, something must went wrong */
-			assert( false );
-			blendMode = GL_ONE;
-			break;
-	}
-	return blendMode;
 }

@@ -22,6 +22,7 @@
 #include "stringc.h"
 #include "herm_curve.h"
 #include "drawBase.h"
+#include "renderMgr.h"
 
 #include "xmlvsp.h"
 
@@ -99,6 +100,8 @@ class Af : public DrawBase
 
   herm_curve upper_curve;
   herm_curve lower_curve;
+
+  renderMgr* renderPtr;
 
   void generate_4_series();
   void generate_biconvex();

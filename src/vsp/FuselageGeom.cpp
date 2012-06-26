@@ -908,42 +908,31 @@ void FuselageGeom::draw()
 
 	if ( displayFlag == GEOM_WIRE_FLAG )
 	{
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
+		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
 
 		if ( !redFlag )
-			surf.draw_wire();
+			surf.draw_wire(*model_mat);
 		else
 			draw_wire_fuselage();
 
 		if ( redFlag )
 			drawControlPoints();
 
-		glPopMatrix();
-
 		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-		surf.draw_refl_wire(sym_code);
-		glPopMatrix();
+		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
+		surf.draw_refl_wire(sym_code, *reflect_mat);
 	}
 	else if ( displayFlag == GEOM_SHADE_FLAG || displayFlag == GEOM_TEXTURE_FLAG )
 	{
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
 		Material* mat = matMgrPtr->getMaterial( materialID );
 		if ( mat )
 		{
 			mat->bind();
 			if ( mat->diff[3] > 0.99 )
 			{
-				surf.draw_shaded();
+				surf.draw_shaded(*model_mat);
 
 				if ( displayFlag == GEOM_TEXTURE_FLAG )
 					drawTextures(false);
@@ -952,56 +941,42 @@ void FuselageGeom::draw()
 		if ( redFlag )
 			drawControlPoints();
 
-		glPopMatrix();
-
 		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
 		mat = matMgrPtr->getMaterial( materialID );
 		if ( mat )
 		{
 			mat->bind();
 			if  ( mat->diff[3] > 0.99 )
 			{
-				surf.draw_refl_shaded( sym_code);
+				surf.draw_refl_shaded( sym_code, *reflect_mat );
 				
 				if ( displayFlag == GEOM_TEXTURE_FLAG )
 					drawTextures(true);
 			}
 		}
-		glPopMatrix();
 	}
 	else if ( displayFlag == GEOM_HIDDEN_FLAG )
 	{
 		//==== Draw Hidden Surface ====//
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
 
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-		surf.draw_hidden();
+		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
+		surf.draw_hidden( *model_mat );
 
 		if ( redFlag )
 			drawControlPoints();
 
-		glPopMatrix();
-
 		//==== Reflected Geom ====//
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-		surf.draw_refl_hidden(sym_code);
-		glPopMatrix();
-			
+		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
+		surf.draw_refl_hidden(sym_code, *reflect_mat);
 	}
 }
 
 void FuselageGeom::draw_wire_fuselage()
 {
 	//==== Draw Cross Sections ====// 
-	glPushAttrib(GL_CURRENT_BIT);
-	glLineWidth(1.0);
-	glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
+	renderer->setLineWidth( 1.0 );
+	renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
 
 	int id_cnt = 0;
 	int curr_edit_id;
@@ -1020,45 +995,51 @@ void FuselageGeom::draw_wire_fuselage()
 	{
 		if ( ixs == curr_edit_id )
 		{
-			glColor3ub( 255, 0, 0 );	
-			glLineWidth(4.0);
+			renderer->setColor3ub( 255, 0, 0 );
+			renderer->setLineWidth( 4.0 );
 		}
 		else if ( ContainsVal<int> ( edit_ids, ixs ) )
 		{
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
-			glLineWidth(2.0);
+			renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
+			renderer->setLineWidth( 2.0 );
 		}
 		else
 		{
-			glColor3ub( 100, 100, 100 );
-			glLineWidth(1.0);
+			renderer->setColor3ub( 100, 100, 100 );
+			renderer->setLineWidth( 1.0 );
 		}
 
 		vector< vec3d > pnt_vec;
 		surf.get_xsec( ixs, pnt_vec );
-		glBegin( GL_LINE_STRIP );
+
+		vector<double> data;
 		for ( int j = 0 ; j < (int)pnt_vec.size() ; j++ )
 		{
-			glVertex3dv( pnt_vec[j].data() );
+			data.push_back( pnt_vec[j].data()[0] );
+			data.push_back( pnt_vec[j].data()[1] );
+			data.push_back( pnt_vec[j].data()[2] );
 		}
-		glEnd();
+		renderer->draw( R_LINE_STRIP, 3, data );
 	}
 
-	glLineWidth(1.0);
-	glColor3ub( 100, 100, 100 );
+	renderer->setLineWidth( 1.0 );
+	renderer->setColor3ub( 100, 100, 100 );
+
 	int num_pnts = surf.get_num_pnts();
 	for ( int ipnt = 0 ; ipnt < num_pnts ; ipnt++ )
 	{
 		vector< vec3d > pnt_vec;
 		surf.get_stringer( ipnt, pnt_vec );
-		glBegin( GL_LINE_STRIP );
+
+		vector<double> data;
 		for ( int j = 0 ; j < (int)pnt_vec.size() ; j++ )
 		{
-			glVertex3dv( pnt_vec[j].data() );
+			data.push_back( pnt_vec[j].data()[0] );
+			data.push_back( pnt_vec[j].data()[1] );
+			data.push_back( pnt_vec[j].data()[2] );
 		}
-		glEnd();
+		renderer->draw( R_LINE_STRIP, 3, data );
 	}
-	glPopAttrib();
 }
 
 
@@ -1075,27 +1056,17 @@ void FuselageGeom::drawAlpha()
 	if ( mat && mat->diff[3] <= 0.99 )
 	{
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
 		mat->bind();
-		surf.draw_shaded();
+		surf.draw_shaded(*model_mat);
 		
 		if ( displayFlag == GEOM_TEXTURE_FLAG )
 			drawTextures(false);
 
-		glPopMatrix();
-
 		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-
-		surf.draw_refl_shaded( sym_code);
+		surf.draw_refl_shaded( sym_code, *reflect_mat );
 
 		if ( displayFlag == GEOM_TEXTURE_FLAG )
 			drawTextures(true);
-
-		glPopMatrix();
 	}
 }
 
@@ -1952,14 +1923,16 @@ void FuselageGeom::drawControlPoints()
 		if ( activeControlPntID == i )
 		{
 			if ( Fl::event_state(FL_SHIFT) )
-				glColor3ub( 255, 255, 0 );
+				renderer->setColor3ub( 255, 255, 0 );
 			else
-				glColor3ub( 255, 0, 0 );
+				renderer->setColor3ub( 255, 0, 0 );
 
-			glBegin( GL_LINES );
-
+			vector<double> data;
 			vec3d pnt = cPntVec[i].pnt3d;
-			glVertex3dv( pnt.data() );
+			data.push_back( pnt.data()[0] );
+			data.push_back( pnt.data()[1] );
+			data.push_back( pnt.data()[2] );
+
 			if ( cPntVec[i].pntID == ControlPnt::TOP )
 				pnt.offset_z( length.get()/20.0 );
 			else if ( cPntVec[i].pntID == ControlPnt::BOTTOM )
@@ -1967,24 +1940,28 @@ void FuselageGeom::drawControlPoints()
 			else if ( cPntVec[i].pntID == ControlPnt::SIDE )
 				pnt.offset_y( length.get()/20.0 );
 
-			glVertex3dv( pnt.data() );
+			data.push_back( pnt.data()[0] );
+			data.push_back( pnt.data()[1] );
+			data.push_back( pnt.data()[2] );
 
-			glEnd();
+			renderer->draw( R_LINES, 3, data );
 
-
-			glPointSize( 16.0 );
+			renderer->setPointSize( 16.0 );
 		}
 		else
 		{
-			glColor3ub( 255, 0, 255 );
-			glPointSize( 8.0 );
+			renderer->setColor3ub( 255, 0, 255 );
+			renderer->setPointSize( 8.0 );
 		}
-		glBegin( GL_POINTS );
-		cPntVec[i].pnt2d = projectPoint( cPntVec[i].pnt3d, 0 );
-		glVertex3dv( cPntVec[i].pnt3d.data() );
-		glEnd();
-	}
 
+		vector<double> data;
+		cPntVec[i].pnt2d = projectPoint( cPntVec[i].pnt3d, 0 );
+		data.push_back( cPntVec[i].pnt3d.data()[0] );
+		data.push_back( cPntVec[i].pnt3d.data()[1] );
+		data.push_back( cPntVec[i].pnt3d.data()[2] );
+
+		renderer->draw( R_POINTS, 3, data );
+	}
 }
 
 void FuselageGeom::draw2D(vec2d & cursor)

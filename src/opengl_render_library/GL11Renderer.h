@@ -2,6 +2,7 @@
 #define _OPENGL_VERSION_1_1_RENDERER_H
 
 #include "IRenderer.h"
+#include "GLCommon.h"
 
 class GL11Renderer : public IRenderer
 {
@@ -24,16 +25,24 @@ public:
 public:
 	virtual void draw( Primitive mode, int size, vector<double> data );
 
-	virtual void draw( Primitive mode, Color color, vector<vec3d> data );
-	virtual void draw( Primitive mode, vector<Color> colors, vector<vec3d> data );
+	virtual void draw( Primitive mode, int csize, vector<double> colors, int size, vector<double> data );
 
-	virtual void draw( Primitive mode, int size, float* matrix, vector<double> data );
+	virtual void draw( Primitive mode, float* matrix, int size, vector<double> data );
+	virtual void draw( Primitive mode, float* matrix, int csize, vector<double> colors, int size, vector<double> data );
 
 	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data );
 	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals );
+	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals, vector<double> texcoords );
+
+	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data );
+	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals );
+	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals, vector<double> texcoords );
 
 protected:
-	virtual unsigned int getGLPrimitiveMode( Primitive mode );
-	virtual unsigned int getGLBlendMode( BlendMask mask );
+	virtual void apply( RenderProperties rp );
+	virtual void retract( RenderProperties rp );
+
+protected:
+	GLCommon* commonUtil;
 };
 #endif

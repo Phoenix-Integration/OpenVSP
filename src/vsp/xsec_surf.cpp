@@ -32,9 +32,6 @@
 //==== Constructor =====//
 Xsec_surf::Xsec_surf()
 {
-  surfRenderer = new renderMgr();
-  surfRenderer->init();
-
   num_xsecs = 0;
   num_pnts = 0;
 
@@ -50,7 +47,56 @@ Xsec_surf::Xsec_surf()
 
   draw_flag = true;
 
+  /* Initialize Renderer */
+  surfRenderer = new renderMgr();
+  surfRenderer->init();
 
+  /* Customized Render Properties */ 
+
+  /* Render Properties for drawing hidden */
+  rp_hidden.mode.polygonOffsetMode.enabled = true;
+  rp_hidden.mode.polygonOffsetMode.polygonOffset.factor = 2.0;
+  rp_hidden.mode.polygonOffsetMode.polygonOffset.units = 1.0;
+
+  /* Render Properties for drawing shaded */
+  rp_shaded.mode.blendMode.enabled = true;
+  rp_shaded.mode.blendMode.blendfunc.sfactor = R_SRC_ALPHA;
+  rp_shaded.mode.blendMode.blendfunc.dfactor = R_ONE_MINUS_SRC_ALPHA;
+
+  rp_shaded.mode.lightingMode.enabled = true;
+
+  /* Render Properties for drawing texture */
+  /* alpha test */
+  rp_texture.mode.alphaTestMode.enabled = true;
+  rp_texture.mode.alphaTestMode.alphafunc.func = R_GREATER;
+  rp_texture.mode.alphaTestMode.alphafunc.ref = 0;
+
+  /* lighting effect */
+  rp_texture.mode.lightingMode.enabled = true;
+
+  /* color blending */
+  rp_texture.mode.blendMode.enabled = true;
+  rp_texture.mode.blendMode.blendfunc.sfactor = R_SRC_ALPHA;
+  rp_texture.mode.blendMode.blendfunc.dfactor = R_ONE_MINUS_SRC_ALPHA;
+	
+  /* depth buffer */
+  rp_texture.mode.depthMaskMode.enabled = false;
+  rp_texture.mode.depthMaskMode.depthfunc.func = R_EQUAL;
+
+  /* texture 2d */
+  rp_texture.mode.texture2DMode.enabled = true;
+
+  /* set texture parameter names */
+  vector<TexParamNameMask> pnames;
+  pnames.push_back( R_TEXTURE_WRAP_S );
+  pnames.push_back( R_TEXTURE_WRAP_T );
+  rp_texture.mode.texture2DMode.texParameteri.pname = pnames;
+
+  /* set parameters */
+  vector<ParameterMask> params;
+  params.push_back( R_CLAMP_TO_EDGE );
+  params.push_back( R_CLAMP_TO_EDGE );
+  rp_texture.mode.texture2DMode.texParameteri.param = params;
 }
 
 //==== Destructor =====//
@@ -308,18 +354,15 @@ vec3d Xsec_surf::comp_uv_pnt( double u, double v )
 
 }
 
-
-
-
 //==== Draw Wire Frame =====//
-void Xsec_surf::draw_wire( )
+void Xsec_surf::draw_wire()
 {
 	int i, j, fast_1, fast_2;
 	double dpnt[3];
 	double color[4];
 
 	//==== Set Line Width ====//  
-	surfRenderer->setLineWidth( 1 );
+	surfRenderer->setLineWidth( 1.0 );
 
 	fast_1 = fast_2 = 1;
 	if ( fast_draw_flag ) 
@@ -373,8 +416,75 @@ void Xsec_surf::draw_wire( )
     }
 }
 
+//==== Draw Wire Frame =====//
+/******************************************************
+*
+* Draw Wire Frame with Transformation Matrix.
+*
+*******************************************************/
+void Xsec_surf::draw_wire( float* mat )
+{
+	int i, j, fast_1, fast_2;
+	double dpnt[3];
+	double color[4];
+
+	//==== Set Line Width ====//  
+	surfRenderer->setLineWidth( 1.0 );
+
+	fast_1 = fast_2 = 1;
+	if ( fast_draw_flag ) 
+	{ 
+		fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
+		fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
+    
+		if ( num_xsecs <= 4 ) fast_1 = 1;
+		if ( num_pnts  <= 4 ) fast_2 = 1;   
+	}
+  
+	//==== Draw Cross Sections ====//
+	for ( i = 0 ; i < num_xsecs ; i += fast_1 )
+	{
+		if ( highlight_xsec_flag && i == highlight_xsec_id )
+		{
+			surfRenderer->getColor4d( color );
+			surfRenderer->setColor3d( highlight_xsec_color.x(), highlight_xsec_color.y(), highlight_xsec_color.z() );
+			surfRenderer->setLineWidth( 3.0 );
+		}
+
+		vector<double> data;
+		for ( j = 0 ; j < num_pnts ; j += fast_2 )
+		{
+			pnts_xsecs(i,j).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+		}
+		surfRenderer->draw( R_LINE_STRIP, mat, 3, data );
+
+		if ( highlight_xsec_flag && i == highlight_xsec_id )
+		{
+			surfRenderer->setColor3d( color[0], color[1], color[2] );
+			surfRenderer->setLineWidth( 1.0 );
+		}
+	}
+
+	//==== Draw Stringers ====//  
+	for ( i = 0 ; i < num_pnts ; i += fast_2 )
+   {
+		vector<double> data;
+      for ( j = 0 ; j < num_xsecs ; j += fast_1 )
+		{
+			pnts_xsecs(j,i).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+		}
+		surfRenderer->draw( R_LINE_STRIP, mat, 3, data );
+    }
+}
+
 //==== Draw Reflected Wire Frame =====//
-void Xsec_surf::draw_refl_wire( int sym_code_in) 
+void Xsec_surf::draw_refl_wire( int sym_code_in ) 
 {
 	if (sym_code_in == NO_SYM) return;
 
@@ -431,6 +541,70 @@ void Xsec_surf::draw_refl_wire( int sym_code_in)
 	}
 }
 
+//==== Draw Reflected Wire Frame =====//
+/******************************************************
+*
+* Draw Reflected Wire Frame with 
+* Transformation Matrix.
+*
+*******************************************************/
+void Xsec_surf::draw_refl_wire( int sym_code_in, float* mat ) 
+{
+	if (sym_code_in == NO_SYM) return;
+
+	int i, j, fast_1, fast_2;
+	double dpnt[3];
+
+	fast_1 = fast_2 = 1;
+	if ( fast_draw_flag ) 
+	{
+		fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
+		fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
+    
+		if ( num_xsecs <= 4 ) fast_1 = 1;
+		if ( num_pnts  <= 4 ) fast_2 = 1;
+	}
+  
+	if ( sym_code_in != refl_pnts_xsecs_code )
+	{
+		refl_pnts_xsecs_code =  sym_code_in;
+		load_refl_pnts_xsecs();  
+	}
+
+	//==== Set Line Width ====//  
+	surfRenderer->setLineWidth( 1.0 );
+
+	//==== Draw Cross Sections ====//  
+	vector<double> data;
+
+	for ( i = 0 ; i < num_xsecs ; i += fast_1 )
+	{
+		data.clear();
+      for ( j = 0 ; j < num_pnts ; j += fast_2 )
+      {
+			refl_pnts_xsecs(i,j).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+		}
+		surfRenderer->draw( R_LINE_STRIP, mat, 3, data );
+	}
+
+	//==== Draw Stringers ====//  
+	for ( i = 0 ; i < num_pnts ; i += fast_2 )
+	{
+		data.clear();
+      for ( j = 0 ; j < num_xsecs ; j += fast_1 )
+      {
+			refl_pnts_xsecs(j,i).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+		}
+		surfRenderer->draw( R_LINE_STRIP, mat, 3, data );
+	}
+}
+
 //==== Draw Hidden Surf =====//
 void Xsec_surf::draw_hidden()
 {
@@ -477,19 +651,65 @@ void Xsec_surf::draw_hidden()
 			data.push_back( dpnt[2] );
 		}
 	}
+	surfRenderer->draw( R_QUADS, rp_hidden, 3, data );
+}
 
-	/* Set Rendering Properties */
-	RenderProperties rp;
+//==== Draw Hidden Surf =====//
+/******************************************************
+*
+* Draw Hidden Surf with Transformation Matrix.
+*
+*******************************************************/
+void Xsec_surf::draw_hidden( float* mat )
+{
+	int i, j, fast_1, fast_2;
 
-	rp.mode.polygonOffset.enabled = true;
-	rp.mode.polygonOffset.params.factor = 2.0;
-	rp.mode.polygonOffset.params.units = 1.0;
+	double dpnt[3];
+	draw_wire( mat );
 
-	surfRenderer->draw( R_QUADS, rp, 3, data );
+	//==== Draw Hidden Surface ====//
+	surfRenderer->setColor3d( 1.0, 1.0, 1.0 );
+
+	fast_1 = fast_2 = 1;
+	if ( fast_draw_flag ) 
+	{
+		fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
+		fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
+    
+		if ( num_xsecs <= 4 ) fast_1 = 1;
+		if ( num_pnts  <= 4 ) fast_2 = 1; 
+	}
+   vector<double> data; 
+	for ( i = 0 ; i < num_xsecs-1 ; i += fast_1 )
+	{
+      for ( j = 0 ; j < num_pnts-1 ; j += fast_2 )
+		{
+			pnts_xsecs(i,j).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+
+         pnts_xsecs(i+1,j).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+
+         pnts_xsecs(i+1,j+1).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+
+         pnts_xsecs(i,j+1).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+		}
+	}
+	surfRenderer->draw( R_QUADS, rp_hidden, mat, 3, data );
 }
 
 //==== Draw Reflected Hidden Surf =====//
-void Xsec_surf::draw_refl_hidden( int sym_code_in)
+void Xsec_surf::draw_refl_hidden( int sym_code_in )
 {
 	if (sym_code_in == NO_SYM) return;
 
@@ -548,48 +768,101 @@ void Xsec_surf::draw_refl_hidden( int sym_code_in)
 			data.push_back(dpnt[2]);
 		}
 	}
+	surfRenderer->draw( R_QUADS, rp_hidden, 3, data);
+}
 
-	RenderProperties rp;
-	
-	rp.mode.polygonOffset.enabled = true;
-	rp.mode.polygonOffset.params.factor = 2.0;
-	rp.mode.polygonOffset.params.units = 1.0;
+//==== Draw Reflected Hidden Surf =====//
+/******************************************************
+*
+* Draw Reflected Hidden Surf with 
+* Transformation Matrix.
+*
+*******************************************************/
+void Xsec_surf::draw_refl_hidden( int sym_code_in, float* mat )
+{
+	if (sym_code_in == NO_SYM) return;
 
-	surfRenderer->draw( R_QUADS, rp, 3, data);
+	int i, j, fast_1, fast_2;
+	double dpnt[3];
+
+	fast_1 = fast_2 = 1;
+	if ( fast_draw_flag ) 
+	{
+		fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
+		fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
+    
+		if ( num_xsecs <= 4 ) fast_1 = 1;
+		if ( num_pnts  <= 4 ) fast_2 = 1;
+	}
+  
+	if ( sym_code_in != refl_pnts_xsecs_code )
+   {
+		refl_pnts_xsecs_code =  sym_code_in;
+      load_refl_pnts_xsecs();  
+   }
+	if ( sym_code_in != refl_hidden_code )
+   {
+      refl_hidden_code =  sym_code_in;
+      load_refl_hidden_surf();  
+   }
+
+	draw_refl_wire(sym_code_in, mat);
+
+  //==== Draw Hidden Surface ====//
+	vector<double> data;
+
+	surfRenderer->setColor3d( 1.0, 1.0, 1.0 );
+	for ( i = 0 ; i < num_xsecs-1 ; i += fast_1 )
+   {
+		for ( j = 0 ; j < num_pnts-1 ; j += fast_2 )
+      {
+	      refl_pnts_xsecs(i,j).get_pnt(dpnt);
+			data.push_back(dpnt[0]);
+			data.push_back(dpnt[1]);
+			data.push_back(dpnt[2]);
+
+         refl_pnts_xsecs(i+1,j).get_pnt(dpnt);
+			data.push_back(dpnt[0]);
+			data.push_back(dpnt[1]);
+			data.push_back(dpnt[2]);
+
+         refl_pnts_xsecs(i+1,j+1).get_pnt(dpnt);
+			data.push_back(dpnt[0]);
+			data.push_back(dpnt[1]);
+			data.push_back(dpnt[2]);
+
+         refl_pnts_xsecs(i,j+1).get_pnt(dpnt);
+			data.push_back(dpnt[0]);
+			data.push_back(dpnt[1]);
+			data.push_back(dpnt[2]);
+		}
+	}
+	surfRenderer->draw( R_QUADS, rp_hidden, mat, 3, data);
 }
 
 //==== Draw Shaded Surf =====//
 void Xsec_surf::draw_shaded()
 {
-  int i, j;
-  int fast_1, fast_2;
-  float  fpnt[3];
-  double dpnt[3];
+	int i, j;
+	int fast_1, fast_2;
+	float  fpnt[3];
+	double dpnt[3];
 
-  fast_1 = fast_2 = 1;
-  if ( fast_draw_flag ) {
-  
-    fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
-    fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
+	fast_1 = fast_2 = 1;
+	if ( fast_draw_flag ) 
+	{
+		fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
+		fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
     
-    if ( num_xsecs <= 6 ) fast_1 = 1;
-    if ( num_pnts  <= 6 ) fast_2 = 1;
-    
-  }
-
-	//==== jrg fix shading 
-	//glEnable( GL_LIGHTING );
-          
-	//glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	//glEnable( GL_BLEND );
-//	glEnable( GL_CULL_FACE );
-//	glCullFace( GL_BACK );
+		if ( num_xsecs <= 6 ) fast_1 = 1;
+		if ( num_pnts  <= 6 ) fast_2 = 1; 
+	}
 
 	vector<double> data;
 	vector<double> norms;
 
 	for ( i = 0 ; i < num_xsecs-1 ; i += fast_1 )
-    {
+   {
       for ( j = 0 ; j < num_pnts-1 ; j += fast_2 )
       {
            normals(i,j).get_pnt(fpnt);	
@@ -632,19 +905,84 @@ void Xsec_surf::draw_shaded()
 			  data.push_back( dpnt[1] );
 			  data.push_back( dpnt[2] );
         }
-     }
-
-	/* Set Render Properties */
-	RenderProperties rp;
-
-	rp.mode.blend.enabled = true;
-	rp.mode.blend.params.sourcefactor = R_SRC_ALPHA;
-	rp.mode.blend.params.destinationfactor = R_ONE_MINUS_SRC_ALPHA;
-
-	rp.mode.lighting.enabled = true;
-
-	surfRenderer->draw( R_QUADS, rp, 3, data, norms );
+    }
+	 surfRenderer->draw( R_QUADS, rp_shaded, 3, data, norms );
 }
+
+//==== Draw Shaded Surf =====//
+/******************************************************
+*
+* Draw Shaded Surf with Transformation Matrix.
+*
+*******************************************************/
+void Xsec_surf::draw_shaded( float* mat )
+{
+	int i, j;
+	int fast_1, fast_2;
+	float  fpnt[3];
+	double dpnt[3];
+
+	fast_1 = fast_2 = 1;
+	if ( fast_draw_flag ) 
+	{
+		fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
+		fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
+    
+		if ( num_xsecs <= 6 ) fast_1 = 1;
+		if ( num_pnts  <= 6 ) fast_2 = 1;
+	}
+
+	vector<double> data;
+	vector<double> norms;
+
+	for ( i = 0 ; i < num_xsecs-1 ; i += fast_1 )
+   {
+      for ( j = 0 ; j < num_pnts-1 ; j += fast_2 )
+      {
+           normals(i,j).get_pnt(fpnt);	
+			  norms.push_back( fpnt[0] );
+			  norms.push_back( fpnt[1] );
+			  norms.push_back( fpnt[2] );
+
+           pnts_xsecs(i,j).get_pnt(dpnt);
+			  data.push_back( dpnt[0] );
+			  data.push_back( dpnt[1] );
+			  data.push_back( dpnt[2] );
+			
+           normals(i+1,j).get_pnt(fpnt);
+			  norms.push_back( fpnt[0] );
+			  norms.push_back( fpnt[1] );
+			  norms.push_back( fpnt[2] );
+
+           pnts_xsecs(i+1,j).get_pnt(dpnt);
+			  data.push_back( dpnt[0] );
+			  data.push_back( dpnt[1] );
+			  data.push_back( dpnt[2] );
+
+           normals(i+1,j+1).get_pnt(fpnt);
+			  norms.push_back( fpnt[0] );
+			  norms.push_back( fpnt[1] );
+			  norms.push_back( fpnt[2] );
+
+           pnts_xsecs(i+1,j+1).get_pnt(dpnt);
+			  data.push_back( dpnt[0] );
+			  data.push_back( dpnt[1] );
+			  data.push_back( dpnt[2] );
+
+           normals(i,j+1).get_pnt(fpnt);
+			  norms.push_back( fpnt[0] );
+			  norms.push_back( fpnt[1] );
+			  norms.push_back( fpnt[2] );
+
+           pnts_xsecs(i,j+1).get_pnt(dpnt);
+			  data.push_back( dpnt[0] );
+			  data.push_back( dpnt[1] );
+			  data.push_back( dpnt[2] );
+        }
+    }
+	 surfRenderer->draw( R_QUADS, rp_shaded, mat, 3, data, norms );
+}
+
 //==== Remap Texture Coordinates - Handle Translation/Scale and Seams ====//
 void Xsec_surf::remap_texture( double upos, double width, bool wrapFlag, vector< double > & uVec, 
 						vector< int > & uIndex, vector< double > & uRemap )
@@ -746,6 +1084,27 @@ void Xsec_surf::draw_texture( AppliedTex& tex )
 
 	int i, j;
 
+	/* Bind Texture */
+	rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
+
+	/* set texture parameters */
+	vector<ParameterMask> params;
+	if ( tex.repeatFlag )
+	{
+		params.push_back( R_REPEAT );
+		params.push_back( R_REPEAT );
+	}
+	else
+	{
+		params.push_back( R_CLAMP_TO_EDGE );
+		params.push_back( R_CLAMP_TO_EDGE );
+	}
+	rp_texture.mode.texture2DMode.texParameteri.param = params;
+
+	vector<double> data;
+	vector<double> norms;
+	vector<double> texcoords;
+
 	if ( tex.repeatFlag == false )
 	{
 		//==== Remap U Dimension ====//
@@ -762,7 +1121,6 @@ void Xsec_surf::draw_texture( AppliedTex& tex )
 			for ( i = 0 ; i < (int)uVal.size() ; i++ )
 				uVal[i] = 1.0 - uVal[i];
 		}
-
 
 		//==== Remap W Dimension ====//
 		vector< int > wIndex;
@@ -786,25 +1144,54 @@ void Xsec_surf::draw_texture( AppliedTex& tex )
 			{
 				int iw = wIndex[j];
 				int iwplus = wIndex[j+1];
-				glBegin( GL_POLYGON );
-			
-				glNormal3dv(normals(iu,iw).v);
-				glTexCoord2d( uVal[i], wVal[j] );
-				glVertex3dv(pnts_xsecs(iu,iw).v);
 
-				glNormal3dv(normals(iuplus,iw).v);
-				glTexCoord2d( uVal[i+1], wVal[j] );
-				glVertex3dv(pnts_xsecs(iuplus,iw).v);
+				/* 1 */
+				norms.push_back( normals(iu, iw).v[0] );
+				norms.push_back( normals(iu, iw).v[1] );
+				norms.push_back( normals(iu, iw).v[2] );
 
-				glNormal3dv(normals(iuplus,iwplus).v);
-				glTexCoord2d( uVal[i+1], wVal[j+1] );
-				glVertex3dv(pnts_xsecs(iuplus,iwplus).v);
+				texcoords.push_back( uVal[i] );
+				texcoords.push_back( wVal[j] );
 
-				glNormal3dv(normals(iu,iwplus).v);
-				glTexCoord2d( uVal[i], wVal[j+1] );
-				glVertex3dv(pnts_xsecs(iu,iwplus).v);
+				data.push_back( pnts_xsecs(iu, iw).v[0] );
+				data.push_back( pnts_xsecs(iu, iw).v[1] );
+				data.push_back( pnts_xsecs(iu, iw).v[2] );
 
-				glEnd();
+				/* 2 */
+				norms.push_back( normals(iuplus, iw).v[0] );
+				norms.push_back( normals(iuplus, iw).v[1] );
+				norms.push_back( normals(iuplus, iw).v[2] );
+
+				texcoords.push_back( uVal[i+1] );
+				texcoords.push_back( wVal[j] );
+
+				data.push_back( pnts_xsecs(iuplus, iw).v[0] );
+				data.push_back( pnts_xsecs(iuplus, iw).v[1] );
+				data.push_back( pnts_xsecs(iuplus, iw).v[2] );
+
+				/* 3 */
+				norms.push_back( normals(iuplus, iwplus).v[0] );
+				norms.push_back( normals(iuplus, iwplus).v[1] );
+				norms.push_back( normals(iuplus, iwplus).v[2] );
+
+				texcoords.push_back( uVal[i+1] );
+				texcoords.push_back( wVal[j+1] );
+
+				data.push_back( pnts_xsecs(iuplus, iwplus).v[0] );
+				data.push_back( pnts_xsecs(iuplus, iwplus).v[1] );
+				data.push_back( pnts_xsecs(iuplus, iwplus).v[2] );
+
+				/* 4 */
+				norms.push_back( normals(iu, iwplus).v[0] );
+				norms.push_back( normals(iu, iwplus).v[1] );
+				norms.push_back( normals(iu, iwplus).v[2] );
+
+				texcoords.push_back( uVal[i] );
+				texcoords.push_back( wVal[j+1]  );
+
+				data.push_back( pnts_xsecs(iu, iwplus).v[0] );
+				data.push_back( pnts_xsecs(iu, iwplus).v[1] );
+				data.push_back( pnts_xsecs(iu, iwplus).v[2] );			
 			}
 		}
 	}
@@ -814,29 +1201,236 @@ void Xsec_surf::draw_texture( AppliedTex& tex )
 		{
 			for ( j = 0 ; j < (int)wArray.dimension()-1 ; j ++ )
 			{
-			  glBegin( GL_POLYGON );		
-				glNormal3dv(normals(i,j).v);
-				glTexCoord2d( uArray(i)/tex.scaleu + tex.u, wArray(j)/tex.scalew + tex.w );
-				glVertex3dv(pnts_xsecs(i,j).v);
+				/* 1 */
+				norms.push_back( normals(i, j).v[0] );
+				norms.push_back( normals(i, j).v[1] );
+				norms.push_back( normals(i, j).v[2] );
 
-				glNormal3dv(normals(i+1,j).v);
-				glTexCoord2d( uArray(i+1)/tex.scaleu + tex.u, wArray(j)/tex.scalew + tex.w );
-				glVertex3dv(pnts_xsecs(i+1,j).v);
+				texcoords.push_back( uArray(i)/tex.scaleu + tex.u );
+				texcoords.push_back( wArray(j)/tex.scalew + tex.w );
 
-				glNormal3dv(normals(i+1,j+1).v);
-				glTexCoord2d( uArray(i+1)/tex.scaleu + tex.u, wArray(j+1)/tex.scalew + tex.w );
-				glVertex3dv(pnts_xsecs(i+1,j+1).v);
+				data.push_back( pnts_xsecs(i,j).v[0] );
+				data.push_back( pnts_xsecs(i,j).v[1] );
+				data.push_back( pnts_xsecs(i,j).v[2] );
 
-				glNormal3dv(normals(i,j+1).v);
-				glTexCoord2d( uArray(i)/tex.scaleu + tex.u, wArray(j+1)/tex.scalew + tex.w );
-				glVertex3dv(pnts_xsecs(i,j+1).v);
-			  glEnd();
+				/* 2 */
+				norms.push_back( normals(i+1, j).v[0] );
+				norms.push_back( normals(i+1, j).v[1] );
+				norms.push_back( normals(i+1, j).v[2] );
+
+				texcoords.push_back( uArray(i+1)/tex.scaleu + tex.u );
+				texcoords.push_back( wArray(j)/tex.scalew + tex.w );
+
+				data.push_back( pnts_xsecs(i+1,j).v[0] );
+				data.push_back( pnts_xsecs(i+1,j).v[1] );
+				data.push_back( pnts_xsecs(i+1,j).v[2] );
+
+				/* 3 */
+				norms.push_back( normals(i+1, j+1).v[0] );
+				norms.push_back( normals(i+1, j+1).v[1] );
+				norms.push_back( normals(i+1, j+1).v[2] );
+
+				texcoords.push_back( uArray(i+1)/tex.scaleu + tex.u );
+				texcoords.push_back( wArray(j+1)/tex.scalew + tex.w );
+
+				data.push_back( pnts_xsecs(i+1,j+1).v[0] );
+				data.push_back( pnts_xsecs(i+1,j+1).v[1] );
+				data.push_back( pnts_xsecs(i+1,j+1).v[2] );
+
+				/* 4 */
+				norms.push_back( normals(i, j+1).v[0] );
+				norms.push_back( normals(i, j+1).v[1] );
+				norms.push_back( normals(i, j+1).v[2] );
+
+				texcoords.push_back( uArray(i)/tex.scaleu + tex.u );
+				texcoords.push_back( wArray(j+1)/tex.scalew + tex.w );
+
+				data.push_back( pnts_xsecs(i,j+1).v[0] );
+				data.push_back( pnts_xsecs(i,j+1).v[1] );
+				data.push_back( pnts_xsecs(i,j+1).v[2] );
 			}
 		}
 	}
-		
+	surfRenderer->draw( R_QUADS, rp_texture, 3, data, norms, texcoords );
 }
 
+//==== Draw Textured Surf =====//
+void Xsec_surf::draw_texture( AppliedTex& tex, float* mat )
+{
+	if ( num_xsecs <= 0 || num_pnts <= 0 )
+		return;
+
+	int i, j;
+
+	/* Bind Texture */
+	rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
+
+	/* set texture parameters */
+	vector<ParameterMask> params;
+	if ( tex.repeatFlag )
+	{
+		params.push_back( R_REPEAT );
+		params.push_back( R_REPEAT );
+	}
+	else
+	{
+		params.push_back( R_CLAMP_TO_EDGE );
+		params.push_back( R_CLAMP_TO_EDGE );
+	}
+	rp_texture.mode.texture2DMode.texParameteri.param = params;
+
+	vector<double> data;
+	vector<double> norms;
+	vector<double> texcoords;
+
+	if ( tex.repeatFlag == false )
+	{
+		//==== Remap U Dimension ====//
+		vector< int > uIndex;
+		vector< double > uVal;
+		vector< double > uVec;
+		for ( i = 0 ; i < uArray.dimension() ; i++ )
+			uVec.push_back( uArray(i) );
+
+		remap_texture( tex.u, tex.scaleu, tex.wrapUFlag,  uVec, uIndex, uVal );
+
+		if ( tex.flipUFlag )
+		{
+			for ( i = 0 ; i < (int)uVal.size() ; i++ )
+				uVal[i] = 1.0 - uVal[i];
+		}
+
+		//==== Remap W Dimension ====//
+		vector< int > wIndex;
+		vector< double > wVal;
+		vector< double > wVec;
+		for ( i = 0 ; i < wArray.dimension() ; i++ )
+			wVec.push_back( wArray(i) );
+
+		remap_texture( tex.w, tex.scalew, tex.wrapWFlag, wVec, wIndex, wVal );
+		if ( tex.flipWFlag )
+		{
+			for ( i = 0 ; i < (int)wVal.size() ; i++ )
+				wVal[i] = 1.0 - wVal[i];
+		}
+
+		for ( i = 0 ; i < (int)uIndex.size()-1 ; i ++ )
+		{
+			int iu = uIndex[i];
+			int iuplus = uIndex[i+1];
+			for ( j = 0 ; j < (int)wIndex.size()-1 ; j ++ )
+			{
+				int iw = wIndex[j];
+				int iwplus = wIndex[j+1];
+
+				/* 1 */
+				norms.push_back( normals(iu, iw).v[0] );
+				norms.push_back( normals(iu, iw).v[1] );
+				norms.push_back( normals(iu, iw).v[2] );
+
+				texcoords.push_back( uVal[i] );
+				texcoords.push_back( wVal[j] );
+
+				data.push_back( pnts_xsecs(iu, iw).v[0] );
+				data.push_back( pnts_xsecs(iu, iw).v[1] );
+				data.push_back( pnts_xsecs(iu, iw).v[2] );
+
+				/* 2 */
+				norms.push_back( normals(iuplus, iw).v[0] );
+				norms.push_back( normals(iuplus, iw).v[1] );
+				norms.push_back( normals(iuplus, iw).v[2] );
+
+				texcoords.push_back( uVal[i+1] );
+				texcoords.push_back( wVal[j] );
+
+				data.push_back( pnts_xsecs(iuplus, iw).v[0] );
+				data.push_back( pnts_xsecs(iuplus, iw).v[1] );
+				data.push_back( pnts_xsecs(iuplus, iw).v[2] );
+
+				/* 3 */
+				norms.push_back( normals(iuplus, iwplus).v[0] );
+				norms.push_back( normals(iuplus, iwplus).v[1] );
+				norms.push_back( normals(iuplus, iwplus).v[2] );
+
+				texcoords.push_back( uVal[i+1] );
+				texcoords.push_back( wVal[j+1] );
+
+				data.push_back( pnts_xsecs(iuplus, iwplus).v[0] );
+				data.push_back( pnts_xsecs(iuplus, iwplus).v[1] );
+				data.push_back( pnts_xsecs(iuplus, iwplus).v[2] );
+
+				/* 4 */
+				norms.push_back( normals(iu, iwplus).v[0] );
+				norms.push_back( normals(iu, iwplus).v[1] );
+				norms.push_back( normals(iu, iwplus).v[2] );
+
+				texcoords.push_back( uVal[i] );
+				texcoords.push_back( wVal[j+1]  );
+
+				data.push_back( pnts_xsecs(iu, iwplus).v[0] );
+				data.push_back( pnts_xsecs(iu, iwplus).v[1] );
+				data.push_back( pnts_xsecs(iu, iwplus).v[2] );			
+			}
+		}
+	}
+	else					// Repeating Texture
+	{
+		for ( i = 0 ; i < uArray.dimension()-1 ; i++ )
+		{
+			for ( j = 0 ; j < (int)wArray.dimension()-1 ; j ++ )
+			{
+				/* 1 */
+				norms.push_back( normals(i, j).v[0] );
+				norms.push_back( normals(i, j).v[1] );
+				norms.push_back( normals(i, j).v[2] );
+
+				texcoords.push_back( uArray(i)/tex.scaleu + tex.u );
+				texcoords.push_back( wArray(j)/tex.scalew + tex.w );
+
+				data.push_back( pnts_xsecs(i,j).v[0] );
+				data.push_back( pnts_xsecs(i,j).v[1] );
+				data.push_back( pnts_xsecs(i,j).v[2] );
+
+				/* 2 */
+				norms.push_back( normals(i+1, j).v[0] );
+				norms.push_back( normals(i+1, j).v[1] );
+				norms.push_back( normals(i+1, j).v[2] );
+
+				texcoords.push_back( uArray(i+1)/tex.scaleu + tex.u );
+				texcoords.push_back( wArray(j)/tex.scalew + tex.w );
+
+				data.push_back( pnts_xsecs(i+1,j).v[0] );
+				data.push_back( pnts_xsecs(i+1,j).v[1] );
+				data.push_back( pnts_xsecs(i+1,j).v[2] );
+
+				/* 3 */
+				norms.push_back( normals(i+1, j+1).v[0] );
+				norms.push_back( normals(i+1, j+1).v[1] );
+				norms.push_back( normals(i+1, j+1).v[2] );
+
+				texcoords.push_back( uArray(i+1)/tex.scaleu + tex.u );
+				texcoords.push_back( wArray(j+1)/tex.scalew + tex.w );
+
+				data.push_back( pnts_xsecs(i+1,j+1).v[0] );
+				data.push_back( pnts_xsecs(i+1,j+1).v[1] );
+				data.push_back( pnts_xsecs(i+1,j+1).v[2] );
+
+				/* 4 */
+				norms.push_back( normals(i, j+1).v[0] );
+				norms.push_back( normals(i, j+1).v[1] );
+				norms.push_back( normals(i, j+1).v[2] );
+
+				texcoords.push_back( uArray(i)/tex.scaleu + tex.u );
+				texcoords.push_back( wArray(j+1)/tex.scalew + tex.w );
+
+				data.push_back( pnts_xsecs(i,j+1).v[0] );
+				data.push_back( pnts_xsecs(i,j+1).v[1] );
+				data.push_back( pnts_xsecs(i,j+1).v[2] );
+			}
+		}
+	}
+	surfRenderer->draw( R_QUADS, rp_texture, mat, 3, data, norms, texcoords );
+}
 
 //==== Draw Reflected Textured Surf =====//
 void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in )
@@ -859,6 +1453,26 @@ void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in )
 		load_refl_normals();  
 	}
 
+	/* Bind Texture */
+	rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
+
+	/* Set texture parameters */
+	vector<ParameterMask> params;
+	if ( tex.repeatFlag )
+	{
+		params.push_back( R_REPEAT );
+		params.push_back( R_REPEAT );
+	}
+	else
+	{
+		params.push_back( R_CLAMP_TO_EDGE );
+		params.push_back( R_CLAMP_TO_EDGE );
+	}
+	rp_texture.mode.texture2DMode.texParameteri.param = params;
+
+	vector<double> norms;
+	vector<double> data;
+	vector<double> texcoords;
 
 	if ( tex.repeatFlag == false )
 	{
@@ -898,25 +1512,54 @@ void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in )
 			{
 				int iw = wIndex[j];
 				int iwplus = wIndex[j+1];
-				glBegin( GL_POLYGON );
-			
-				glNormal3dv(refl_normals(iu,iw).v);
-				glTexCoord2d( uVal[i], wVal[j] );
 
-				glVertex3dv(refl_pnts_xsecs(iu,iw).v);
-				glNormal3dv(refl_normals(iu,iwplus).v);
-				glTexCoord2d( uVal[i], wVal[j+1] );
-				glVertex3dv(refl_pnts_xsecs(iu,iwplus).v);
+				/* 1 */
+				norms.push_back( refl_normals(iu, iw).v[0] );
+				norms.push_back( refl_normals(iu, iw).v[1] );
+				norms.push_back( refl_normals(iu, iw).v[2] );
 
-				glNormal3dv(refl_normals(iuplus,iwplus).v);
-				glTexCoord2d( uVal[i+1], wVal[j+1] );
-				glVertex3dv(refl_pnts_xsecs(iuplus,iwplus).v);
+				texcoords.push_back( uVal[i] );
+				texcoords.push_back( wVal[j] );
 
-				glNormal3dv(refl_normals(iuplus,iw).v);
-				glTexCoord2d( uVal[i+1], wVal[j] );
-				glVertex3dv(refl_pnts_xsecs(iuplus,iw).v);
+				data.push_back( refl_pnts_xsecs(iu, iw).v[0] );
+				data.push_back( refl_pnts_xsecs(iu, iw).v[1] );
+				data.push_back( refl_pnts_xsecs(iu, iw).v[2] );
 
-				glEnd();
+				/* 2 */
+				norms.push_back( refl_normals(iu, iwplus).v[0] );
+				norms.push_back( refl_normals(iu, iwplus).v[1] );
+				norms.push_back( refl_normals(iu, iwplus).v[2] );
+
+				texcoords.push_back( uVal[i] );
+				texcoords.push_back( wVal[j+1] );
+
+				data.push_back( refl_pnts_xsecs(iu, iwplus).v[0] );
+				data.push_back( refl_pnts_xsecs(iu, iwplus).v[1] );
+				data.push_back( refl_pnts_xsecs(iu, iwplus).v[2] );
+
+				/* 3 */
+				norms.push_back( refl_normals(iuplus, iwplus).v[0] );
+				norms.push_back( refl_normals(iuplus, iwplus).v[1] );
+				norms.push_back( refl_normals(iuplus, iwplus).v[2] );
+
+				texcoords.push_back( uVal[i+1] );
+				texcoords.push_back( wVal[j+1] );
+
+				data.push_back( refl_pnts_xsecs(iuplus, iwplus).v[0] );
+				data.push_back( refl_pnts_xsecs(iuplus, iwplus).v[1] );
+				data.push_back( refl_pnts_xsecs(iuplus, iwplus).v[2] );
+
+				/* 4 */
+				norms.push_back( refl_normals(iuplus, iw).v[0] );
+				norms.push_back( refl_normals(iuplus, iw).v[1] );
+				norms.push_back( refl_normals(iuplus, iw).v[2] );
+
+				texcoords.push_back( uVal[i+1] );
+				texcoords.push_back( wVal[j] );
+
+				data.push_back( refl_pnts_xsecs(iuplus, iw).v[0] );
+				data.push_back( refl_pnts_xsecs(iuplus, iw).v[1] );
+				data.push_back( refl_pnts_xsecs(iuplus, iw).v[2] );
 			}
 		}
 	}
@@ -926,34 +1569,257 @@ void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in )
 		{
 			for ( j = 0 ; j < (int)wArray.dimension()-1 ; j ++ )
 			{
-			  glBegin( GL_POLYGON );		
-				glNormal3dv(refl_normals(i,j).v);
-				glTexCoord2d( uArray(i)/tex.scaleu, wArray(j)/tex.scalew );
-				glVertex3dv(refl_pnts_xsecs(i,j).v);
+				/* 1 */
+				norms.push_back( refl_normals(i, j).v[0] );
+				norms.push_back( refl_normals(i, j).v[1] );
+				norms.push_back( refl_normals(i, j).v[2] );
 
-				glNormal3dv(refl_normals(i,j+1).v);
-				glTexCoord2d( uArray(i)/tex.scaleu, wArray(j+1)/tex.scalew );
-				glVertex3dv(refl_pnts_xsecs(i,j+1).v);
+				texcoords.push_back( uArray(i)/tex.scaleu );
+				texcoords.push_back( wArray(j)/tex.scalew );
 
-				glNormal3dv(refl_normals(i+1,j+1).v);
-				glTexCoord2d( uArray(i+1)/tex.scaleu, wArray(j+1)/tex.scalew );
-				glVertex3dv(refl_pnts_xsecs(i+1,j+1).v);
+				data.push_back( refl_pnts_xsecs(i, j).v[0] );
+				data.push_back( refl_pnts_xsecs(i, j).v[1] );
+				data.push_back( refl_pnts_xsecs(i, j).v[2] );
 
-				glNormal3dv(refl_normals(i+1,j).v);
-				glTexCoord2d( uArray(i+1)/tex.scaleu, wArray(j)/tex.scalew );
-				glVertex3dv(refl_pnts_xsecs(i+1,j).v);
+				/* 2 */
+				norms.push_back( refl_normals(i, j+1).v[0] );
+				norms.push_back( refl_normals(i, j+1).v[1] );
+				norms.push_back( refl_normals(i, j+1).v[2] );
 
+				texcoords.push_back( uArray(i)/tex.scaleu );
+				texcoords.push_back( wArray(j+1)/tex.scalew );
 
-			  glEnd();
+				data.push_back( refl_pnts_xsecs(i, j+1).v[0] );
+				data.push_back( refl_pnts_xsecs(i, j+1).v[1] );
+				data.push_back( refl_pnts_xsecs(i, j+1).v[2] );
+
+				/* 3 */
+				norms.push_back( refl_normals(i+1, j+1).v[0] );
+				norms.push_back( refl_normals(i+1, j+1).v[1] );
+				norms.push_back( refl_normals(i+1, j+1).v[2] );
+
+				texcoords.push_back( uArray(i+1)/tex.scaleu );
+				texcoords.push_back( wArray(j+1)/tex.scalew );
+
+				data.push_back( refl_pnts_xsecs(i+1, j+1).v[0] );
+				data.push_back( refl_pnts_xsecs(i+1, j+1).v[1] );
+				data.push_back( refl_pnts_xsecs(i+1, j+1).v[2] );
+
+				/* 4 */
+				norms.push_back( refl_normals(i+1, j).v[0] );
+				norms.push_back( refl_normals(i+1, j).v[1] );
+				norms.push_back( refl_normals(i+1, j).v[2] );
+
+				texcoords.push_back( uArray(i+1)/tex.scaleu );
+				texcoords.push_back( wArray(j)/tex.scalew );
+
+				data.push_back( refl_pnts_xsecs(i+1, j).v[0] );
+				data.push_back( refl_pnts_xsecs(i+1, j).v[1] );
+				data.push_back( refl_pnts_xsecs(i+1, j).v[2] );
 			}
 		}
 	}
-		
+	surfRenderer->draw( R_QUADS, rp_texture, 3, data, norms, texcoords );	
 }
 
+//==== Draw Reflected Textured Surf =====//
+/******************************************************
+*
+* Draw Reflected Textured Surf with 
+* Transformation Matrix.
+*
+*******************************************************/
+void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in, float* mat )
+{
+	if (sym_code_in == NO_SYM) return;
+
+	if ( num_xsecs <= 0 || num_pnts <= 0 )
+		return;
+
+	int i, j;
+
+	if ( sym_code_in != refl_pnts_xsecs_code )
+    {
+		refl_pnts_xsecs_code =  sym_code_in;
+		load_refl_pnts_xsecs();  
+	}
+	if ( sym_code_in != refl_normals_code )
+    {
+		refl_normals_code =  sym_code_in;
+		load_refl_normals();  
+	}
+
+	/* Bind Texture */
+	rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
+
+	/* Set texture parameters */
+	vector<ParameterMask> params;
+	if ( tex.repeatFlag )
+	{
+		params.push_back( R_REPEAT );
+		params.push_back( R_REPEAT );
+	}
+	else
+	{
+		params.push_back( R_CLAMP_TO_EDGE );
+		params.push_back( R_CLAMP_TO_EDGE );
+	}
+	rp_texture.mode.texture2DMode.texParameteri.param = params;
+
+	vector<double> norms;
+	vector<double> data;
+	vector<double> texcoords;
+
+	if ( tex.repeatFlag == false )
+	{
+		//==== Remap U Dimension ====//
+		vector< int > uIndex;
+		vector< double > uVal;
+		vector< double > uVec;
+		for ( i = 0 ; i < uArray.dimension() ; i++ )
+			uVec.push_back( uArray(i) );
+
+		remap_texture( tex.u, tex.scaleu, tex.wrapUFlag,  uVec, uIndex, uVal );
+		if ( tex.reflFlipUFlag )
+		{
+			for ( i = 0 ; i < (int)uVal.size() ; i++ )
+				uVal[i] = 1.0 - uVal[i];
+		}
+
+		//==== Remap W Dimension ====//
+		vector< int > wIndex;
+		vector< double > wVal;
+		vector< double > wVec;
+		for ( i = 0 ; i < wArray.dimension() ; i++ )
+			wVec.push_back( wArray(i) );
+
+		remap_texture( tex.w, tex.scalew, tex.wrapWFlag, wVec, wIndex, wVal );
+		if ( tex.reflFlipWFlag )
+		{
+			for ( i = 0 ; i < (int)wVal.size() ; i++ )
+				wVal[i] = 1.0 - wVal[i];
+		}
+
+		for ( i = 0 ; i < (int)uIndex.size()-1 ; i ++ )
+		{
+			int iu = uIndex[i];
+			int iuplus = uIndex[i+1];
+			for ( j = 0 ; j < (int)wIndex.size()-1 ; j ++ )
+			{
+				int iw = wIndex[j];
+				int iwplus = wIndex[j+1];
+
+				/* 1 */
+				norms.push_back( refl_normals(iu, iw).v[0] );
+				norms.push_back( refl_normals(iu, iw).v[1] );
+				norms.push_back( refl_normals(iu, iw).v[2] );
+
+				texcoords.push_back( uVal[i] );
+				texcoords.push_back( wVal[j] );
+
+				data.push_back( refl_pnts_xsecs(iu, iw).v[0] );
+				data.push_back( refl_pnts_xsecs(iu, iw).v[1] );
+				data.push_back( refl_pnts_xsecs(iu, iw).v[2] );
+
+				/* 2 */
+				norms.push_back( refl_normals(iu, iwplus).v[0] );
+				norms.push_back( refl_normals(iu, iwplus).v[1] );
+				norms.push_back( refl_normals(iu, iwplus).v[2] );
+
+				texcoords.push_back( uVal[i] );
+				texcoords.push_back( wVal[j+1] );
+
+				data.push_back( refl_pnts_xsecs(iu, iwplus).v[0] );
+				data.push_back( refl_pnts_xsecs(iu, iwplus).v[1] );
+				data.push_back( refl_pnts_xsecs(iu, iwplus).v[2] );
+
+				/* 3 */
+				norms.push_back( refl_normals(iuplus, iwplus).v[0] );
+				norms.push_back( refl_normals(iuplus, iwplus).v[1] );
+				norms.push_back( refl_normals(iuplus, iwplus).v[2] );
+
+				texcoords.push_back( uVal[i+1] );
+				texcoords.push_back( wVal[j+1] );
+
+				data.push_back( refl_pnts_xsecs(iuplus, iwplus).v[0] );
+				data.push_back( refl_pnts_xsecs(iuplus, iwplus).v[1] );
+				data.push_back( refl_pnts_xsecs(iuplus, iwplus).v[2] );
+
+				/* 4 */
+				norms.push_back( refl_normals(iuplus, iw).v[0] );
+				norms.push_back( refl_normals(iuplus, iw).v[1] );
+				norms.push_back( refl_normals(iuplus, iw).v[2] );
+
+				texcoords.push_back( uVal[i+1] );
+				texcoords.push_back( wVal[j] );
+
+				data.push_back( refl_pnts_xsecs(iuplus, iw).v[0] );
+				data.push_back( refl_pnts_xsecs(iuplus, iw).v[1] );
+				data.push_back( refl_pnts_xsecs(iuplus, iw).v[2] );
+			}
+		}
+	}
+	else					// Repeating Texture
+	{
+		for ( i = 0 ; i < uArray.dimension()-1 ; i++ )
+		{
+			for ( j = 0 ; j < (int)wArray.dimension()-1 ; j ++ )
+			{
+				/* 1 */
+				norms.push_back( refl_normals(i, j).v[0] );
+				norms.push_back( refl_normals(i, j).v[1] );
+				norms.push_back( refl_normals(i, j).v[2] );
+
+				texcoords.push_back( uArray(i)/tex.scaleu );
+				texcoords.push_back( wArray(j)/tex.scalew );
+
+				data.push_back( refl_pnts_xsecs(i, j).v[0] );
+				data.push_back( refl_pnts_xsecs(i, j).v[1] );
+				data.push_back( refl_pnts_xsecs(i, j).v[2] );
+
+				/* 2 */
+				norms.push_back( refl_normals(i, j+1).v[0] );
+				norms.push_back( refl_normals(i, j+1).v[1] );
+				norms.push_back( refl_normals(i, j+1).v[2] );
+
+				texcoords.push_back( uArray(i)/tex.scaleu );
+				texcoords.push_back( wArray(j+1)/tex.scalew );
+
+				data.push_back( refl_pnts_xsecs(i, j+1).v[0] );
+				data.push_back( refl_pnts_xsecs(i, j+1).v[1] );
+				data.push_back( refl_pnts_xsecs(i, j+1).v[2] );
+
+				/* 3 */
+				norms.push_back( refl_normals(i+1, j+1).v[0] );
+				norms.push_back( refl_normals(i+1, j+1).v[1] );
+				norms.push_back( refl_normals(i+1, j+1).v[2] );
+
+				texcoords.push_back( uArray(i+1)/tex.scaleu );
+				texcoords.push_back( wArray(j+1)/tex.scalew );
+
+				data.push_back( refl_pnts_xsecs(i+1, j+1).v[0] );
+				data.push_back( refl_pnts_xsecs(i+1, j+1).v[1] );
+				data.push_back( refl_pnts_xsecs(i+1, j+1).v[2] );
+
+				/* 4 */
+				norms.push_back( refl_normals(i+1, j).v[0] );
+				norms.push_back( refl_normals(i+1, j).v[1] );
+				norms.push_back( refl_normals(i+1, j).v[2] );
+
+				texcoords.push_back( uArray(i+1)/tex.scaleu );
+				texcoords.push_back( wArray(j)/tex.scalew );
+
+				data.push_back( refl_pnts_xsecs(i+1, j).v[0] );
+				data.push_back( refl_pnts_xsecs(i+1, j).v[1] );
+				data.push_back( refl_pnts_xsecs(i+1, j).v[2] );
+			}
+		}
+	}
+	surfRenderer->draw( R_QUADS, rp_texture, mat, 3, data, norms, texcoords );	
+}
 
 //==== Draw Reflected Shaded Surf =====//
-void Xsec_surf::draw_refl_shaded( int sym_code_in)
+void Xsec_surf::draw_refl_shaded( int sym_code_in )
 {
 	if (sym_code_in == NO_SYM) return;
 
@@ -1031,16 +1897,95 @@ void Xsec_surf::draw_refl_shaded( int sym_code_in)
 			data.push_back( dpnt[2] );
 		}
 	}
+	surfRenderer->draw( R_QUADS, rp_shaded, 3, data, norms );
+}
 
-	RenderProperties rp;
+//==== Draw Reflected Shaded Surf =====//
+/******************************************************
+*
+* Draw Reflected Shaded Surf 
+* with Transformation Matrix.
+*
+*******************************************************/
+void Xsec_surf::draw_refl_shaded( int sym_code_in, float* mat)
+{
+	if (sym_code_in == NO_SYM) return;
 
-	rp.mode.blend.enabled = true;
-	rp.mode.blend.params.sourcefactor = R_SRC_ALPHA;
-	rp.mode.blend.params.destinationfactor = R_ONE_MINUS_SRC_ALPHA;
+	int i, j;
+	int fast_1, fast_2;
+	float  fpnt[3];
+	double dpnt[3];
 
-	rp.mode.lighting.enabled = true;
+	fast_1 = fast_2 = 1;
+	if ( fast_draw_flag ) 
+	{  
+		fast_1 = MAX(MIN( 4, num_xsecs - 1 ), 1 );
+		fast_2 = MAX(MIN( 4, num_pnts  - 1 ), 1 );
+    
+		if ( num_xsecs <= 6 ) fast_1 = 1;
+		if ( num_pnts  <= 6 ) fast_2 = 1;
+	}
+  
+	if ( sym_code_in != refl_pnts_xsecs_code )
+   {
+		refl_pnts_xsecs_code =  sym_code_in;
+      load_refl_pnts_xsecs();  
+   }
+	if ( sym_code_in != refl_normals_code )
+   {
+      refl_normals_code =  sym_code_in;
+      load_refl_normals();  
+   }
 
-	surfRenderer->draw( R_QUADS, rp, 3, data, norms );
+	vector<double> data;
+	vector<double> norms;
+
+	for ( i = 0 ; i < num_xsecs-1 ; i += fast_1 )
+   {
+		for ( j = 0 ; j < num_pnts-1 ; j += fast_2 )
+      {
+			refl_normals(i,j).get_pnt(fpnt);
+			norms.push_back( fpnt[0] );
+			norms.push_back( fpnt[1] );
+			norms.push_back( fpnt[2] );
+
+         refl_pnts_xsecs(i,j).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+
+         refl_normals(i,j+1).get_pnt(fpnt);
+			norms.push_back( fpnt[0] );
+			norms.push_back( fpnt[1] );
+			norms.push_back( fpnt[2] );
+
+         refl_pnts_xsecs(i,j+1).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+
+         refl_normals(i+1,j+1).get_pnt(fpnt);
+			norms.push_back( fpnt[0] );
+			norms.push_back( fpnt[1] );
+			norms.push_back( fpnt[2] );
+
+         refl_pnts_xsecs(i+1,j+1).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+
+         refl_normals(i+1,j).get_pnt(fpnt);
+			norms.push_back( fpnt[0] );
+			norms.push_back( fpnt[1] );
+			norms.push_back( fpnt[2] );
+
+         refl_pnts_xsecs(i+1,j).get_pnt(dpnt);
+			data.push_back( dpnt[0] );
+			data.push_back( dpnt[1] );
+			data.push_back( dpnt[2] );
+		}
+	}
+	surfRenderer->draw( R_QUADS, rp_shaded, mat, 3, data, norms );
 }
 
 //==== Load Reflected Pnts And Xsec Array =====//

@@ -3,17 +3,6 @@
 // version 1.3 as detailed in the LICENSE file which accompanies this software.
 //
 
-#ifdef WIN32
-#include <windows.h>		
-#endif
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#  include <OpenGL/glu.h>
-#else
-#  include <GL/gl.h>
-#  include <GL/glu.h>
-#endif
 #include <fstream>
 
 #include <limits>

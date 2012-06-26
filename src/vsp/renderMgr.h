@@ -28,10 +28,18 @@ public:
 public:
 	virtual void draw( Primitive mode, int size, vector<double> data );
 
-	virtual void draw( Primitive mode, int size, float* matrix, vector<double> data );
+	virtual void draw( Primitive mode, int csize, vector<double> colors, int size, vector<double> data );
+
+	virtual void draw( Primitive mode, float* matrix, int size, vector<double> data );
+	virtual void draw( Primitive mode, float* matrix, int csize, vector<double> colors, int size, vector<double> data );
 
 	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data );
 	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals );
+	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals, vector<double> texcoords );
+
+	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data );
+	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals );
+	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals, vector<double> texcoords );
 
 protected:
 	IRenderer* renderPtr;

@@ -59,9 +59,19 @@ void renderMgr::draw( Primitive mode, int size, vector< double > data )
 	renderPtr->draw( mode, size, data );
 }
 
-void renderMgr::draw( Primitive mode, int size, float* matrix, vector<double> data )
+void renderMgr::draw( Primitive mode, int csize, vector<double> colors, int size, vector<double> data )
 {
-	renderPtr->draw( mode, size, matrix, data );
+	renderPtr->draw( mode, csize, colors, size, data );
+}
+
+void renderMgr::draw( Primitive mode, float* matrix, int size, vector<double> data )
+{
+	renderPtr->draw( mode, matrix, size, data );
+}
+
+void renderMgr::draw( Primitive mode, float* matrix, int csize, vector<double> colors, int size, vector<double> data )
+{
+	renderPtr->draw( mode, matrix, csize, colors, size, data );
 }
 
 void renderMgr::draw( Primitive mode, RenderProperties rp, int size, vector<double> data )
@@ -72,4 +82,24 @@ void renderMgr::draw( Primitive mode, RenderProperties rp, int size, vector<doub
 void renderMgr::draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals )
 {
 	renderPtr->draw( mode, rp, size, data, normals );
+}
+
+void renderMgr::draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals, vector<double> texcoords )
+{
+	renderPtr->draw( mode, rp, size, data, normals, texcoords );
+}
+
+void renderMgr::draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data )
+{
+	renderPtr->draw( mode, rp, matrix, size, data );
+}
+
+void renderMgr::draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals )
+{
+	renderPtr->draw( mode, rp, matrix, size, data, normals );
+}
+
+void renderMgr::draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals, vector<double> texcoords )
+{
+	renderPtr->draw( mode, rp, matrix, size, data, normals, texcoords );
 }

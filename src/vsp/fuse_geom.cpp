@@ -1391,42 +1391,34 @@ void Fuse_geom::draw()
 
 	if ( displayFlag == GEOM_WIRE_FLAG )
 	{
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-		oml_surf.draw_wire();
+		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
+		oml_surf.draw_wire(*model_mat);
 		if ( imlFlag )
 		{
-			glColor3ub( (int)imlColor.x(), (int)imlColor.y(), (int)imlColor.z() );	
-			iml_surf.draw_wire();
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
+			//glColor3ub( (int)imlColor.x(), (int)imlColor.y(), (int)imlColor.z() );	
+			renderer->setColor3ub( (int)imlColor.x(), (int)imlColor.y(), (int)imlColor.z() );
+			iml_surf.draw_wire(*model_mat);
 		}
 
 		if ( redFlag )
 			drawControlPoints();
 
-		glPopMatrix();
-
 		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-		oml_surf.draw_refl_wire(sym_code);
+
+		//glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
+		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
+		oml_surf.draw_refl_wire(sym_code, *reflect_mat);
 		if ( imlFlag )
 		{
-			glColor3ub( (int)imlColor.x(), (int)imlColor.y(), (int)imlColor.z() );	
-			iml_surf.draw_refl_wire(sym_code);
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
+			//glColor3ub( (int)imlColor.x(), (int)imlColor.y(), (int)imlColor.z() );
+			renderer->setColor3ub( (int)imlColor.x(), (int)imlColor.y(), (int)imlColor.z() );
+			iml_surf.draw_refl_wire(sym_code, *reflect_mat);
 		}
-		glPopMatrix();
 	}
 	else if ( displayFlag == GEOM_SHADE_FLAG || displayFlag == GEOM_TEXTURE_FLAG )
 	{
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
 
 		//==== Draw Iml ====//
 		if ( imlFlag )
@@ -1437,7 +1429,7 @@ void Fuse_geom::draw()
 				mat->bind();
 				if ( mat->diff[3] > 0.99 )
 				{
-					iml_surf.draw_shaded();
+					iml_surf.draw_shaded(*model_mat);
 				}
 			}
 		}
@@ -1447,7 +1439,7 @@ void Fuse_geom::draw()
 			mat->bind();
 			if ( mat->diff[3] > 0.99 )
 			{
-				oml_surf.draw_shaded();
+				oml_surf.draw_shaded(*model_mat);
 
 				if ( displayFlag == GEOM_TEXTURE_FLAG )
 					drawTextures(false);
@@ -1456,11 +1448,7 @@ void Fuse_geom::draw()
 		if ( redFlag )
 			drawControlPoints();
 
-		glPopMatrix();
-
 		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
 		if ( imlFlag )
 		{
 			mat = matMgrPtr->getMaterial( imlMaterialID );
@@ -1469,7 +1457,7 @@ void Fuse_geom::draw()
 				mat->bind();
 				if  ( mat->diff[3] > 0.99 )
 				{
-					iml_surf.draw_refl_shaded( sym_code);
+					iml_surf.draw_refl_shaded( sym_code, *reflect_mat );
 				}
 			}
 		}
@@ -1479,40 +1467,31 @@ void Fuse_geom::draw()
 			mat->bind();
 			if  ( mat->diff[3] > 0.99 )
 			{
-				oml_surf.draw_refl_shaded( sym_code);
+				oml_surf.draw_refl_shaded( sym_code, *reflect_mat );
 				
 				if ( displayFlag == GEOM_TEXTURE_FLAG )
 					drawTextures(true);
 			}
 		}
-		glPopMatrix();
 	}
 	else if ( displayFlag == GEOM_HIDDEN_FLAG )
 	{
 		//==== Draw Hidden Surface ====//
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
 
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-		oml_surf.draw_hidden();
+		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
+		oml_surf.draw_hidden( *model_mat );
 		if ( imlFlag )
-			iml_surf.draw_hidden();
+			iml_surf.draw_hidden( *model_mat );
 
 		if ( redFlag )
 			drawControlPoints();
 
-		glPopMatrix();
-
 		//==== Reflected Geom ====//
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-		oml_surf.draw_refl_hidden(sym_code);
+		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
+		oml_surf.draw_refl_hidden(sym_code, *reflect_mat);
 		if ( imlFlag )
-			iml_surf.draw_refl_hidden(sym_code);
-		glPopMatrix();
-			
+			iml_surf.draw_refl_hidden(sym_code, *reflect_mat);
 	}
 }
 
@@ -1531,22 +1510,12 @@ void Fuse_geom::drawAlpha()
 		if ( mat && mat->diff[3] <= 0.99 )
 		{
 			//==== Draw Geom ====//
-			glPushMatrix();
-			glMultMatrixf((GLfloat*)model_mat); 
-
 			mat->bind();
-			iml_surf.draw_shaded();
-
-			glPopMatrix();
+			iml_surf.draw_shaded(*model_mat);
 
 			//==== Reflected Geom ====//
-			glPushMatrix();
-			glMultMatrixf((GLfloat*)reflect_mat); 
-
 			mat->bind();
-			iml_surf.draw_refl_shaded( sym_code);
-
-			glPopMatrix();
+			iml_surf.draw_refl_shaded( sym_code, *reflect_mat );
 		}
 	}
 
@@ -1555,31 +1524,18 @@ void Fuse_geom::drawAlpha()
 	if ( mat && mat->diff[3] <= 0.99 )
 	{
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
 		mat->bind();
-		oml_surf.draw_shaded();
+		oml_surf.draw_shaded(*model_mat);
 		
 		if ( displayFlag == GEOM_TEXTURE_FLAG )
 			drawTextures(false);
 
-		glPopMatrix();
-
 		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-
-		oml_surf.draw_refl_shaded( sym_code);
+		oml_surf.draw_refl_shaded( sym_code, *reflect_mat );
 
 		if ( displayFlag == GEOM_TEXTURE_FLAG )
 			drawTextures(true);
-
-
-		glPopMatrix();
 	}
-
-
 }
 
 
@@ -2651,14 +2607,16 @@ void Fuse_geom::drawControlPoints()
 		if ( activeControlPntID == i )
 		{
 			if ( Fl::event_state(FL_SHIFT) )
-				glColor3ub( 255, 255, 0 );
+				renderer->setColor3ub( 255, 255, 0 );
 			else
-				glColor3ub( 255, 0, 0 );
+				renderer->setColor3ub( 255, 0, 0 );
 
-			glBegin( GL_LINES );
-
+			vector<double> data;
 			vec3d pnt = cPntVec[i].pnt3d;
-			glVertex3dv( pnt.data() );
+			data.push_back( pnt.data()[0] );
+			data.push_back( pnt.data()[1] );
+			data.push_back( pnt.data()[2] );
+
 			if ( cPntVec[i].pntID == ControlPnt::TOP )
 				pnt.offset_z( length.get()/20.0 );
 			else if ( cPntVec[i].pntID == ControlPnt::BOTTOM )
@@ -2666,24 +2624,49 @@ void Fuse_geom::drawControlPoints()
 			else if ( cPntVec[i].pntID == ControlPnt::SIDE )
 				pnt.offset_y( length.get()/20.0 );
 
-			glVertex3dv( pnt.data() );
+			data.push_back( pnt.data()[0] );
+			data.push_back( pnt.data()[1] );
+			data.push_back( pnt.data()[2] );
 
-			glEnd();
+			//glBegin( GL_LINES );
 
+			//vec3d pnt = cPntVec[i].pnt3d;
+			//glVertex3dv( pnt.data() );
+			//if ( cPntVec[i].pntID == ControlPnt::TOP )
+			//	pnt.offset_z( length.get()/20.0 );
+			//else if ( cPntVec[i].pntID == ControlPnt::BOTTOM )
+			//	pnt.offset_z( -length.get()/20.0 );
+			//else if ( cPntVec[i].pntID == ControlPnt::SIDE )
+			//	pnt.offset_y( length.get()/20.0 );
 
-			glPointSize( 16.0 );
+			//glVertex3dv( pnt.data() );
+
+			//glEnd();
+
+			renderer->draw( R_LINES, 3, data );
+			renderer->setPointSize( 16.0 );
+			//glPointSize( 16.0 );
 		}
 		else
 		{
-			glColor3ub( 255, 0, 0 );
-			glPointSize( 8.0 );
-		}
-		glBegin( GL_POINTS );
-		cPntVec[i].pnt2d = projectPoint( cPntVec[i].pnt3d, 0 );
-		glVertex3dv( cPntVec[i].pnt3d.data() );
-		glEnd();
-	}
+			//glColor3ub( 255, 0, 0 );
+			//glPointSize( 8.0 );
 
+			renderer->setColor3ub( 255, 0, 0 );
+			renderer->setPointSize( 8.0 );
+		}
+		//glBegin( GL_POINTS );
+		//cPntVec[i].pnt2d = projectPoint( cPntVec[i].pnt3d, 0 );
+		//glVertex3dv( cPntVec[i].pnt3d.data() );
+		//glEnd();
+		vector<double> data;
+		cPntVec[i].pnt2d = projectPoint( cPntVec[i].pnt3d, 0 );
+		data.push_back( cPntVec[i].pnt3d.data()[0] );
+		data.push_back( cPntVec[i].pnt3d.data()[1] );
+		data.push_back( cPntVec[i].pnt3d.data()[2] );
+
+		renderer->draw( R_POINTS, 3, data );
+	}
 }
 
 

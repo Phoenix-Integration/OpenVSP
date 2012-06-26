@@ -6,17 +6,17 @@
 // geom.cpp: implementation of the geom class.
 //
 //////////////////////////////////////////////////////////////////////
-#ifdef WIN32
-#include <windows.h>		
-#endif
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#  include <OpenGL/glu.h>
-#else
-#  include <GL/gl.h>
-#  include <GL/glu.h>
-#endif
+//#ifdef WIN32
+//#include <windows.h>		
+//#endif
+//
+//#ifdef __APPLE__
+//#  include <OpenGL/gl.h>
+//#  include <OpenGL/glu.h>
+//#else
+//#  include <GL/gl.h>
+//#  include <GL/glu.h>
+//#endif
 
 #include "geom.h"
 #include "aircraft.h"
@@ -218,6 +218,8 @@ Geom::~Geom()
 {
 	for ( int i = 0 ; i < (int)partVec.size() ; i++ )
 		delete partVec[i];
+
+	delete renderer;
 
 	partVec.clear();
 
@@ -1546,16 +1548,6 @@ void  Geom::buildVertexVec(vector<TMesh*> * meshVec, int surface, vector< Vertex
    
 void Geom::drawTextures(bool reflFlag)
 {
-	glEnable( GL_LIGHTING );
-
-	glEnable( GL_TEXTURE_2D );			// Turn On Texturing 
-	glDepthMask(GL_FALSE);				// Turn Off Depth Buffer
-	glDepthFunc(GL_EQUAL);
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	glEnable(GL_ALPHA_TEST);  
-	glAlphaFunc(GL_GREATER, 0);   
-
 	for ( int i = 0 ; i < (int)appTexVec.size() ; i++ )
 	{
 		// White Base Material For Textures
@@ -1564,19 +1556,6 @@ void Geom::drawTextures(bool reflFlag)
 		wmat.diff[3] = (float)appTexVec[i].alpha;
 		wmat.bind();
 
-		glBindTexture(GL_TEXTURE_2D, appTexVec[i].texID );
-
-		if ( appTexVec[i].repeatFlag )
-		{
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		}
-		else
-		{
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		}
-
 		for ( int s = 0 ; s < (int)surfVec.size() ; s++ )
 		{
 			if ( surfVec[s]->get_draw_flag() )
@@ -1584,18 +1563,13 @@ void Geom::drawTextures(bool reflFlag)
 				if ( appTexVec[i].surfID == s || appTexVec[i].allSurfFlag )
 				{
 					if ( reflFlag )	
-						surfVec[s]->draw_refl_texture( appTexVec[i], sym_code );
+						surfVec[s]->draw_refl_texture( appTexVec[i], sym_code, *reflect_mat );
 					else
-						surfVec[s]->draw_texture( appTexVec[i] );
+						surfVec[s]->draw_texture( appTexVec[i], *model_mat );
 				}
 			}
 		}
-
 	}
-	glDepthMask(GL_TRUE);				// Turn On Depth Buffer
-	glDepthFunc(GL_LESS);
-	glDisable( GL_TEXTURE_2D );			// Turn Off Texturing
-	glDisable( GL_LIGHTING );
 }
 
 
@@ -1614,37 +1588,25 @@ void Geom::draw()
 		renderer->setColor3ub((int)color.x(), (int)color.y(), (int)color.z());
 
 		//==== Draw Geom ====//
-		//glPushMatrix();
-		//glMultMatrixf((GLfloat*)model_mat); 
-
 		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 		{
 			if ( surfVec[i]->get_draw_flag() )
 			{
-				surfVec[i]->draw_wire();
+				surfVec[i]->draw_wire( *model_mat );
 			}
 		}
 
-		//glPopMatrix();
-
 		//==== Reflected Geom ====//
-		//glPushMatrix();
-		//glMultMatrixf((GLfloat*)reflect_mat); 
 		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
 		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 		{
 			if ( surfVec[i]->get_draw_flag() )
-				surfVec[i]->draw_refl_wire(sym_code);
+				surfVec[i]->draw_refl_wire(sym_code, *reflect_mat);
 		}
-
-		//glPopMatrix();
 	}
 	else if ( displayFlag == GEOM_SHADE_FLAG || displayFlag == GEOM_TEXTURE_FLAG)
 	{
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
 		Material* mat = matMgrPtr->getMaterial( materialID );
 		if ( mat )
 		{
@@ -1655,18 +1617,15 @@ void Geom::draw()
 				for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 				{
 					if ( surfVec[i]->get_draw_flag() )
-						surfVec[i]->draw_shaded();
+						surfVec[i]->draw_shaded( *model_mat );
 				}
 
 				if ( displayFlag == GEOM_TEXTURE_FLAG )
 					drawTextures(false);
 			}
 		}
-		glPopMatrix();
 
 		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
 		mat = matMgrPtr->getMaterial( materialID );
 		if ( mat )
 		{
@@ -1676,14 +1635,13 @@ void Geom::draw()
 				for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 				{
 					if ( surfVec[i]->get_draw_flag() )
-						surfVec[i]->draw_refl_shaded(sym_code);
+						surfVec[i]->draw_refl_shaded(sym_code, *reflect_mat);
 				}
 
 				if ( displayFlag == GEOM_TEXTURE_FLAG )
 					drawTextures(true);
 			}
 		}
-		glPopMatrix();
 	}
 	else if ( displayFlag == GEOM_HIDDEN_FLAG )
 	{
@@ -1691,39 +1649,25 @@ void Geom::draw()
 		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
 
 		//==== Draw Geom ====//
-		//glPushMatrix();
-		//glMultMatrixf((GLfloat*)model_mat); 
-
 		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 		{
 			if ( surfVec[i]->get_draw_flag() )
 			{						
-				surfVec[i]->draw_hidden();
+				surfVec[i]->draw_hidden( *model_mat );
 			}
 		}
-		//glPopMatrix();
 
 		//==== Reflected Geom ====//
 		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
-
-		//glPushMatrix();
-		//glMultMatrixf((GLfloat*)reflect_mat); 
-
 		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 		{
 			if ( surfVec[i]->get_draw_flag() )
 			{
-				surfVec[i]->draw_refl_hidden(sym_code);
+				surfVec[i]->draw_refl_hidden(sym_code, *reflect_mat);
 			}
-		}
-
-		/*glPopMatrix()*/;
-			
+		}	
 	}
-	glDisable( GL_LIGHTING );
 }
-
-
 
 //==== Draw If Alpha < 1 and Shaded ====//
 void Geom::drawAlpha()
@@ -1742,40 +1686,29 @@ void Geom::drawAlpha()
 	if ( displayFlag == GEOM_SHADE_FLAG || displayFlag == GEOM_TEXTURE_FLAG )
 	{
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
 		mat->bind();
 //		body_surf.draw_shaded();
 
 		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 		{
 			if ( surfVec[i]->get_draw_flag() )
-				surfVec[i]->draw_shaded();
+				surfVec[i]->draw_shaded( *model_mat );
 		}
-
 
 		if ( displayFlag == GEOM_TEXTURE_FLAG )
 			drawTextures(false);
 
-		glPopMatrix();
-
 		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-
 		mat->bind();
 //		body_surf.draw_refl_shaded( sym_code );
 		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 		{
 			if ( surfVec[i]->get_draw_flag() )
-				surfVec[i]->draw_refl_shaded( sym_code );
+				surfVec[i]->draw_refl_shaded( sym_code, *reflect_mat );
 		}
 
 		if ( displayFlag == GEOM_TEXTURE_FLAG )
 			drawTextures(true);
-
-		glPopMatrix();
 	}
 
 }
@@ -2724,26 +2657,21 @@ void BlankGeom::resetScaleFactor()
 
 void BlankGeom::draw()
 {
-		//==== Check Noshow Flag ====//
+	//==== Check Noshow Flag ====//
 	if ( noshowFlag ) return;	
 
 	if ( displayFlag == GEOM_WIRE_FLAG && redFlag )
 	{
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
+		vector<double> data;
+		data.push_back( 0 );
+		data.push_back( 0 );
+		data.push_back( 0 );
 
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
-			glColor3ub( 255, 0, 255 );
-			glPointSize( 10.0 );
-			glBegin( GL_POINTS );
-			glVertex3d( 0, 0, 0 );
-			glEnd();
-
-		glPopMatrix();
+		renderer->setPointSize( 10.0 );
+		renderer->setColor3ub( 255, 0, 255 );
+		renderer->draw( R_POINTS, *model_mat, 3, data );
 	}
-
 }
 
 //==== Draw If Alpha < 1 and Shaded ====//

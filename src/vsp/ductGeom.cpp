@@ -11,17 +11,10 @@
 //   J.R. Gloudemans - 10/15/03
 //
 //******************************************************************************
-
 #include "ductGeom.h"
 #include "af.h"
 #include "aircraft.h"
 #include "materialMgr.h"
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
 
 #include "defines.h"
 

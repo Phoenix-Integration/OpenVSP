@@ -24,6 +24,10 @@ Af::Af(Geom* geom_ptr_in)
 {
   geom_ptr = geom_ptr_in;
 
+  //==== Renderer ====//
+  renderPtr = new renderMgr();
+  renderPtr->init();
+  
   //==== Defaults ====//
   type = NACA_4_SERIES;
   num_pnts = 23;
@@ -87,6 +91,7 @@ Af::Af(Geom* geom_ptr_in)
 //===== Destructor  =====//
 Af::~Af()
 {
+	delete renderPtr;
 }
 
 //===== Copy  =====//
@@ -1723,34 +1728,73 @@ void Af::draw()
 	//==== Draw Grid ====//
 	float gridSize = 0.1f;
 
-	glLineWidth(1.0);
-	glColor3f(0.8f, 0.8f, 0.8f);
-	glBegin( GL_LINES );
+	renderPtr->setLineWidth( 1.0 );
+	renderPtr->setColor3d( 0.8, 0.8, 0.8 );
+
+	vector<double> data;
+	vector<double> colors;
+
 	for ( i = 0 ; i < 41 ; i++ )
 	{
 		if ( i == 20 )
-			glColor3f(0.8f, 0.8f, 0.8f);
+		{
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
+
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
+
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
+
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
+		}
 		else
-			glColor3f(0.9f, 0.9f, 0.9f);
+		{
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
 
-		glVertex2f( gridSize*(float)i - 20.0f*gridSize, -20.0f*gridSize );
-		glVertex2f( gridSize*(float)i - 20.0f*gridSize,  20.0f*gridSize );
-		glVertex2f( -20.0f*gridSize, gridSize*(float)i - 20.0f*gridSize );
-		glVertex2f(  20.0f*gridSize, gridSize*(float)i - 20.0f*gridSize );
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+		}
+
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
+		data.push_back( -20.0f*gridSize );
+
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
+		data.push_back( 20.0f*gridSize );
+
+		data.push_back( -20.0f*gridSize );
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
+
+		data.push_back( 20.0f*gridSize );
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
 	}
-	glEnd();
+	renderPtr->draw( R_LINES, 3, colors, 2, data );
 
-	glPushMatrix();
-
-	glColor3f(1.0, 0.0, 0.0);
-	glBegin( GL_LINE_STRIP );
-    for (  i = 0 ; i < num_pnts ; i++)
-    {
-		glVertex2d( pnts[i].x() - 0.5, pnts[i].z() );
+	data.clear();
+	renderPtr->setColor3d( 1.0, 0.0, 0.0 );
+	for (  i = 0 ; i < num_pnts ; i++)
+   {
+		data.push_back( pnts[i].x() - 0.5 );
+		data.push_back( pnts[i].z() );
 	}
-	glEnd();
-
-	glPopMatrix();
+	renderPtr->draw( R_LINE_STRIP, 2, data );
 }
 
 

@@ -1607,75 +1607,55 @@ void WingGeom::draw()
 
 	if ( displayFlag == GEOM_WIRE_FLAG )
 	{
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
+		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
 
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-		mwing_surf.draw_wire();
-		in_flap_surf.draw_wire();
-		out_flap_surf.draw_wire();
-		in_slat_surf.draw_wire();
-		out_slat_surf.draw_wire();
-		glPopMatrix();
+		mwing_surf.draw_wire(*model_mat);
+		in_flap_surf.draw_wire(*model_mat);
+		out_flap_surf.draw_wire(*model_mat);
+		in_slat_surf.draw_wire(*model_mat);
+		out_slat_surf.draw_wire(*model_mat);
 
 		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-		mwing_surf.draw_refl_wire(sym_code);
-		in_flap_surf.draw_refl_wire(sym_code);
-		out_flap_surf.draw_refl_wire(sym_code);
-		in_slat_surf.draw_refl_wire(sym_code);
-		out_slat_surf.draw_refl_wire(sym_code);
-		glPopMatrix();
+		mwing_surf.draw_refl_wire(sym_code, *reflect_mat);
+		in_flap_surf.draw_refl_wire(sym_code, *reflect_mat);
+		out_flap_surf.draw_refl_wire(sym_code, *reflect_mat);
+		in_slat_surf.draw_refl_wire(sym_code, *reflect_mat);
+		out_slat_surf.draw_refl_wire(sym_code, *reflect_mat);
 	}
 	else if ( displayFlag == GEOM_SHADE_FLAG )
 	{
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
 		Material* mat = matMgrPtr->getMaterial( materialID );
 		if ( mat )
 		{
 			mat->bind();
 			if ( mat->diff[3] > 0.99 )
 			{
-				mwing_surf.draw_shaded();
+				mwing_surf.draw_shaded(*model_mat);
 			}
 		}
-		glPopMatrix();
 
 		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
 		mat = matMgrPtr->getMaterial( materialID );
 		if ( mat )
 		{
 			mat->bind();
 			if  ( mat->diff[3] > 0.99 )
-				mwing_surf.draw_refl_shaded( sym_code);
+				mwing_surf.draw_refl_shaded( sym_code, *reflect_mat );
 		}
-		glPopMatrix();
 	}
 	else if ( displayFlag == GEOM_HIDDEN_FLAG )
 	{
 		//==== Draw Hidden Surface ====//
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
 
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-		mwing_surf.draw_hidden();
-		glPopMatrix();
+		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
+		mwing_surf.draw_hidden( *model_mat );
 
 		//==== Reflected Geom ====//
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-		mwing_surf.draw_refl_hidden(sym_code);
-		glPopMatrix();
-			
+		renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
+		mwing_surf.draw_refl_hidden(sym_code, *reflect_mat);		
 	}
 }
 
@@ -1692,22 +1672,12 @@ void WingGeom::drawAlpha()
 	if ( displayFlag == GEOM_SHADE_FLAG )
 	{
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
 		mat->bind();
-		mwing_surf.draw_shaded();
-
-		glPopMatrix();
+		mwing_surf.draw_shaded(*model_mat);
 
 		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-
 		mat->bind();
-		mwing_surf.draw_refl_shaded( sym_code );
-
-		glPopMatrix();
+		mwing_surf.draw_refl_shaded( sym_code, *reflect_mat );
 	}
 
 }

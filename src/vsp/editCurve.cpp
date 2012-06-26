@@ -9,16 +9,6 @@
 
 #include "editCurve.h"
 
-#ifdef WIN32
-#include <windows.h>		
-#endif
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
-
 #include <stdio.h>
 #include <FL/Fl.H>
 #include "curveEditScreen.h"
@@ -454,12 +444,25 @@ herm_curve EditCurve::getHermCurve()
 
 void EditCurve::draw()
 {
+	renderMgr renderMgrPtr = renderMgr();
+	renderMgrPtr.init();
+
 	int i;
 	int numPnts = crv.get_num_sections()*3 + 1;
 
-	glPushMatrix();
-
-	glScalef( (float)drawScaleFactor, (float)drawScaleFactor, 1.0 );
+	/* Generate a matrix for scaling */
+	float scale_mat[4][4];
+	for( int i = 0; i < 4; i++ )
+	{
+		for( int j = 0; j < 4; j++ )
+		{
+			scale_mat[i][j] = 0;
+		}
+	}
+	scale_mat[0][0] = (float)drawScaleFactor;
+	scale_mat[1][1] = (float)drawScaleFactor;
+	scale_mat[2][2] = 1.0;
+	scale_mat[3][3] = 1.0;
 
 	//==== Draw Grid ====//
 	float gridSize;
@@ -467,98 +470,161 @@ void EditCurve::draw()
 	else if ( drawScaleFactor < 0.25 )	gridSize = 1.0f;
 	else								gridSize = 0.1f;
 
-	glLineWidth(1.0);
-	glColor3f(0.8f, 0.8f, 0.8f);
-	glBegin( GL_LINES );
+	renderMgrPtr.setLineWidth( 1.0 );
+	renderMgrPtr.setColor3d( 0.8, 0.8, 0.8 );
+
+	vector<double> data;
+	vector<double> colors;
+
 	for ( i = 0 ; i < 41 ; i++ )
 	{
 		if ( i == 20 )
-			glColor3f(0.8f, 0.8f, 0.8f);
-		else
-			glColor3f(0.9f, 0.9f, 0.9f);
+		{
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
 
-		glVertex2f( gridSize*(float)i - 20.0f*gridSize, -20.0f*gridSize );
-		glVertex2f( gridSize*(float)i - 20.0f*gridSize,  20.0f*gridSize );
-		glVertex2f( -20.0f*gridSize, gridSize*(float)i - 20.0f*gridSize );
-		glVertex2f(  20.0f*gridSize, gridSize*(float)i - 20.0f*gridSize );
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
+
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
+
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
+			colors.push_back( 0.8 );
+		}
+		else
+		{
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+		}
+
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
+		data.push_back( -20.0f*gridSize );
+
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
+		data.push_back( 20.0f*gridSize );
+
+		data.push_back( -20.0f*gridSize );
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
+
+		data.push_back( 20.0f*gridSize );
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
 	}
-	glEnd();
+	renderMgrPtr.draw( R_LINES, *scale_mat, 3, colors, 2, data );
+
+	data.clear();
 
 	//==== Draw Control Grid ====//
-	glColor3f( 0.0f, 0.0f, 1.0f );
-	glBegin( GL_LINE_STRIP );
+	renderMgrPtr.setColor3d( 0.0, 0.0, 1.0 );
 	for (i = 0 ; i < numPnts ; i++ )
 	{
 		vec3d p = crv.get_pnt(i);
-		glVertex2d(  p.x(), p.y() );
+		data.push_back( p.x() );
+		data.push_back( p.y() );
 	}
-	glEnd();
+	renderMgrPtr.draw( R_LINE_STRIP, *scale_mat, 2, data );
+
+	data.clear();
 
 	//==== Draw Current Section of Control Grid ====//
 	int currSect = selectPntID/3;
 	if ( currSect < (int)pntVec.size()-1 )
 	{
-		glColor3f( 0.0f, 1.0f, 0.0f );
-		glBegin( GL_LINE_STRIP );
+		renderMgrPtr.setColor3d( 0.0, 1.0, 0.0 );
 		for ( i = 3*currSect ; i < 3*currSect+4 ; i++ )
 		{
 			vec3d p = crv.get_pnt(i);
-			glVertex2d(  p.x(), p.y() );
+			data.push_back( p.x() );
+			data.push_back( p.y() );
 		}
-		glEnd();
+		renderMgrPtr.draw( R_LINE_STRIP, *scale_mat, 2, data );
 	}
 
+	data.clear();
 
 	//==== Draw Curve ====//
 	Bezier_curve refl_crv = getBezierCurve();
 
-	glLineWidth(2.0);
-	glColor3f( 1.0f, 0.0f, 0.0f );
-	glBegin( GL_LINE_STRIP );
+	renderMgrPtr.setLineWidth(2.0);
+	renderMgrPtr.setColor3d( 1.0, 0.0, 0.0 );
+
 	for ( int isec = 0 ; isec < refl_crv.get_num_sections() ; isec++ )
 	{
 		for ( i = 0 ; i < 10 ; i++ )
 		{
 			double u = (double)i/(double)(9);
 			vec3d p = refl_crv.comp_pnt( isec, u );
-			glVertex2d(  p.x(), p.y() );
+			data.push_back( p.x() );
+			data.push_back( p.y() );
 		}
 	}
-	glEnd();
+	renderMgrPtr.draw( R_LINE_STRIP, *scale_mat, 2, data );
 
+	data.clear();
+	colors.clear();
 
 	//==== Draw Control Points ====//
-	glPointSize(4.0);
-	glBegin( GL_POINTS );
+	renderMgrPtr.setPointSize( 4.0 );
 	for ( i = 0 ; i < numPnts ; i++ )
 	{
 		if ( i%3 == 0  )
-			glColor3f( 0.0f, 0.0f, 0.0f );
+		{
+			colors.push_back( 0.0 );
+			colors.push_back( 0.0 );
+			colors.push_back( 0.0 );
+		}
 		else
-			glColor3f( 0.0f, 0.0f, 1.0f );
+		{
+			colors.push_back( 0.0 );
+			colors.push_back( 0.0 );
+			colors.push_back( 1.0 );
+		}
 
 		vec3d p = crv.get_pnt(i);
-		glVertex2d(  p.x(), p.y() );
+		data.push_back( p.x() );
+		data.push_back( p.y() );
 	}
-	glEnd();
+	renderMgrPtr.draw( R_POINTS, *scale_mat, 3, colors, 2, data );
+
+	data.clear();
 
 	//==== Draw Selected Control Points ====//
-	glPointSize(4.0);
-	glBegin( GL_POINTS );
-		glColor3f( 1.0f, 1.0f, 0.0f );
-		vec3d p = crv.get_pnt(nearPntID);
-		glVertex2d(  p.x(), p.y() );
-	glEnd();
+	renderMgrPtr.setPointSize( 4.0 );
+	renderMgrPtr.setColor3d( 1.0, 1.0, 0.0 );
 
-	glPointSize(8.0);
-	glBegin( GL_POINTS );
-		glColor3f( 0.0f, 1.0f, 0.0f );
-		p = crv.get_pnt(selectPntID);
-		glVertex2d(  p.x(), p.y() );
-	glEnd();
+	vec3d p = crv.get_pnt( nearPntID );
+	data.push_back( p.x() );
+	data.push_back( p.y() );
 
-	glPopMatrix();
+	renderMgrPtr.draw( R_POINTS, *scale_mat, 2, data );
 
+	data.clear();
+
+	renderMgrPtr.setPointSize( 8.0 );
+	renderMgrPtr.setColor3d( 0.0, 1.0, 0.0 );
+	
+	p = crv.get_pnt( selectPntID );
+	data.push_back( p.x() );
+	data.push_back( p.y() );
+
+	renderMgrPtr.draw( R_POINTS, *scale_mat, 2, data );
 }
 
 int EditCurve::processKeyEvent()

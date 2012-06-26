@@ -5,8 +5,8 @@
 
 enum Primitive
 {
-	R_POINT,
-	R_LINE,
+	R_POINTS,
+	R_LINES,
 	R_LINE_STRIP,
 	R_LINE_LOOP,
 	R_TRIANGLES,
@@ -36,6 +36,55 @@ enum BlendMask
 	R_SRC_ALPHA_SATURATE,
 };
 
+enum TexParamNameMask
+{
+	R_TEXTURE_MIN_FILTER,
+	R_TEXTURE_MAG_FILTER,
+	R_TEXTURE_MIN_LOD,
+	R_TEXTURE_MAX_LOD,
+	R_TEXTURE_BASE_LEVEL,
+	R_TEXTURE_MAX_LEVEL,
+	R_TEXTURE_WRAP_S,
+	R_TEXTURE_WRAP_T,
+	R_TEXTURE_WRAP_R,
+	R_TEXTURE_BORDER_COLOR,
+	R_TEXTURE_PRIORITY,
+	R_TEXTURE_COMPARE_MODE,
+	R_TEXTURE_COMPARE_FUNC,
+	R_DEPTH_TEXTURE_MODE,
+	R_GENERATE_MIPMAP,
+};
+
+enum ParameterMask
+{
+	R_NEAREST,
+	R_LINEAR,
+	R_NEAREST_MIPMAP_NEAREST,
+	R_LINEAR_MIPMAP_NEAREST,
+	R_NEAREST_MIPMAP_LINEAR,
+	R_LINEAR_MIPMAP_LINEAR,
+	R_CLAMP,
+	R_CLAMP_TO_BORDER,
+	R_CLAMP_TO_EDGE,
+	R_MIRRORED_REPEAT,
+	R_REPEAT,
+	R_COMPARE_R_TO_TEXTURE,
+	R_NONE,
+	R_LUMINANCE,
+	R_INTENSITY,
+	R_ALPHA,
+	R_NEVER,
+	R_LESS,
+	R_EQUAL,
+	R_LEQUAL,
+	R_GREATER,
+	R_NOTEQUAL,
+	R_GEQUAL,
+	R_ALWAYS,
+	R_TRUE,
+	R_FALSE,
+};
+
 struct Color
 {
 	unsigned char red;
@@ -47,29 +96,29 @@ struct Color
 struct BlendMode
 {
 	bool enabled;
-	struct Params
+	struct BlendFunc
 	{
-		BlendMask sourcefactor;
-		BlendMask destinationfactor;
+		BlendMask sfactor;
+		BlendMask dfactor;
 		
-		Params():sourcefactor( R_ZERO ), destinationfactor( R_ZERO ) {}
-	}	params ;
+		BlendFunc():sfactor( R_ZERO ), dfactor( R_ZERO ) {}
+	}	blendfunc ;
 
-	BlendMode():enabled(false), params() {}
+	BlendMode():enabled(false), blendfunc() {}
 };
 
 struct PolygonOffsetMode
 {
 	bool enabled;	
-	struct Params
+	struct PolygonOffset
 	{
 		float factor;
 		float units;
 
-		Params():factor(0), units(0) {}
-	}	params;
+		PolygonOffset():factor(0), units(0) {}
+	}	polygonOffset;
 
-	PolygonOffsetMode():enabled(false), params() {}
+	PolygonOffsetMode():enabled(false), polygonOffset() {}
 }; 
 
 struct LightingMode
@@ -79,15 +128,65 @@ struct LightingMode
 	LightingMode():enabled(false) {}
 };
 
+struct Texture2DMode
+{
+	bool enabled;
+	struct TexParameteri
+	{
+		vector<TexParamNameMask> pname;
+		vector<ParameterMask> param;
+
+		TexParameteri():pname(), param() {}
+	}	texParameteri;
+	struct BindTexture
+	{
+		unsigned int texture;
+
+		BindTexture():texture(0) {}
+	}	bindTexture;
+
+	Texture2DMode():enabled(false), texParameteri(), bindTexture() {}
+};
+
+struct AlphaTestMode
+{
+	bool enabled;
+	struct AlphaFunc
+	{
+		ParameterMask func;
+		float ref;
+
+		AlphaFunc():func(R_ALWAYS), ref(0) {}
+	}	alphafunc;
+
+	AlphaTestMode():enabled(false), alphafunc() {}
+};
+
+struct DepthMaskMode
+{
+	bool enabled;
+	struct DepthFunc
+	{
+		ParameterMask func;
+
+		DepthFunc():func(R_LESS) {}
+	}	depthfunc;
+
+	DepthMaskMode():enabled(false), depthfunc() {}
+};
+
 struct RenderProperties
 {
 	struct RenderMode
 	{
-		BlendMode blend;
-		PolygonOffsetMode polygonOffset;
-		LightingMode lighting;
+		AlphaTestMode alphaTestMode;
+		BlendMode blendMode;
+		DepthMaskMode depthMaskMode;
+		LightingMode lightingMode;
+		PolygonOffsetMode polygonOffsetMode;
+		Texture2DMode texture2DMode;
 
-		RenderMode():blend(), polygonOffset(), lighting() {}
+		RenderMode():alphaTestMode(), blendMode(), depthMaskMode(), lightingMode(), polygonOffsetMode(), texture2DMode() {}
 	}	mode;
 
 	RenderProperties():mode() {}
@@ -114,16 +213,17 @@ public:
 public:
 	virtual void draw( Primitive mode, int size, vector<double> data ) {}
 
-	virtual void draw( Primitive mode, Color color, vector<vec3d> data ) {}
-	virtual void draw( Primitive mode, vector<Color> colors, vector<vec3d> data ) {}
+	virtual void draw( Primitive mode, int csize, vector<double> colors, int size, vector<double> data ) {}
 
-	virtual void draw( Primitive mode, int size, float* matrix, vector<double> data ) {}
+	virtual void draw( Primitive mode, float* matrix, int size, vector<double> data ) {}
+	virtual void draw( Primitive mode, float* matrix, int csize, vector<double> colors, int size, vector<double> data ) {}
 
 	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data ) {}
 	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals ) {}
+	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals, vector<double> texcoords ) {}
 
-protected:
-	virtual unsigned int getGLPrimitiveMode( Primitive mode ) { return 0; }
-	virtual unsigned int getGLBlendMode( BlendMask mask ) { return 0; }
+	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data ) {}
+	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals ) {}
+	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals, vector<double> texcoords ) {}
 };
 #endif

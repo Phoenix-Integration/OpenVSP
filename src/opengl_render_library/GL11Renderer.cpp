@@ -195,7 +195,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
 	/* Apply Properties */
-	apply( rp );
+	bind( rp );
 
 	/* Draw */
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
@@ -205,7 +205,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 	glDisableClientState( GL_VERTEX_ARRAY );
 
 	/* Restore Settings */
-	retract( rp );
+	unbind( rp );
 }
 
 /******************************************************
@@ -219,7 +219,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
 	/* Apply Properties */
-	apply( rp );
+	bind( rp );
 
 	/* Set Rendering Data */
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
@@ -233,7 +233,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 	glDisableClientState( GL_VERTEX_ARRAY );
 
 	/* Restore Settings */
-	retract( rp );
+	unbind( rp );
 }
 
 /******************************************************
@@ -247,7 +247,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
 	/* Apply Properties */
-	apply( rp );
+	bind( rp );
 
 	/* Set Rendering Data */
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
@@ -264,7 +264,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 	glDisableClientState( GL_VERTEX_ARRAY );
 
 	/* Restore Settings */
-	retract( rp );
+	unbind( rp );
 }
 
 /******************************************************
@@ -317,7 +317,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, float* matrix, int
 * Apply Customized Rendering Properties.
 *
 *******************************************************/
-void GL11Renderer::apply( RenderProperties rp )
+void GL11Renderer::bind( RenderProperties rp )
 {
 	/* PolygonOffset */
 	if ( rp.mode.polygonOffsetMode.enabled )
@@ -382,16 +382,38 @@ void GL11Renderer::apply( RenderProperties rp )
 	/* Lighting */
 	if ( rp.mode.lightingMode.enabled )
 		glEnable( GL_LIGHTING );
+
+	/* Cull face */
+	unsigned int cullmode = 0;
+	commonUtil->getGLParameter( rp.mode.cullFaceMode.cullface.mode, cullmode );
+
+	if ( rp.mode.cullFaceMode.enabled )
+	{
+		glCullFace( cullmode );
+		glEnable( GL_CULL_FACE );
+	}
+
+	/* Line Smooth */
+	if ( rp.mode.lineSmoothMode.enabled )
+	{
+		glEnable( GL_LINE_SMOOTH );
+	}
 }
 
 /******************************************************
 *
-* Retract the changes.
+* Restore the changes.
 *
 *******************************************************/
-void GL11Renderer::retract( RenderProperties rp )
+void GL11Renderer::unbind( RenderProperties rp )
 {
 	/* Restore Settings */
+
+	if ( rp.mode.lineSmoothMode.enabled )
+		glDisable( GL_LINE_SMOOTH );
+
+	if ( rp.mode.cullFaceMode.enabled )
+		glDisable( GL_CULL_FACE );
 
 	if ( rp.mode.lightingMode.enabled )
 		glDisable( GL_LIGHTING );

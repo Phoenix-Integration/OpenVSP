@@ -63,8 +63,6 @@ public:
 
 	FeaSkin m_UpperSkin;
 	FeaSkin m_LowerSkin;
-
-
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -185,6 +183,8 @@ public:
 protected:
 
 	Geom* m_WingGeom;
+
+	RenderProperties rp_skin;
 
 	bool m_BatchFlag;
 

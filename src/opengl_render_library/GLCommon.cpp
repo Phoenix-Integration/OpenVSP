@@ -322,6 +322,26 @@ void GLCommon::getGLParameter( ParameterMask mask, unsigned int &out )
 			out = GL_ALWAYS;
 			break;
 
+		case R_TRUE:
+			out = GL_TRUE;
+			break;
+
+		case R_FALSE:
+			out = GL_FALSE;
+			break;
+
+		case R_BACK:
+			out = GL_BACK;
+			break;
+
+		case R_FRONT:
+			out = GL_FRONT;
+			break;
+
+		case R_FRONT_AND_BACK:
+			out = GL_FRONT_AND_BACK;
+			break;
+
 		default:
 			assert( false );
 			out = GL_NONE;

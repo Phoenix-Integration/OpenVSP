@@ -34,12 +34,17 @@ Mesh::Mesh()
 
 	m_Surf = NULL;
 	m_GridDensity = NULL;
+
+	renderer = new renderMgr();
+	renderer->init();
 }
 
 Mesh::~Mesh()
 {
 	DumpGarbage();
 	Clear();
+
+	delete renderer;
 }
 
 void Mesh::Clear()
@@ -1512,103 +1517,45 @@ void Mesh::WriteSTL( FILE* file_id )
 
 void Mesh::Draw()
 {
-
-	//==== Debug ====//
-	//list< Tri* >::iterator t;
-	//for ( t = triList.begin() ; t != triList.end(); t++ )
-	//{
-	//	glColor3ubv( (*t)->rgb );
-	//	glBegin( GL_POLYGON );
-
-	//	glVertex3dv( (*t)->n0->pnt.data() );
-	//	glVertex3dv( (*t)->n1->pnt.data() );
-	//	glVertex3dv( (*t)->n2->pnt.data() );
-
-	//	glEnd();
-	//}
-
 	//==== Edges ====//
-	glLineWidth( 1.0 );
-	glBegin( GL_LINES );
+	vector<double> data;
 
+	renderer->setLineWidth( 1.0 );
+	renderer->setColor3ub( 0, 0, 255 );
+	
 	Edge* hl_edge = NULL;
 	int edge_cnt = 0;
 	list< Edge* >::iterator e;
 	for ( e = edgeList.begin() ; e != edgeList.end(); e++ )
 	{
-		glLineWidth( 1.0 );
-		glColor3ub( 0, 0, 255 );
 		if ( !(*e)->debugFlag )
 		{
-			glVertex3dv( (*e)->n0->pnt.data() );
-			glVertex3dv( (*e)->n1->pnt.data() );
+			data.push_back( (*e)->n0->pnt.data()[0] );
+			data.push_back( (*e)->n0->pnt.data()[1] );
+			data.push_back( (*e)->n0->pnt.data()[1] );
 		}
-
 		edge_cnt++;
 	}
-	glEnd();
+	renderer->draw( R_LINES, 3, data );
+	data.clear();
 
-	glLineWidth( 3.0 );
-	glColor3ub( 255, 0, 0 );
-	glBegin( GL_LINES );
+	renderer->setLineWidth( 3.0 );
+	renderer->setColor3ub( 255, 0, 0 );
+
 	for ( e = edgeList.begin() ; e != edgeList.end(); e++ )
 	{
 		if ( (*e)->debugFlag )
 		{
-			glVertex3dv( (*e)->n0->pnt.data() );
-			glVertex3dv( (*e)->n1->pnt.data() );
+			data.push_back( (*e)->n0->pnt.data()[0] );
+			data.push_back( (*e)->n0->pnt.data()[1] );
+			data.push_back( (*e)->n0->pnt.data()[2] );
+
+			data.push_back( (*e)->n1->pnt.data()[0] );
+			data.push_back( (*e)->n1->pnt.data()[1] );
+			data.push_back( (*e)->n1->pnt.data()[2] );
 		}
 	}
-	glEnd();
-
-
-
-	//Node* hl_node = 0;
-	//glPointSize( 3.0f );
-	//glBegin( GL_POINTS );
-	//int cnt = 0;
-	//list< Node* >::iterator n;
-	//for ( n = nodeList.begin() ; n != nodeList.end(); n++ )
-	//{
-	//	glColor3ub( 255, 0, 0 );
-
-	//	if ( (*n)->fixed )
-	//		glColor3ub( 255, 255, 0 );
-
-	//	glVertex3dv( (*n)->pnt.data() );
-
-	//	if ( cnt == m_HighlightNodeIndex )
-	//	{
-	//		hl_node = (*n);
-	//	}
-	//	cnt++;
-
-	//}
-	//glEnd();
-
-	////==== Highlight ====//
-	//if ( hl_node )
-	//{
-	//	glPointSize( 10.0f );
-	//	glBegin( GL_POINTS );
-	//	glColor3ub( 0, 255, 0 );
-	//	glVertex3dv( hl_node->pnt.data() );
-	//	glEnd();
-
-	//	glBegin( GL_LINES );
-	//	glColor3ub( 0, 255, 0 );
-
-	//	for ( int i = 0 ; i < (int)hl_node->edgeVec.size() ; i++ )
-	//	{
-	//		Edge* eptr = hl_node->edgeVec[i];
-	//		glVertex3dv( eptr->n0->pnt.data() );
-	//		glVertex3dv( eptr->n1->pnt.data() );
-	//	}
-	//	glEnd();
-
-	//}
-
-
+	renderer->draw( R_LINES, 3, data );
 }
 
 

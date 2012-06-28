@@ -83,6 +83,9 @@ enum ParameterMask
 	R_ALWAYS,
 	R_TRUE,
 	R_FALSE,
+	R_BACK,
+	R_FRONT,
+	R_FRONT_AND_BACK,
 };
 
 struct Color
@@ -175,6 +178,26 @@ struct DepthMaskMode
 	DepthMaskMode():enabled(false), depthfunc() {}
 };
 
+struct CullFaceMode
+{
+	bool enabled;
+	struct CullFace
+	{
+		ParameterMask mode;
+
+		CullFace():mode(R_BACK) {}
+	}	cullface;
+
+	CullFaceMode():enabled(false), cullface() {}
+};
+
+struct LineSmoothMode
+{
+	bool enabled;
+
+	LineSmoothMode():enabled(false) {}
+};
+
 struct RenderProperties
 {
 	struct RenderMode
@@ -185,8 +208,11 @@ struct RenderProperties
 		LightingMode lightingMode;
 		PolygonOffsetMode polygonOffsetMode;
 		Texture2DMode texture2DMode;
+		CullFaceMode cullFaceMode;
+		LineSmoothMode lineSmoothMode;
 
-		RenderMode():alphaTestMode(), blendMode(), depthMaskMode(), lightingMode(), polygonOffsetMode(), texture2DMode() {}
+		RenderMode():alphaTestMode(), blendMode(), depthMaskMode(), lightingMode(), polygonOffsetMode(), 
+			texture2DMode(), cullFaceMode(), lineSmoothMode() {}
 	}	mode;
 
 	RenderProperties():mode() {}

@@ -892,45 +892,35 @@ void SurfPatch::AddTVal( double t, vector< double > & t_vals )
 
 void SurfPatch::Draw()
 {
-//if ( !draw_flag )
-//	return;
+	vector<double> data;
+	
+	renderMgr renderer = renderMgr();
+	renderer.init();
 
-	glLineWidth( 1.0 );
-	glColor3ub( 0, 255, 0 );
+	renderer.setLineWidth( 1.0 );
+	renderer.setColor3ub( 0, 255, 0 );
 
-	glBegin( GL_LINE_LOOP );
-		glVertex3dv( pnts[0][0].data() );
-		glVertex3dv( pnts[3][0].data() );
-		glVertex3dv( pnts[3][3].data() );
-		glVertex3dv( pnts[0][3].data() );
-	glEnd();
+	data.push_back( pnts[0][0].data()[0] );
+	data.push_back( pnts[0][0].data()[1] );
+	data.push_back( pnts[0][0].data()[2] );
+	data.push_back( pnts[0][0].data()[3] );
 
+	data.push_back( pnts[3][0].data()[0] );
+	data.push_back( pnts[3][0].data()[1] );
+	data.push_back( pnts[3][0].data()[2] );
+	data.push_back( pnts[3][0].data()[3] );
 
-	//glBegin( GL_LINE_LOOP );
-	//	glVertex3dv( bnd_box.get_pnt(0).data() );
-	//	glVertex3dv( bnd_box.get_pnt(1).data() );
-	//	glVertex3dv( bnd_box.get_pnt(3).data() );
-	//	glVertex3dv( bnd_box.get_pnt(2).data() );
-	//glEnd();
+	data.push_back( pnts[3][3].data()[0] );
+	data.push_back( pnts[3][3].data()[1] );
+	data.push_back( pnts[3][3].data()[2] );
+	data.push_back( pnts[3][3].data()[3] );
 
-	//glBegin( GL_LINE_LOOP );
-	//	glVertex3dv( bnd_box.get_pnt(4).data() );
-	//	glVertex3dv( bnd_box.get_pnt(5).data() );
-	//	glVertex3dv( bnd_box.get_pnt(7).data() );
-	//	glVertex3dv( bnd_box.get_pnt(6).data() );
-	//glEnd();
+	data.push_back( pnts[0][3].data()[0] );
+	data.push_back( pnts[0][3].data()[1] );
+	data.push_back( pnts[0][3].data()[2] );
+	data.push_back( pnts[0][3].data()[3] );
 
-	//glBegin( GL_LINES );
-	//	glVertex3dv( bnd_box.get_pnt(0).data() );
-	//	glVertex3dv( bnd_box.get_pnt(4).data() );
-	//	glVertex3dv( bnd_box.get_pnt(1).data() );
-	//	glVertex3dv( bnd_box.get_pnt(5).data() );
-	//	glVertex3dv( bnd_box.get_pnt(3).data() );
-	//	glVertex3dv( bnd_box.get_pnt(7).data() );
-	//	glVertex3dv( bnd_box.get_pnt(2).data() );
-	//	glVertex3dv( bnd_box.get_pnt(6).data() );
-	//glEnd();
-
+	renderer.draw( R_LINE_LOOP, 3, data );
 }
 
 

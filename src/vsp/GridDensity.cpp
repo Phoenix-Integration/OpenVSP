@@ -17,8 +17,15 @@ BaseSource::BaseSource()
 {
 	m_Name = Stringc("Source_Name");
 	m_ReflSource = NULL;
+
+	renderer = new renderMgr();
+	renderer->init();
 }
 
+BaseSource::~BaseSource()
+{
+	delete renderer;
+}
 
 void BaseSource::CheckCorrectRad( double base_len )
 {
@@ -55,9 +62,10 @@ void BaseSource::DrawSphere( double rad, const vec3d& loc )
 	int num_lats = 8;
 	int num_longs = 8;
 
+	vector<double> data;
+
 	for ( i = 0 ; i < num_lats ; i++ )
 	{
-		glBegin( GL_LINE_LOOP );
 		double lat = PI * (-0.5 + (double)i/num_lats);
 		double z  = rad*sin(lat);
 		double zr = rad*cos(lat);
@@ -67,11 +75,14 @@ void BaseSource::DrawSphere( double rad, const vec3d& loc )
 			double lng = 2 * PI * (double)j/num_longs;
 			double x = cos(lng)*zr;
 			double y = sin(lng)*zr;
-			glVertex3d(x + loc[0], y + loc[1], z + loc[2]);
-		}
-		glEnd();
-	}
 
+			data.push_back( x + loc[0] );
+			data.push_back( y + loc[1] );
+			data.push_back( z + loc[2] );
+		}
+		renderer->draw( R_LINE_LOOP, 3, data );
+		data.clear();
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -160,13 +171,13 @@ void PointSource::Update( Geom* geomPtr )
 
 void PointSource::Draw()
 {
-	glPushMatrix();
-
 	DrawSphere( m_Rad, m_Loc );
-	//glTranslated( m_Loc[0], m_Loc[1], m_Loc[2] );
-	//gluSphere(m_Quadric, m_Rad, 6, 6);
+}
 
-	glPopMatrix();
+void PointSource::Draw( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha )
+{
+	renderer->setColor4ub( red, green, blue, alpha );
+	Draw();
 }
 
 void PointSource::WriteParms( xmlNodePtr root )
@@ -464,29 +475,64 @@ void LineSource::Draw()
 
 	DrawSphere( m_Rad1, m_Pnt1 );
 	DrawSphere( m_Rad2, m_Pnt2 );
-	//glPushMatrix();
-	//glTranslated( m_Pnt1[0], m_Pnt1[1], m_Pnt1[2] );
-	//gluSphere(m_Quadric, m_Rad, 6, 6);
-	//glPopMatrix();
-	//glPushMatrix();
-	//glTranslated( m_Pnt2[0], m_Pnt2[1], m_Pnt2[2] );
-	//gluSphere(m_Quadric, m_Rad, 6, 6);
-	//glPopMatrix();
 
-	glBegin( GL_LINES );
-		glVertex3d( m_Pnt1[0], m_Pnt1[1], m_Pnt1[2]+m_Rad1);
-		glVertex3d( m_Pnt2[0], m_Pnt2[1], m_Pnt2[2]+m_Rad2);
-		glVertex3d( m_Pnt1[0], m_Pnt1[1], m_Pnt1[2]-m_Rad1 );
-		glVertex3d( m_Pnt2[0], m_Pnt2[1], m_Pnt2[2]-m_Rad2 );
-		glVertex3d( m_Pnt1[0], m_Pnt1[1]+m_Rad1, m_Pnt1[2] );
-		glVertex3d( m_Pnt2[0], m_Pnt2[1]+m_Rad2, m_Pnt2[2] );
-		glVertex3d( m_Pnt1[0], m_Pnt1[1]-m_Rad1, m_Pnt1[2] );
-		glVertex3d( m_Pnt2[0], m_Pnt2[1]-m_Rad2, m_Pnt2[2] );
-		glVertex3d( m_Pnt1[0]+m_Rad1, m_Pnt1[1], m_Pnt1[2] );
-		glVertex3d( m_Pnt2[0]+m_Rad2, m_Pnt2[1], m_Pnt2[2] );
-		glVertex3d( m_Pnt1[0]-m_Rad1, m_Pnt1[1], m_Pnt1[2] );
-		glVertex3d( m_Pnt2[0]-m_Rad2, m_Pnt2[1], m_Pnt2[2] );
-	glEnd();
+	vector<double> data;
+
+	data.push_back( m_Pnt1[0] );
+	data.push_back( m_Pnt1[1] );
+	data.push_back( m_Pnt1[2]+m_Rad1 );
+
+	data.push_back( m_Pnt2[0] );
+	data.push_back( m_Pnt2[1] );
+	data.push_back( m_Pnt2[2]+m_Rad2 );
+
+	data.push_back( m_Pnt1[0] );
+	data.push_back( m_Pnt1[1] );
+	data.push_back( m_Pnt1[2]-m_Rad1 );
+
+	data.push_back( m_Pnt2[0] );
+	data.push_back( m_Pnt2[1] );
+	data.push_back( m_Pnt2[2]-m_Rad2 );
+
+	data.push_back( m_Pnt1[0] );
+	data.push_back( m_Pnt1[1]+m_Rad1 );
+	data.push_back( m_Pnt1[2] );
+
+	data.push_back( m_Pnt2[0] );
+	data.push_back( m_Pnt2[1]+m_Rad2 );
+	data.push_back( m_Pnt2[2] );
+
+	data.push_back( m_Pnt1[0] );
+	data.push_back( m_Pnt1[1]-m_Rad1 );
+	data.push_back( m_Pnt1[2] );
+
+	data.push_back( m_Pnt2[0] );
+	data.push_back( m_Pnt2[1]-m_Rad2 );
+	data.push_back( m_Pnt2[2] );
+
+	data.push_back( m_Pnt1[0]+m_Rad1 );
+	data.push_back( m_Pnt1[1] );
+	data.push_back( m_Pnt1[2] );
+
+	data.push_back( m_Pnt2[0]+m_Rad2 );
+	data.push_back( m_Pnt2[1] );
+	data.push_back( m_Pnt2[2] );
+
+	data.push_back( m_Pnt1[0]-m_Rad1 );
+	data.push_back( m_Pnt1[1] );
+	data.push_back( m_Pnt1[2] );
+
+	data.push_back( m_Pnt2[0]-m_Rad2 );
+	data.push_back( m_Pnt2[1] );
+	data.push_back( m_Pnt2[2] );
+
+	renderer->draw( R_LINES, 3, data );
+}
+
+void LineSource::Draw( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha )
+{
+	renderer->setColor4ub( red, green, blue, alpha );
+	Draw();
 }
 
 void LineSource::WriteParms( xmlNodePtr root )
@@ -676,38 +722,90 @@ void BoxSource::Update( Geom* geomPtr )
 		bs->SetMinMaxPnts( p0, p7  ); 
 
 	}
-
-
-
 }
 
 void BoxSource::Draw()
 {
-	glBegin( GL_LINE_LOOP );
-		glVertex3dv( m_Box.get_pnt(0).data() );
-		glVertex3dv( m_Box.get_pnt(1).data() );
-		glVertex3dv( m_Box.get_pnt(3).data() );
-		glVertex3dv( m_Box.get_pnt(2).data() );
-	glEnd();
+	vector<double> data;
 
-	glBegin( GL_LINE_LOOP );
-		glVertex3dv( m_Box.get_pnt(4).data() );
-		glVertex3dv( m_Box.get_pnt(5).data() );
-		glVertex3dv( m_Box.get_pnt(7).data() );
-		glVertex3dv( m_Box.get_pnt(6).data() );
-	glEnd();
+	data.push_back( m_Box.get_pnt(0).data()[0] );
+	data.push_back( m_Box.get_pnt(0).data()[1] );
+	data.push_back( m_Box.get_pnt(0).data()[2] );
 
-	glBegin( GL_LINES );
-		glVertex3dv( m_Box.get_pnt(0).data() );
-		glVertex3dv( m_Box.get_pnt(4).data() );
-		glVertex3dv( m_Box.get_pnt(1).data() );
-		glVertex3dv( m_Box.get_pnt(5).data() );
-		glVertex3dv( m_Box.get_pnt(3).data() );
-		glVertex3dv( m_Box.get_pnt(7).data() );
-		glVertex3dv( m_Box.get_pnt(2).data() );
-		glVertex3dv( m_Box.get_pnt(6).data() );
-	glEnd();
+	data.push_back( m_Box.get_pnt(1).data()[0] );
+	data.push_back( m_Box.get_pnt(1).data()[1] );
+	data.push_back( m_Box.get_pnt(1).data()[2] );
 
+	data.push_back( m_Box.get_pnt(3).data()[0] );
+	data.push_back( m_Box.get_pnt(3).data()[1] );
+	data.push_back( m_Box.get_pnt(3).data()[2] );
+
+	data.push_back( m_Box.get_pnt(2).data()[0] );
+	data.push_back( m_Box.get_pnt(2).data()[1] );
+	data.push_back( m_Box.get_pnt(2).data()[2] );
+
+	renderer->draw( R_LINE_LOOP, 3, data );
+	data.clear();
+
+	data.push_back( m_Box.get_pnt(4).data()[0] );
+	data.push_back( m_Box.get_pnt(4).data()[1] );
+	data.push_back( m_Box.get_pnt(4).data()[2] );
+
+	data.push_back( m_Box.get_pnt(5).data()[0] );
+	data.push_back( m_Box.get_pnt(5).data()[1] );
+	data.push_back( m_Box.get_pnt(5).data()[2] );
+
+	data.push_back( m_Box.get_pnt(7).data()[0] );
+	data.push_back( m_Box.get_pnt(7).data()[1] );
+	data.push_back( m_Box.get_pnt(7).data()[2] );
+
+	data.push_back( m_Box.get_pnt(6).data()[0] );
+	data.push_back( m_Box.get_pnt(6).data()[1] );
+	data.push_back( m_Box.get_pnt(6).data()[2] );
+
+	renderer->draw( R_LINE_LOOP, 3, data );
+
+	data.clear();
+	
+	data.push_back( m_Box.get_pnt(0).data()[0] );
+	data.push_back( m_Box.get_pnt(0).data()[1] );
+	data.push_back( m_Box.get_pnt(0).data()[2] );
+
+	data.push_back( m_Box.get_pnt(4).data()[0] );
+	data.push_back( m_Box.get_pnt(4).data()[1] );
+	data.push_back( m_Box.get_pnt(4).data()[2] );
+
+	data.push_back( m_Box.get_pnt(1).data()[0] );
+	data.push_back( m_Box.get_pnt(1).data()[1] );
+	data.push_back( m_Box.get_pnt(1).data()[2] );
+
+	data.push_back( m_Box.get_pnt(5).data()[0] );
+	data.push_back( m_Box.get_pnt(5).data()[1] );
+	data.push_back( m_Box.get_pnt(5).data()[2] );
+
+	data.push_back( m_Box.get_pnt(3).data()[0] );
+	data.push_back( m_Box.get_pnt(3).data()[1] );
+	data.push_back( m_Box.get_pnt(3).data()[2] );
+
+	data.push_back( m_Box.get_pnt(7).data()[0] );
+	data.push_back( m_Box.get_pnt(7).data()[1] );
+	data.push_back( m_Box.get_pnt(7).data()[2] );
+
+	data.push_back( m_Box.get_pnt(2).data()[0] );
+	data.push_back( m_Box.get_pnt(2).data()[1] );
+	data.push_back( m_Box.get_pnt(2).data()[2] );
+
+	data.push_back( m_Box.get_pnt(6).data()[0] );
+	data.push_back( m_Box.get_pnt(6).data()[1] );
+	data.push_back( m_Box.get_pnt(6).data()[2] );
+
+	renderer->draw( R_LINES, 3, data );
+}
+
+void BoxSource::Draw( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha )
+{
+	renderer->setColor4ub( red, green, blue, alpha );
+	Draw();
 }
 
 void BoxSource::WriteParms( xmlNodePtr root )
@@ -841,17 +939,14 @@ void GridDensity::ScaleAllSources( double scale )
 	}
 }
 
-	
-
 void GridDensity::Draw(BaseSource* curr_source )
 {
 	for ( int i = 0 ; i < (int)m_Sources.size() ; i++ )
 	{
-		glColor4ub( 100, 100, 100, 255 );
 		if ( curr_source == m_Sources[i] )
-			glColor4ub( 255, 100, 0, 255 );
-
-		m_Sources[i]->Draw();
+			m_Sources[i]->Draw( 255, 100, 0, 255 );
+		else
+			m_Sources[i]->Draw( 100, 100, 100, 255 );
 	}
 }
 

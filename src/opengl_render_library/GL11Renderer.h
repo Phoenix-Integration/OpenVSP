@@ -39,8 +39,8 @@ public:
 	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals, vector<double> texcoords );
 
 protected:
-	virtual void apply( RenderProperties rp );
-	virtual void retract( RenderProperties rp );
+	virtual void bind( RenderProperties rp );
+	virtual void unbind( RenderProperties rp );
 
 protected:
 	GLCommon* commonUtil;

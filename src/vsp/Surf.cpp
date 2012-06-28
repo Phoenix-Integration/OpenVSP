@@ -19,6 +19,9 @@ Surf::Surf()
 	m_CompID = -1;
 	m_SurfID = -1;
 	m_Mesh.SetSurfPtr( this );
+
+	renderer = new renderMgr();
+	renderer->init();
 }
 
 Surf::~Surf()
@@ -31,6 +34,8 @@ Surf::~Surf()
 	//==== Delete SCurves ====//
 	for ( i = 0 ; i < (int)m_SCurveVec.size() ; i++ )
 		delete m_SCurveVec[i];
+
+	delete renderer;
 }
 
 void Surf::BuildClean()
@@ -1202,40 +1207,85 @@ void Surf::Draw()
 
 /************************************************/
 
+	////==== Draw Surface ====//
+	//int max_u = (m_NumU-1)/3;
+	//int max_w = (m_NumW-1)/3;
+
+	//glLineWidth( 1.0 );
+	//glColor3ub( 0, 255, 0 );
+
+	//int num_xsec = 10;
+	//int num_tess = 20;
+	//for ( int i = 0 ; i < num_xsec ; i++ )
+	//{
+	//	double u = max_u*(double)i/(double)(num_xsec-1);
+	//	glBegin( GL_LINE_STRIP );
+	//	for ( int j = 0 ; j < num_tess ; j++ )
+	//	{
+	//		double w = max_w*(double)j/(double)(num_tess-1);
+	//		vec3d p = CompPnt( u, w );
+	//		glVertex3dv( p.data() );
+	//	}
+	//	glEnd();
+	//}
+
+	//for ( int j = 0 ; j < num_xsec ; j++ )
+	//{
+	//	double w = max_w*(double)j/(double)(num_xsec-1);
+	//	glBegin( GL_LINE_STRIP );
+	//	for ( int i = 0 ; i < num_tess ; i++ )
+	//	{
+	//		double u = max_u*(double)i/(double)(num_tess-1);
+	//		vec3d p = CompPnt( u, w );
+	//		glVertex3dv( p.data() );
+
+	//	}
+	//	glEnd();
+	//}
+
 	//==== Draw Surface ====//
+	vector<double> data;
+
 	int max_u = (m_NumU-1)/3;
 	int max_w = (m_NumW-1)/3;
 
-	glLineWidth( 1.0 );
-	glColor3ub( 0, 255, 0 );
+	renderer->setLineWidth( 1.0 );
+	renderer->setColor3ub( 0, 255, 0 );
 
 	int num_xsec = 10;
 	int num_tess = 20;
 	for ( int i = 0 ; i < num_xsec ; i++ )
 	{
 		double u = max_u*(double)i/(double)(num_xsec-1);
-		glBegin( GL_LINE_STRIP );
 		for ( int j = 0 ; j < num_tess ; j++ )
 		{
 			double w = max_w*(double)j/(double)(num_tess-1);
 			vec3d p = CompPnt( u, w );
-			glVertex3dv( p.data() );
+
+			data.push_back( p.data()[0] );
+			data.push_back( p.data()[1] );
+			data.push_back( p.data()[2] );
 		}
-		glEnd();
+		renderer->draw( R_LINE_STRIP, 3, data );
+		data.clear();
 	}
+
+	data.clear();
 
 	for ( int j = 0 ; j < num_xsec ; j++ )
 	{
 		double w = max_w*(double)j/(double)(num_xsec-1);
-		glBegin( GL_LINE_STRIP );
 		for ( int i = 0 ; i < num_tess ; i++ )
 		{
 			double u = max_u*(double)i/(double)(num_tess-1);
 			vec3d p = CompPnt( u, w );
-			glVertex3dv( p.data() );
 
+			data.push_back( p.data()[0] );
+			data.push_back( p.data()[1] );
+			data.push_back( p.data()[2] );
 		}
-		glEnd();
+		renderer->draw( R_LINE_STRIP, 3, data );
+		data.clear();
 	}
 /**********************************/
 

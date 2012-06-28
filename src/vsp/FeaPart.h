@@ -16,6 +16,7 @@
 #include "vec3d.h"
 #include "matrix.h"
 #include "drawBase.h"
+#include "renderMgr.h"
 
 #include "Surf.h"
 #include "ISegChain.h"
@@ -65,8 +66,8 @@ class FeaElement
 {
 public:
 
-	FeaElement()					{}
-	virtual ~FeaElement()			{}
+	FeaElement();
+	virtual ~FeaElement();
 
 	virtual void DeleteAllNodes();
 	virtual void LoadNodes( vector< FeaNode* > & node_vec );
@@ -82,6 +83,7 @@ public:
 
 protected:
 	int m_Type;
+	renderMgr* renderer;
 };
 
 //==== 6 Point Triangle Element ====//
@@ -143,7 +145,7 @@ public:
 	virtual double ComputeThick( double per_chord );
 	virtual void SetEndPoints( vec3d & e0, vec3d & e1 );
 	virtual void DrawMain();
-
+	virtual void DrawMain( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, float linewidth );
 
 	virtual void draw();
 	virtual void setGlWinWidthHeight( int w, int h )	{ winWidth = w; winHeight = h; }
@@ -181,6 +183,8 @@ public:
 
 	vec3d m_EndPnts[2];
 
+	renderMgr* renderer;
+
 };
 
 
@@ -206,7 +210,6 @@ public:
 	vector< FeaElement* > m_Elements;
 
 	double m_Density;
-
 };
 
 class WingSection;
@@ -252,8 +255,6 @@ public:
 
 	int m_CurrSpliceLineID;
 	vector< FeaSpliceLine* > m_SpliceLineVec;
-
-
 };
 
 class FeaSlice : public FeaPart
@@ -288,6 +289,7 @@ public:
 
 	virtual void Draw();
 	virtual void DrawSlicePlane();
+	virtual void DrawSlicePlane( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, float linewidth );
 
 	virtual void SnapUpperLowerToSkin( vector < FeaNode* > & skinNodes );
 
@@ -309,6 +311,8 @@ public:
 	Surf* m_CapUpperSurf[2];
 	Surf* m_CapLowerSurf[2];
 
+protected:
+	renderMgr* renderer;
 };
 
 
@@ -359,6 +363,8 @@ public:
 
 	virtual void Draw( bool highlight );
 
+protected:
+	renderMgr * renderer;
 };
 
 #endif

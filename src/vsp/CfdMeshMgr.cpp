@@ -49,6 +49,16 @@ CfdMeshMgr::CfdMeshMgr()
 
 	m_YSlicePlane = new Surf();
 
+	renderer = new renderMgr();
+	renderer->init();
+
+	rp_cfdmesh.mode.polygonOffsetMode.enabled = true;
+	rp_cfdmesh.mode.polygonOffsetMode.polygonOffset.factor = 2.0;
+	rp_cfdmesh.mode.polygonOffsetMode.polygonOffset.units = 1.0;
+
+	rp_cfdmesh.mode.cullFaceMode.enabled = true;
+	rp_cfdmesh.mode.cullFaceMode.cullface.mode = R_BACK;
+
 #ifdef DEBUG_CFD_MESH
 	m_DebugDir  = Stringc("MeshDebug/");
 	_mkdir( m_DebugDir.get_char_star() );
@@ -61,6 +71,8 @@ CfdMeshMgr::~CfdMeshMgr()
 {
 	CleanUp();
 	delete m_YSlicePlane;
+
+	delete renderer;
 
 #ifdef DEBUG_CFD_MESH
 	if (m_DebugFile)
@@ -2602,11 +2614,6 @@ void CfdMeshMgr::TestStuff()
 	psurf = pVec[0]->comp_pnt_01( 0.6, 0.6 );
 	ppatch = sp0.comp_pnt_01( 0.4, 0.4 );
 	d = dist( psurf, ppatch );
-
-
-
-
-
 }
 
 void CfdMeshMgr::Draw()
@@ -2615,8 +2622,8 @@ void CfdMeshMgr::Draw()
 	if ( !isShown )
 		return;
 
-	glLineWidth( 1.0 );
-	glColor4ub( 255, 0, 0, 255 );
+	renderer->setLineWidth( 1.0 );
+	renderer->setColor4ub( 255, 0, 0, 255 );
 
 	BaseSource* source = GetCurrSource();
 
@@ -2625,197 +2632,89 @@ void CfdMeshMgr::Draw()
 
 	if ( m_DrawMeshFlag )
 	{
-	////////glLineWidth( 1.0 );
-	////////glColor4ub( 255, 0, 0, 255 );
-	////////glBegin( GL_LINES );
-	////////for ( int i = 0 ; i < debugPnts.size() ; i+=2 )
-	////////{
-	////////	if ( i%4 == 0 )
-	////////		glColor4ub( 255, 0, 0, 255 );
-	////////	else
-	////////		glColor4ub( 0, 0, 255, 255 );
-	////////	glVertex3dv( debugPnts[i].data() );
-	////////	glVertex3dv( debugPnts[i+1].data() );
-	////////}
-	////////glEnd();
-	////////glColor4ub( 0, 0, 0, 255 );
-	////////glPointSize(4.0);
-	////////glBegin( GL_POINTS );
-	////////for ( int i = 0 ; i < debugPnts.size() ; i++ )
-	////////{
-	////////	glVertex3dv( debugPnts[i].data() );
-	////////}
-	////////glEnd();
-
-
 		//==== Draw Mesh ====//
-		glPolygonOffset(2.0, 1);
+		vector<double> data;
 
-		glCullFace( GL_BACK );						// Cull Back Faces For Trans
-		glEnable( GL_CULL_FACE );
-
-#ifndef __APPLE__
-		glEnable(GL_POLYGON_OFFSET_EXT);
-#endif
- 
-		glColor4ub( 220, 220, 220, 255 );
+		renderer->setColor4ub( 220, 220, 220, 255 );
 		for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
 		{
-			//list< Tri* >::iterator t;
-			//list <Tri*> tlist = m_SurfVec[i]->GetMesh()->GetTriList();
-
-			//for ( t = tlist.begin() ; t != tlist.end(); t++ )
-			//{
-			//	glBegin( GL_POLYGON );
-			//		glVertex3dv( (*t)->n0->pnt.data() );
-			//		glVertex3dv( (*t)->n1->pnt.data() );
-			//		glVertex3dv( (*t)->n2->pnt.data() );
-			//	glEnd();
-			//}
-
 			vector< vec3d > pVec = m_SurfVec[i]->GetMesh()->GetSimpPntVec();
 			for ( int t = 0 ; t < (int)m_SurfVec[i]->GetMesh()->GetSimpTriVec().size() ; t++ )
 			{
 				SimpTri* stri = &m_SurfVec[i]->GetMesh()->GetSimpTriVec()[t];
-				glBegin( GL_POLYGON );
-					glVertex3dv( pVec[stri->ind0].data() );
-					glVertex3dv( pVec[stri->ind1].data() );
-					glVertex3dv( pVec[stri->ind2].data() );
-				glEnd();
+
+				data.push_back( pVec[stri->ind0].data()[0] );
+				data.push_back( pVec[stri->ind0].data()[1] );
+				data.push_back( pVec[stri->ind0].data()[2] );
+
+				data.push_back( pVec[stri->ind1].data()[0] );
+				data.push_back( pVec[stri->ind1].data()[1] );
+				data.push_back( pVec[stri->ind1].data()[2] );
+
+				data.push_back( pVec[stri->ind2].data()[0] );
+				data.push_back( pVec[stri->ind2].data()[1] );
+				data.push_back( pVec[stri->ind2].data()[2] );
 			}
 		}
+		if ( data.size() > 0 )
+			renderer->draw( R_TRIANGLES, rp_cfdmesh, 3, data );
 
-		glLineWidth(1.0);
-		glColor4ub( 100, 0, 100, 255 );
+		data.clear();
+
+		renderer->setLineWidth( 1.0 );
+		renderer->setColor4ub( 100, 0, 100, 255 );
 		for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
 		{
-			//list< Tri* >::iterator t;
-			//list <Tri*> tlist = m_SurfVec[i]->GetMesh()->GetTriList();
-
-			//for ( t = tlist.begin() ; t != tlist.end(); t++ )
-			//{
-			//	glBegin( GL_LINE_LOOP );
-			//		glVertex3dv( (*t)->n0->pnt.data() );
-			//		glVertex3dv( (*t)->n1->pnt.data() );
-			//		glVertex3dv( (*t)->n2->pnt.data() );
-			//	glEnd();
-			//}
 			vector< vec3d > pVec = m_SurfVec[i]->GetMesh()->GetSimpPntVec();
 			for ( int t = 0 ; t < (int)m_SurfVec[i]->GetMesh()->GetSimpTriVec().size() ; t++ )
 			{
 				SimpTri* stri = &m_SurfVec[i]->GetMesh()->GetSimpTriVec()[t];
-				glBegin( GL_LINE_LOOP );
-					glVertex3dv( pVec[stri->ind0].data() );
-					glVertex3dv( pVec[stri->ind1].data() );
-					glVertex3dv( pVec[stri->ind2].data() );
-				glEnd();
+
+				data.push_back( pVec[stri->ind0].data()[0] );
+				data.push_back( pVec[stri->ind0].data()[1] );
+				data.push_back( pVec[stri->ind0].data()[2] );
+
+				data.push_back( pVec[stri->ind1].data()[0] );
+				data.push_back( pVec[stri->ind1].data()[1] );
+				data.push_back( pVec[stri->ind1].data()[2] );
+
+				data.push_back( pVec[stri->ind2].data()[0] );
+				data.push_back( pVec[stri->ind2].data()[1] );
+				data.push_back( pVec[stri->ind2].data()[2] );
+
+				renderer->draw( R_LINE_LOOP, rp_cfdmesh, 3, data );
+
+				data.clear();
 			}
 		}
-		glDisable( GL_CULL_FACE );
-#ifndef __APPLE__
-		glDisable(GL_POLYGON_OFFSET_EXT);
-#endif
 	}
-
 
 #ifdef DEBUG_CFD_MESH
-	if ( m_DebugDraw )
-	{
-		for ( int i = 0 ; i < (int)m_DebugCurves.size() ; i++ )
-		{
-			glPointSize( 4.0 );
-			glLineWidth( 2.0 );
-			vec3d rgb = m_DebugColors[i];
-			glColor4ub( (GLbyte)rgb[0], (GLbyte)rgb[1], (GLbyte)rgb[2], 255 );
+	//if ( m_DebugDraw )
+	//{
+	//	for ( int i = 0 ; i < (int)m_DebugCurves.size() ; i++ )
+	//	{
+	//		glPointSize( 4.0 );
+	//		glLineWidth( 2.0 );
+	//		vec3d rgb = m_DebugColors[i];
+	//		glColor4ub( (GLbyte)rgb[0], (GLbyte)rgb[1], (GLbyte)rgb[2], 255 );
 
-			glBegin( GL_LINE_STRIP );
-			for ( int j = 0 ; j < (int)m_DebugCurves[i].size() ; j++ )
-			{
-				glVertex3dv( m_DebugCurves[i][j].data() );
-			}
-			glEnd();
-		
-			glBegin( GL_POINTS );
-			for ( int j = 0 ; j < (int)m_DebugCurves[i].size() ; j++ )
-			{
-				glVertex3dv( m_DebugCurves[i][j].data() );
-			}
-			glEnd();
-
-		}
-	}
+	//		glBegin( GL_LINE_STRIP );
+	//		for ( int j = 0 ; j < (int)m_DebugCurves[i].size() ; j++ )
+	//		{
+	//			glVertex3dv( m_DebugCurves[i][j].data() );
+	//		}
+	//		glEnd();
+	//	
+	//		glBegin( GL_POINTS );
+	//		for ( int j = 0 ; j < (int)m_DebugCurves[i].size() ; j++ )
+	//		{
+	//			glVertex3dv( m_DebugCurves[i][j].data() );
+	//		}
+	//		glEnd();
+	//	}
+	//}
 
 #endif
-
-	//glLineWidth( 1.0 );
-	//glColor4ub( 150, 150, 150, 255 );
-	//for ( int s = 0 ; s < (int)m_SurfVec.size() ; s++ )
-	//{
-	//	m_SurfVec[s]->Draw();
-	//}
-
-	//glPointSize( 4.0 );
-	//glLineWidth( 1.0 );
-	//glColor4ub( 255, 0, 0, 255 );
-	//for ( int s = 0 ; s < (int)debugPatches.size() ; s++ )
-	//{
-	//	debugPatches[s]->Draw();
-	//}
-
-
-	//////for ( int r = 0 ; r < debugRayIsect.size() ; r++ )
-	//////{
-	//////	glColor4ub( 255, 0, 0, 255 );
-	//////	glBegin( GL_LINE_STRIP );
-	//////	for ( int i = 0 ; i < debugRayIsect[r].size() ; i++ )
-	//////	{
-	//////		glVertex3dv( debugRayIsect[r][i].data() );
-	//////	}
-	//////	glEnd();
-	//////	
-	//////	glColor4ub( 255, 0, 255, 255 );
-	//////	glBegin( GL_POINTS );
-	//////	for ( int i = 0 ; i < debugRayIsect[r].size() ; i++ )
-	//////	{
-	//////		glVertex3dv( debugRayIsect[r][i].data() );
-	//////	}
-	//////	glEnd();
-	//////}
-
-	//glLineWidth( 2.0 );
-	//int cnt = 0;
-	//list< ISegChain* >::iterator c;
-	//for ( c = m_ISegChainList.begin() ; c != m_ISegChainList.end(); c++ )
-	//{
-	//	if ( cnt%4 == 0 )				glColor4ub( 0, 255, 255, 100 );
-	//	else if ( cnt%4 == 1 )			glColor4ub( 255, 0, 0, 100 );
-	//	else if ( cnt%4 == 2 )			glColor4ub( 0, 255, 0, 100 );
-	//	else if ( cnt%4 == 3 )			glColor4ub( 0, 0, 255, 100 );
-	//	if ( cnt == m_HighlightChainIndex )
-	//	{
-	//		glColor4ub( 255, 255, 255, 100 );
-	//		//if ( (*c)->m_SurfA ) (*c)->m_SurfA->Draw();
-	//		//if ( (*c)->m_SurfB ) (*c)->m_SurfB->Draw();
-
-	//		glColor4ub( 0, 255, 255, 255 );
-	//		glLineWidth( 2.0 );
-	//		glPointSize( 6.0 );
-	//	}
-	//	else
-	//	{
-	//		glColor4ub( 255, 0, 0, 255 );
-	//		glLineWidth( 1.0 );
-	//		glPointSize( 3.0 );
-	//	}
-
-
-	//	(*c)->Draw();
-
-	//	cnt++;
-
-	////	//(*c)->m_ISegBoxA.Draw();
-	////	//(*c)->m_ISegBoxB.Draw();
-	//}
-
 }
 

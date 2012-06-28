@@ -14,6 +14,9 @@ SCurve::SCurve()
 	m_Surf = NULL;
 	m_StartSearchIndex = 0;
 	m_ICurve = NULL;
+
+	renderer = new renderMgr();
+	renderer->init();
 }
 
 SCurve::SCurve(Surf* s)
@@ -21,10 +24,14 @@ SCurve::SCurve(Surf* s)
 	m_Surf = s;
 	m_StartSearchIndex = 0;
 	m_ICurve = NULL;
+
+	renderer = new renderMgr();
+	renderer->init();
 }
 
 SCurve::~SCurve()
 {
+	delete renderer;
 }
 
 //==== Load Bezier Control Points =====//	
@@ -389,68 +396,23 @@ vec3d SCurve::CompPntUW( double u )
 void SCurve::Draw()
 {
 	int i;
-	glLineWidth( 1.0 );
-//	glColor3ub( 255, 0, 255 );
-	glBegin( GL_LINE_STRIP );
+	vector<double> data;
 
+	renderer->setLineWidth( 1.0 );
 	for ( i = 0 ; i < (int)m_UWTess.size() ; i++ )
 	{
 		vec3d p = m_Surf->CompPnt(  m_UWTess[i].x(),  m_UWTess[i].y() );
-		glVertex3dv( p.data() );
+
+		data.push_back( p.data()[0] );
+		data.push_back( p.data()[1] );
+		data.push_back( p.data()[2] );
 	}
-	glEnd();
+	renderer->draw( R_LINE_STRIP, 3, data );
 
-	glPointSize( 2.0f );
-	glColor3ub( 255, 255, 0 );
-	glBegin( GL_POINTS );
+	renderer->setPointSize( 2.0 );
+	renderer->setColor3ub( 255, 255, 0 );
+	renderer->draw( R_POINTS, 3, data );
 
-	for ( i = 0 ; i < (int)m_UWTess.size() ; i++ )
-	{
-		vec3d p = m_Surf->CompPnt(  m_UWTess[i].x(),  m_UWTess[i].y() );
-		glVertex3dv( p.data() );
-	}
-	glEnd();
-
-	//glPointSize( 8.0f );
-	//glColor3ub( 0, 255, 0 );
-	//glBegin( GL_POINTS );
-
-	//int num_sec = m_UWCrv.get_num_sections();
-	//int num_ctl = 3*(num_sec) + 1;
-
-	//for ( i = 0 ; i < num_ctl ; i++ )
-	//{
-	//	vec3d uw = m_UWCrv.get_pnt( i );
-	//	vec3d p = m_Surf->CompPnt(  uw.x(),  uw.y() );
-	//	glVertex3dv( p.data() );
-	//}
-	//glEnd();
-
-	//glBegin( GL_LINE_STRIP );
-
-	//for ( i = 0 ; i < 100 ; i++ )
-	//{
-	//	double u = (double)i/99.0;
-	//	vec3d uw = m_UWCrv.comp_pnt(u);
-	//	vec3d p = m_Surf->CompPnt(  uw.x(),  uw.y() );
-	//	glVertex3dv( p.data() );
-	//}
-	//glEnd();
-
-	//glPointSize( 4.0f );
-	//glColor3ub( 255, 255, 0 );
-	//glBegin( GL_POINTS );
-
-	//for ( i = 0 ; i < 100 ; i++ )
-	//{
-	//	double u = (double)i/99.0;
-	//	vec3d uw = m_UWCrv.comp_pnt(u);
-	//	vec3d p = m_Surf->CompPnt(  uw.x(),  uw.y() );
-	//	glVertex3dv( p.data() );
-	//}
-	//glEnd();
-		
-
-
+	data.clear();
 }
 

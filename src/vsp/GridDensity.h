@@ -11,18 +11,15 @@
 #if !defined(GRIDDENSITY_GRIDDENSITY__INCLUDED_)
 #define GRIDDENSITY_GRIDDENSITY__INCLUDED_
 
-#ifdef WIN32
-#include <windows.h>	
-#endif
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#  include <OpenGL/glu.h>
-#else
-#  include <GL/gl.h>
-#  include <GL/glu.h>
-#endif
-				
+//#ifdef _WIN32
+//#	include <windows.h>
+//#endif
+//
+//#ifdef __APPLE__
+//#	include <OpenGL\gl.h>
+//#else
+//#	include <gl\GL.h>
+//#endif
 
 #include <stdio.h>
 #include "vec2d.h"
@@ -30,6 +27,7 @@
 #include "bbox.h"
 #include "stringc.h"
 #include "xmlvsp.h"
+#include "renderMgr.h"
 
 #include <assert.h>
 #include <math.h>
@@ -47,7 +45,7 @@ class BaseSource
 public:
 
 	BaseSource();
-	virtual ~BaseSource()	{};
+	virtual ~BaseSource();
 
 	virtual void  SetGeomPtr( Geom* g )						{ m_GeomPtr = g; }
 	virtual Geom* GetGeomPtr(  )							{ return m_GeomPtr; }
@@ -70,6 +68,7 @@ public:
 
 	virtual void CheckCorrectRad( double base_len );
 	virtual void Draw()												{}
+	virtual void Draw( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha ) {}
 	virtual void SetBBox( bbox & b )								{ m_Box = b; }
 	virtual bbox GetBBox()											{ return m_Box; }
 
@@ -92,6 +91,8 @@ protected:
 	Stringc m_Name;
 
 	Geom* m_GeomPtr;
+
+	renderMgr* renderer;
 
 	int m_Type;
 
@@ -129,6 +130,7 @@ public:
 	virtual void Copy( BaseSource* s );
 
 	virtual void Draw();
+	virtual void Draw( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha );
 
 protected:
 
@@ -175,6 +177,7 @@ public:
 	virtual void Copy( BaseSource* s );
 
 	virtual void Draw();
+	virtual void Draw( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha );
 
 protected:
 
@@ -227,6 +230,7 @@ public:
 	virtual void Copy( BaseSource* s );
 
 	virtual void Draw();
+	virtual void Draw( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha );
 
 protected:
 

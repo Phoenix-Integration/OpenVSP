@@ -346,10 +346,20 @@ ISeg* ISeg::Split( Surf* sPtr, vec2d & uw )
 
 void ISeg::Draw()
 {
-	glBegin( GL_LINES );
-	  glVertex3dv( m_IPnt[0]->m_Pnt.data() );
-	  glVertex3dv( m_IPnt[1]->m_Pnt.data() );
-	glEnd();
+	vector<double> data;
+
+	renderMgr renderer = renderMgr();
+	renderer.init();
+
+	data.push_back( m_IPnt[0]->m_Pnt.data()[0] );
+	data.push_back( m_IPnt[0]->m_Pnt.data()[1] );
+	data.push_back( m_IPnt[0]->m_Pnt.data()[2] );
+
+	data.push_back( m_IPnt[1]->m_Pnt.data()[0] );
+	data.push_back( m_IPnt[1]->m_Pnt.data()[1] );
+	data.push_back( m_IPnt[1]->m_Pnt.data()[2] );
+
+	renderer.draw( R_LINES, 3, data );
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -1098,74 +1108,25 @@ void ISegChain::Tessellate(GridDensity* grid_density)
 
 void ISegChain::Draw()
 {
-	//glBegin( GL_LINES );
-	//deque< ISeg* >::iterator s;
-	//for ( s = m_ISegDeque.begin() ; s != m_ISegDeque.end(); s++ )
-	//{
-	//	(*s)->Draw();
-	//}
-	//glEnd();
+	vector<double> data;
 
-	//ISeg* backSeg  = m_ISegDeque.back();
-	//ISeg* frontSeg = m_ISegDeque.front();
+	renderMgr renderer = renderMgr();
+	renderer.init();
 
+	renderer.setLineWidth( 1.0 );
+	renderer.setPointSize( 4.0 );
 
-	//glBegin( GL_POINTS );
-	//	glVertex3dv( backSeg->m_IPnt[1]->m_Pnt.data() );
-	//	glVertex3dv( frontSeg->m_IPnt[0]->m_Pnt.data() );
-	//glEnd();
-
-	//glColor3ub( 255, 255, 0 );
-	//m_ACurve.Draw();
-	//glColor3ub( 0, 255, 255 );
-	//m_BCurve.Draw();
-
-//	glColor3ub( 255, 0, 255 );
-	glLineWidth(1.0);
-	glBegin( GL_LINE_STRIP );
 	for ( int i = 0 ; i < (int)m_TessVec.size() ; i++ )
 	{
 		IPnt* ip = m_TessVec[i];
 		vec2d uw = ip->GetPuw( m_SurfA )->m_UW;
 		vec3d p = m_SurfA->CompPnt( uw[0], uw[1] );
-		glVertex3dv( p.data() );
+
+		data.push_back( p.data()[0] );
+		data.push_back( p.data()[1] );
+		data.push_back( p.data()[2] );
 	}
-	glEnd();
-	glPointSize(4.0);
-	glBegin( GL_POINTS );
-	for ( int i = 0 ; i < (int)m_TessVec.size() ; i++ )
-	{
-		IPnt* ip = m_TessVec[i];
-		vec2d uw = ip->GetPuw( m_SurfA )->m_UW;
-		vec3d p = m_SurfA->CompPnt( uw[0], uw[1] );
-		glVertex3dv( p.data() );
-	}
-	glEnd();
-
-	//ISeg* backSeg  = m_ISegDeque.back();
-	//ISeg* frontSeg = m_ISegDeque.front();
-
-	//glPointSize(4.0);
-	//glBegin( GL_POINTS );
-	//	vec2d uw = frontSeg->m_AUW[0];
-	//	vec3d p = frontSeg->m_SurfA->CompPnt( uw[0], uw[1] );
-	//	glVertex3dv(p.data() );
-	//	uw = backSeg->m_AUW[1];
-	//	p = backSeg->m_SurfA->CompPnt( uw[0], uw[1] );
-	//	glVertex3dv(p.data() );
-
-	//glEnd();
-
-	////glPointSize(5.0);
-	////glColor3ub( 0, 255, 255 );
-	////glBegin( GL_POINTS );
-	////for ( int i = 0 ; i < (int)m_SplitVec.size() ; i++ )
-	////{
-	////	glVertex3dv(m_SplitVec[i].m_Pnt.data() );
-	////}
-	////glEnd();
-
-
-
+	renderer.draw( R_LINE_STRIP, 3, data );
+	renderer.draw( R_POINTS, 3, data );
 }
 

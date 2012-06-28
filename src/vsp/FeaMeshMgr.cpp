@@ -322,49 +322,32 @@ void WingSection::ComputePerSpanChord( vec3d & pnt, double* per_span, double* pe
 
 void WingSection::Draw( bool highlight )
 {
-	//if ( highlight )
-	//{
-	//	glColor3ub( 255, 0, 255 );
-	//	glLineStipple( 1, 0x000F );
-	//	glLineWidth( 2.0 );
-	//	glEnable(GL_LINE_STIPPLE);
-	//}
-	//else
-	//{
-	//	glColor3ub( 150, 150, 150 );
-	//	glLineStipple( 1, 0x000F );
-	//	glLineWidth( 1.0 );
-	//	glEnable(GL_LINE_STIPPLE);
-	//}
-
-	//glBegin( GL_LINE_LOOP );
-
-	//glVertex3dv( m_CornerPnts[UW00].data() );
-	//glVertex3dv( m_CornerPnts[UW10].data() );
-	//glVertex3dv( m_CornerPnts[UW11].data() );
-	//glVertex3dv( m_CornerPnts[UW01].data() );
-
-	//glEnd();
-	//glDisable(GL_LINE_STIPPLE);
+	vector<double> data;
+	renderMgr renderer = renderMgr();
+	renderer.init();
 
 	if ( highlight )
-	{
-		glColor4ub( 220, 220, 220, 240 );
-	}
+		renderer.setColor4ub( 220, 220, 220, 240 );
 	else
-	{
-		glColor4ub( 170, 170, 170, 240 );
-	}
+		renderer.setColor4ub( 170, 170, 170, 240 );
 
-	glBegin( GL_POLYGON );
+	data.push_back( m_CornerPnts[UW00].data()[0] );
+	data.push_back( m_CornerPnts[UW00].data()[1] );
+	data.push_back( m_CornerPnts[UW00].data()[2] );
 
-	glVertex3dv( m_CornerPnts[UW00].data() );
-	glVertex3dv( m_CornerPnts[UW10].data() );
-	glVertex3dv( m_CornerPnts[UW11].data() );
-	glVertex3dv( m_CornerPnts[UW01].data() );
+	data.push_back( m_CornerPnts[UW10].data()[0] );
+	data.push_back( m_CornerPnts[UW10].data()[1] );
+	data.push_back( m_CornerPnts[UW10].data()[2] );
 
-	glEnd();
+	data.push_back( m_CornerPnts[UW11].data()[0] );
+	data.push_back( m_CornerPnts[UW11].data()[1] );
+	data.push_back( m_CornerPnts[UW11].data()[2] );
 
+	data.push_back( m_CornerPnts[UW01].data()[0] );
+	data.push_back( m_CornerPnts[UW01].data()[1] );
+	data.push_back( m_CornerPnts[UW01].data()[2] );
+
+	renderer.draw( R_QUADS, 3, data );
 }
 
 //=============================================================//
@@ -387,6 +370,9 @@ FeaMeshMgr::FeaMeshMgr()
 	m_XmlDataNode = NULL;
 	m_DrawAttachPoints = false;
 	m_ClosestAttachPoint = -1;
+
+	rp_skin.mode.cullFaceMode.enabled = true;
+	rp_skin.mode.cullFaceMode.cullface.mode = R_BACK;
 }
 
 FeaMeshMgr::~FeaMeshMgr()
@@ -2391,10 +2377,6 @@ void FeaMeshMgr::Draw()
 	if ( !m_DrawFlag )
 		return;
 
-	GLboolean smooth_flag = glIsEnabled( GL_LINE_SMOOTH );
-	glDisable( GL_LINE_SMOOTH );
-	glDisable( GL_POINT_SMOOTH );
-
 	if ( !m_DrawMeshFlag )
 	{
 		FeaRib* curr_rib = GetCurrRib();
@@ -2448,117 +2430,103 @@ void FeaMeshMgr::Draw()
 
 	if ( m_DrawMeshFlag )
 	{
-		glPointSize( 6.0 );
-		//glColor4ub( 255, 0, 250, 255);
-		//glBegin( GL_POINTS );
-		//for ( int i = 0 ; i < debugPnts.size() ; i++ )
-		//{
-		//	glVertex3dv( debugPnts[i].data() );
-
-		//}
-		//glEnd();
-		//////==== Collect All FeaNodes ====//
-		////vector< FeaNode* > nodeVec;
-		////for ( int i = 0 ; i < (int)m_SkinVec.size() ; i++ )
-		////	m_SkinVec[i]->LoadNodes( nodeVec );
-		////for ( int i = 0 ; i < (int)m_SliceVec.size() ; i++ )
-		////	m_SliceVec[i]->LoadNodes( nodeVec );
-
-		////for ( int i = 0 ; i < (int)nodeVec.size() ; i++ )
-		////{
-		////	if ( nodeVec[i]->m_Tags.size() > 0 )
-		////	{
-		////		glPointSize( 6.0 );
-		////		glColor4ub( 255, 0, 250, 255);
-		////		glBegin( GL_POINTS );
-		////			glVertex3dv( nodeVec[i]->m_Pnt.data() );
-		////		glEnd();
-		////	}
-		////}
+		vector<double> data;
 
 		//==== Draw Ribs Spars ====//
-		glColor4ub( 0, 0, 250, 255);
+		renderer->setColor4ub( 0, 0, 250, 255 );
+
 		for ( int i = 0 ; i < (int)m_SliceVec.size() ; i++ )
 		{
 			for ( int e = 0 ; e < (int)m_SliceVec[i]->m_Elements.size() ; e++ )
 			{
 				FeaElement* fe = m_SliceVec[i]->m_Elements[e];
-				glBegin( GL_POLYGON );
 				for ( int p = 0 ; p < (int)fe->m_Corners.size() ; p++ )
-					glVertex3dv( fe->m_Corners[p]->m_Pnt.data() );
-				glEnd();
-			}
-		}
-		glLineWidth(2.0);
-		glColor4ub( 0, 0, 0, 255 );
-		for ( int i = 0 ; i < (int)m_SliceVec.size() ; i++ )
-		{
-			for ( int e = 0 ; e < (int)m_SliceVec[i]->m_Elements.size() ; e++ )
-			{
-				FeaElement* fe = m_SliceVec[i]->m_Elements[e];
-				glBegin( GL_LINE_LOOP );
-				for ( int p = 0 ; p < (int)fe->m_Corners.size() ; p++ )
-					glVertex3dv( fe->m_Corners[p]->m_Pnt.data() );
-				glEnd();
+				{
+					data.push_back( fe->m_Corners[p]->m_Pnt.data()[0] );
+					data.push_back( fe->m_Corners[p]->m_Pnt.data()[1] );
+					data.push_back( fe->m_Corners[p]->m_Pnt.data()[2] );
+				}
+				renderer->setColor4ub( 0, 0, 250, 255 );
+				renderer->draw( R_POLYGON, 3, data );
+
+				renderer->setLineWidth( 2.0 );
+				renderer->setColor4ub( 0, 0, 0, 255 );
+				renderer->draw( R_LINE_LOOP, 3, data );
+				data.clear();
 			}
 		}
 
 		//==== Draw Potential Point Mass Attachment Points ====//
 		if ( m_CurrEditType == POINT_MASS_EDIT && m_DrawAttachPoints )
 		{
-			glPointSize(6.0);
-			glColor4ub( 100, 100, 100, 255 );
-			glBegin( GL_POINTS );
+			data.clear();
+
+			renderer->setPointSize( 6.0 );
+			renderer->setColor4ub( 100, 100, 100, 255 );
+
 			for ( int i = 0 ; i < (int)m_AttachPoints.size() ; i++ )
 			{
 				if ( i != m_ClosestAttachPoint )
 				{
-					glVertex3dv( m_AttachPoints[i].data() );
+					data.push_back( m_AttachPoints[i].data()[0] );
+					data.push_back( m_AttachPoints[i].data()[1] );
+					data.push_back( m_AttachPoints[i].data()[2] );
 				}	
 			}
-			glEnd();
+			renderer->draw( R_POINTS, 3, data );
+			data.clear();
 
 			if ( m_ClosestAttachPoint >= 0 && m_ClosestAttachPoint < (int)m_AttachPoints.size() )
 			{
-				glPointSize(8.0);
-				glColor4ub( 255, 0, 0, 255 );
-				glBegin( GL_POINTS );
-				glVertex3dv( m_AttachPoints[m_ClosestAttachPoint].data() );
-				glEnd();
+				renderer->setPointSize( 8.0 );
+				renderer->setColor4ub( 255, 0, 0, 255 );
+
+				data.push_back( m_AttachPoints[m_ClosestAttachPoint].data()[0] );
+				data.push_back( m_AttachPoints[m_ClosestAttachPoint].data()[1] );
+				data.push_back( m_AttachPoints[m_ClosestAttachPoint].data()[2] );
+
+				renderer->draw( R_POINTS, 3, data );
 			}
 		}
 
 		//==== Draw Skin ====//
-		glCullFace( GL_BACK );						// Cull Back Faces For Trans
-		glEnable( GL_CULL_FACE );
+		data.clear();
+		renderer->setColor4ub( 150, 150, 150, 50 );
 
-		glColor4ub( 150, 150, 150, 50 );
 		for ( int i = 0 ; i < (int)m_SkinVec.size() ; i++ )
 		{
 			for ( int e = 0 ; e < (int)m_SkinVec[i]->m_Elements.size() ; e++ )
 			{
 				FeaElement* fe = m_SkinVec[i]->m_Elements[e];
-				glBegin( GL_POLYGON );
 				for ( int p = 0 ; p < (int)fe->m_Corners.size() ; p++ )
-					glVertex3dv( fe->m_Corners[p]->m_Pnt.data() );
-				glEnd();
+				{
+					data.push_back( fe->m_Corners[p]->m_Pnt.data()[0] );
+					data.push_back( fe->m_Corners[p]->m_Pnt.data()[1] );
+					data.push_back( fe->m_Corners[p]->m_Pnt.data()[2] );
+				}
 			}
 		}
-		glLineWidth(2.0);
-		glColor4ub( 0, 0, 0, 100 );
+		renderer->draw( R_TRIANGLES, rp_skin, 3, data );
+		data.clear();
+
+		renderer->setLineWidth( 2.0 );
+		renderer->setColor4ub( 0, 0, 0, 100 );
 		for ( int i = 0 ; i < (int)m_SkinVec.size() ; i++ )
 		{
 			for ( int e = 0 ; e < (int)m_SkinVec[i]->m_Elements.size() ; e++ )
 			{
 				FeaElement* fe = m_SkinVec[i]->m_Elements[e];
-				glBegin( GL_LINE_LOOP );
 				for ( int p = 0 ; p < (int)fe->m_Corners.size() ; p++ )
-					glVertex3dv( fe->m_Corners[p]->m_Pnt.data() );
-				glEnd();
+				{
+					data.push_back( fe->m_Corners[p]->m_Pnt.data()[0] );
+					data.push_back( fe->m_Corners[p]->m_Pnt.data()[1] );
+					data.push_back( fe->m_Corners[p]->m_Pnt.data()[2] );
+				}
+				renderer->draw( R_LINE_LOOP, 3, data );
+				data.clear();
 			}
 		}
-
-		glDisable( GL_CULL_FACE );
+		data.clear();
 	}
 
 	//==== Draw Potential Point Mass Attachment Points ====//
@@ -2572,16 +2540,5 @@ void FeaMeshMgr::Draw()
 				m_PointMassVec[i]->Draw( false );
 		}
 	}
-
-
-
-
-
-	if ( smooth_flag )
-	{
-		glEnable( GL_LINE_SMOOTH );
-		glEnable( GL_POINT_SMOOTH );
-	}
-
 }
 

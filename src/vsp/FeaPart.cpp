@@ -90,6 +90,17 @@ void FeaNode::WriteCalculix( FILE* fp )
 
 //============================================================================//
 //============================================================================//
+FeaElement::FeaElement()
+{
+	renderer = new renderMgr();
+	renderer->init();
+}
+
+FeaElement::~FeaElement()
+{
+	delete renderer;
+}
+
 void FeaElement::DeleteAllNodes()
 {
 	int i;
@@ -113,8 +124,15 @@ void FeaElement::LoadNodes( vector< FeaNode* > & node_vec )
 void FeaElement::DrawPoly()
 {
 	int i;
+	vector<double> data;
+
 	for ( i = 0 ; i < (int)m_Corners.size() ; i++ )
-		glVertex3dv( m_Corners[i]->m_Pnt.data() );
+	{ 
+		data.push_back( m_Corners[i]->m_Pnt.data()[0] );
+		data.push_back( m_Corners[i]->m_Pnt.data()[1] );
+		data.push_back( m_Corners[i]->m_Pnt.data()[2] );
+	}
+	renderer->draw( R_POLYGON, 3, data );
 }
 
 
@@ -255,11 +273,14 @@ FeaSpliceLine::FeaSpliceLine(double default_thick)
 	s1->m_FixedFlag = true;
 	m_SpliceVec.push_back( s1 );
 
+	renderer = new renderMgr();
+	renderer->init();
 }
 
 FeaSpliceLine::~FeaSpliceLine()
 {
 	ClearSpliceVec();
+	delete renderer;
 }
 
 
@@ -503,21 +524,52 @@ int FeaSpliceLine::processReleaseEvent()
 
 void FeaSpliceLine::DrawMain()
 {
-	glBegin( GL_LINES );
-		glVertex3dv( m_EndPnts[0].data() );
-		glVertex3dv( m_EndPnts[1].data() );
-	glEnd();
+	//glBegin( GL_LINES );
+	//	glVertex3dv( m_EndPnts[0].data() );
+	//	glVertex3dv( m_EndPnts[1].data() );
+	//glEnd();
 
+	vector<double> data;
 
-	glPointSize(8.0);
-	glBegin( GL_POINTS );
+	data.push_back( m_EndPnts[0].data()[0] );
+	data.push_back( m_EndPnts[0].data()[1] );
+	data.push_back( m_EndPnts[0].data()[2] );
+
+	data.push_back( m_EndPnts[1].data()[0] );
+	data.push_back( m_EndPnts[1].data()[1] );
+	data.push_back( m_EndPnts[1].data()[2] );
+
+	renderer->draw( R_LINES, 3, data );
+
+	//glPointSize(8.0);
+	//glBegin( GL_POINTS );
+	//for ( int i = 0 ; i < (int)m_SpliceVec.size() ; i++ )
+	//{
+	//	vec3d p = m_EndPnts[0] + (m_EndPnts[1] - m_EndPnts[0])*m_SpliceVec[i]->m_Pos;
+	//	glVertex3dv( p.data() );
+	//}
+	//glEnd();
+	data.clear();
+
+	renderer->setPointSize( 8.0 );
+
 	for ( int i = 0 ; i < (int)m_SpliceVec.size() ; i++ )
 	{
 		vec3d p = m_EndPnts[0] + (m_EndPnts[1] - m_EndPnts[0])*m_SpliceVec[i]->m_Pos;
-		glVertex3dv( p.data() );
-	}
-	glEnd();
 
+		data.push_back( p.data()[0] );
+		data.push_back( p.data()[1] );
+		data.push_back( p.data()[2] );
+	}
+	renderer->draw( R_POINTS, 3, data );
+}
+
+void FeaSpliceLine::DrawMain( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, float linewidth )
+{
+	renderer->setColor4d( red, green, blue, alpha );
+	renderer->setLineWidth( linewidth );
+
+	DrawMain();
 }
 
 void FeaSpliceLine::draw()
@@ -526,62 +578,197 @@ void FeaSpliceLine::draw()
 	//==== Draw Grid ====//
 	float gridSize = 0.1f;
 
-	glLineWidth(1.0);
-	glColor3f(0.8f, 0.8f, 0.8f);
-	glBegin( GL_LINES );
+	vector<double> ldata, lcolors, pdata, pcolors;
+
+	renderer->setLineWidth( 1.0 );
+	renderer->setColor3d( 0.8, 0.8, 0.8 );
+
 	for ( i = 0 ; i < 41 ; i++ )
 	{
 		if ( i == 20 )
-			glColor3f(0.8f, 0.8f, 0.8f);
-		else
-			glColor3f(0.9f, 0.9f, 0.9f);
+		{
+			lcolors.push_back( 0.8 );
+			lcolors.push_back( 0.8 );
+			lcolors.push_back( 0.8 );
 
-		glVertex2f( gridSize*(float)i - 20.0f*gridSize, -20.0f*gridSize );
-		glVertex2f( gridSize*(float)i - 20.0f*gridSize,  20.0f*gridSize );
-		glVertex2f( -20.0f*gridSize, gridSize*(float)i - 20.0f*gridSize );
-		glVertex2f(  20.0f*gridSize, gridSize*(float)i - 20.0f*gridSize );
+			lcolors.push_back( 0.8 );
+			lcolors.push_back( 0.8 );
+			lcolors.push_back( 0.8 );
+
+			lcolors.push_back( 0.8 );
+			lcolors.push_back( 0.8 );
+			lcolors.push_back( 0.8 );
+
+			lcolors.push_back( 0.8 );
+			lcolors.push_back( 0.8 );
+			lcolors.push_back( 0.8 );
+		}
+		else
+		{
+			lcolors.push_back( 0.9 );
+			lcolors.push_back( 0.9 );
+			lcolors.push_back( 0.9 );
+
+			lcolors.push_back( 0.9 );
+			lcolors.push_back( 0.9 );
+			lcolors.push_back( 0.9 );
+
+			lcolors.push_back( 0.9 );
+			lcolors.push_back( 0.9 );
+			lcolors.push_back( 0.9 );
+
+			lcolors.push_back( 0.9 );
+			lcolors.push_back( 0.9 );
+			lcolors.push_back( 0.9 );
+		}
+
+		ldata.push_back( gridSize*(float)i - 20.0f*gridSize );
+		ldata.push_back( -20.0f*gridSize );
+
+		ldata.push_back( gridSize*(float)i - 20.0f*gridSize );
+		ldata.push_back( 20.0f*gridSize );
+
+		ldata.push_back( -20.0f*gridSize );
+		ldata.push_back( gridSize*(float)i - 20.0f*gridSize );
+
+		ldata.push_back( 20.0f*gridSize );
+		ldata.push_back( gridSize*(float)i - 20.0f*gridSize );
 	}
-	glEnd();
+	renderer->draw( R_LINES, 3, lcolors, 2, ldata );
+
+	//glLineWidth(1.0);
+	//glColor3f(0.8f, 0.8f, 0.8f);
+	//glBegin( GL_LINES );
+	//for ( i = 0 ; i < 41 ; i++ )
+	//{
+	//	if ( i == 20 )
+	//		glColor3f(0.8f, 0.8f, 0.8f);
+	//	else
+	//		glColor3f(0.9f, 0.9f, 0.9f);
+
+	//	glVertex2f( gridSize*(float)i - 20.0f*gridSize, -20.0f*gridSize );
+	//	glVertex2f( gridSize*(float)i - 20.0f*gridSize,  20.0f*gridSize );
+	//	glVertex2f( -20.0f*gridSize, gridSize*(float)i - 20.0f*gridSize );
+	//	glVertex2f(  20.0f*gridSize, gridSize*(float)i - 20.0f*gridSize );
+	//}
+	//glEnd();
 
 	//==== Draw Thick Dist ====//
 	double max_thick = FindMaxThick();
 	double ar = (double)winHeight/(double)winWidth;
 
 	//==== Draw Control Points =====//
-	glLineWidth(1.0);
-	glPointSize(5.0);
+	ldata.clear();
+	lcolors.clear();
+
+	renderer->setLineWidth( 1.0 );
+	renderer->setPointSize( 5.0 );
+
 	for ( i = 0 ; i < (int)m_SpliceVec.size() ; i++ )
 	{
 		double ht = 0.35;
 		FeaSplice* sp = m_SpliceVec[i];
 		if ( sp == m_EditSplice )
 		{
-			glColor3f( 1.0f, 0.0f, 0.0f );
+			lcolors.push_back( 1.0 );
+			lcolors.push_back( 0.0 );
+			lcolors.push_back( 0.0 );
+
+			lcolors.push_back( 1.0 );
+			lcolors.push_back( 0.0 );
+			lcolors.push_back( 0.0 );
+
+			pcolors.push_back( 1.0 );
+			pcolors.push_back( 0.0 );
+			pcolors.push_back( 0.0 );
+
 			ht = 0.45;
 		}
 		else if ( sp == m_HighlightSplice && m_Mode == NORMAL_MODE )
 		{
-			glColor3f( 0.3f, 0.3f, 0.3f);
+			lcolors.push_back( 0.3 );
+			lcolors.push_back( 0.3 );
+			lcolors.push_back( 0.3 );
+
+			lcolors.push_back( 0.3 );
+			lcolors.push_back( 0.3 );
+			lcolors.push_back( 0.3 );
+
+			pcolors.push_back( 0.3 );
+			pcolors.push_back( 0.3 );
+			pcolors.push_back( 0.3 );
+
 			ht = 0.40;
 		}
 		else
 		{
-			glColor3f( 0.6f, 0.6f, 0.6f );
+			lcolors.push_back( 0.6 );
+			lcolors.push_back( 0.6 );
+			lcolors.push_back( 0.6 );
+
+			lcolors.push_back( 0.6 );
+			lcolors.push_back( 0.6 );
+			lcolors.push_back( 0.6 );
+
+			pcolors.push_back( 0.6 );
+			pcolors.push_back( 0.6 );
+			pcolors.push_back( 0.6 );
 		}
 
-		glBegin( GL_LINES );
-			glVertex2d( m_WinXScale*sp->m_Pos - m_WinXScale*0.5,  ar*ht );
-			glVertex2d( m_WinXScale*sp->m_Pos - m_WinXScale*0.5, -ar*ht );
-		glEnd();
+		ldata.push_back( m_WinXScale*sp->m_Pos - m_WinXScale*0.5 );
+		ldata.push_back( ar*ht );
 
-		glBegin( GL_POINTS );
-				glVertex2d( m_WinXScale*sp->m_Pos - m_WinXScale*0.5,  ar*ht );
-		glEnd();
-		
+		ldata.push_back( m_WinXScale*sp->m_Pos - m_WinXScale*0.5 );
+		ldata.push_back( -ar*ht );
+
+		pdata.push_back( m_WinXScale*sp->m_Pos - m_WinXScale*0.5 );
+		pdata.push_back( ar*ht );
 	}
-	glColor4f( 0.0f, 0.0f, 1.0f, 1.0f );
-	glLineWidth(2.0);
-	glEnable( GL_LINE_SMOOTH );
+
+	/* Draw lines */
+	renderer->draw( R_LINES, 3, lcolors, 2, ldata );
+	/* Draw points */
+	renderer->draw( R_POINTS, 3, pcolors, 2, pdata );
+
+	//glLineWidth(1.0);
+	//glPointSize(5.0);
+	//for ( i = 0 ; i < (int)m_SpliceVec.size() ; i++ )
+	//{
+	//	double ht = 0.35;
+	//	FeaSplice* sp = m_SpliceVec[i];
+	//	if ( sp == m_EditSplice )
+	//	{
+	//		glColor3f( 1.0f, 0.0f, 0.0f );
+	//		ht = 0.45;
+	//	}
+	//	else if ( sp == m_HighlightSplice && m_Mode == NORMAL_MODE )
+	//	{
+	//		glColor3f( 0.3f, 0.3f, 0.3f);
+	//		ht = 0.40;
+	//	}
+	//	else
+	//	{
+	//		glColor3f( 0.6f, 0.6f, 0.6f );
+	//	}
+
+	//	glBegin( GL_LINES );
+	//		glVertex2d( m_WinXScale*sp->m_Pos - m_WinXScale*0.5,  ar*ht );
+	//		glVertex2d( m_WinXScale*sp->m_Pos - m_WinXScale*0.5, -ar*ht );
+	//	glEnd();
+
+	//	glBegin( GL_POINTS );
+	//			glVertex2d( m_WinXScale*sp->m_Pos - m_WinXScale*0.5,  ar*ht );
+	//	glEnd();
+	//	
+	//}
+
+	ldata.clear();
+
+	RenderProperties rp;
+	rp.mode.lineSmoothMode.enabled = true;
+
+	renderer->setColor4d( 0.0, 0.0, 1.0, 1.0 );
+	renderer->setLineWidth( 2.0 );
 
 	//==== Draw Thick Dist ====//
 	for ( i = 0 ; i < (int)m_SpliceVec.size()-1 ; i++ )
@@ -590,14 +777,41 @@ void FeaSpliceLine::draw()
 		double t0 = (m_SpliceVec[i]->m_Thick/max_thick)*ar*0.5;
 		FeaSplice* sp1 = m_SpliceVec[i+1];
 		double t1 = (m_SpliceVec[i+1]->m_Thick/max_thick)*ar*0.5;
-		glBegin( GL_LINE_LOOP );
-			glVertex2d( m_WinXScale*sp0->m_Pos - m_WinXScale*0.5,  t0*0.5 );
-			glVertex2d( m_WinXScale*sp0->m_Pos - m_WinXScale*0.5, -t0*0.5 );
-			glVertex2d( m_WinXScale*sp1->m_Pos - m_WinXScale*0.5, -t1*0.5 );
-			glVertex2d( m_WinXScale*sp1->m_Pos - m_WinXScale*0.5,  t1*0.5 );
-		glEnd();
+
+		ldata.push_back( m_WinXScale*sp0->m_Pos - m_WinXScale*0.5 );
+		ldata.push_back( t0*0.5 );
+
+		ldata.push_back( m_WinXScale*sp0->m_Pos - m_WinXScale*0.5 );
+		ldata.push_back( -t0*0.5 );
+
+		ldata.push_back( m_WinXScale*sp1->m_Pos - m_WinXScale*0.5 );
+		ldata.push_back( -t1*0.5 );
+
+		ldata.push_back( m_WinXScale*sp1->m_Pos - m_WinXScale*0.5 );
+		ldata.push_back( t1*0.5 );
+
+		renderer->draw( R_LINE_LOOP, rp, 2, ldata );
 	}
-	glDisable( GL_LINE_SMOOTH );
+
+	//glColor4f( 0.0f, 0.0f, 1.0f, 1.0f );
+	//glLineWidth(2.0);
+	//glEnable( GL_LINE_SMOOTH );
+
+	////==== Draw Thick Dist ====//
+	//for ( i = 0 ; i < (int)m_SpliceVec.size()-1 ; i++ )
+	//{
+	//	FeaSplice* sp0 = m_SpliceVec[i];
+	//	double t0 = (m_SpliceVec[i]->m_Thick/max_thick)*ar*0.5;
+	//	FeaSplice* sp1 = m_SpliceVec[i+1];
+	//	double t1 = (m_SpliceVec[i+1]->m_Thick/max_thick)*ar*0.5;
+	//	glBegin( GL_LINE_LOOP );
+	//		glVertex2d( m_WinXScale*sp0->m_Pos - m_WinXScale*0.5,  t0*0.5 );
+	//		glVertex2d( m_WinXScale*sp0->m_Pos - m_WinXScale*0.5, -t0*0.5 );
+	//		glVertex2d( m_WinXScale*sp1->m_Pos - m_WinXScale*0.5, -t1*0.5 );
+	//		glVertex2d( m_WinXScale*sp1->m_Pos - m_WinXScale*0.5,  t1*0.5 );
+	//	glEnd();
+	//}
+	//glDisable( GL_LINE_SMOOTH );
 
 
 
@@ -639,11 +853,15 @@ FeaSlice::FeaSlice()
 	m_Surf->SetCfdMeshMgr( feaMeshMgrPtr );
 	m_Surf->SetCompID( COMP_ID );
 	m_NumDivisions = 1;
+
+	renderer = new renderMgr();
+	renderer->init();
 }
 
 FeaSlice::~FeaSlice()
 {
 	delete m_Surf;
+	delete renderer;
 }
 
 void FeaSlice::Clean()
@@ -1085,67 +1303,80 @@ void FeaSlice::SnapUpperLowerToSkin(  vector < FeaNode* > & skinNodes )
 
 void FeaSlice::DrawSlicePlane()
 {
+	vector<double> data;
+
 	vec3d p00 = m_Surf->CompPnt01( 0, 0 );
 	vec3d p10 = m_Surf->CompPnt01( 1, 0 );
 	vec3d p11 = m_Surf->CompPnt01( 1, 1 );
 	vec3d p01 = m_Surf->CompPnt01( 0, 1 );
 
-	glBegin( GL_LINES );
 	for ( int i = 0 ; i < 4 ; i ++ )
 	{
 		double fu = (double)i/3.0;
 		vec3d p0 = p00 + (p10 - p00)*fu;
 		vec3d p1 = p01 + (p11 - p01)*fu;
-		glVertex3dv( p0.data() );
-		glVertex3dv( p1.data() );
+
+		data.push_back( p0.data()[0] );
+		data.push_back( p0.data()[1] );
+		data.push_back( p0.data()[2] );
+
+		data.push_back( p1.data()[0] );
+		data.push_back( p1.data()[1] );
+		data.push_back( p1.data()[2] );
 	}
-	glEnd();
-	glBegin( GL_LINES );
+	renderer->draw( R_LINES, 3, data );
+
+	data.clear();
+
 	for ( int i = 0 ; i < 4 ; i ++ )
 	{
 		double fw = (double)i/3.0;
 		vec3d p0 = p00 + (p01 - p00)*fw;
 		vec3d p1 = p10 + (p11 - p10)*fw;
-		glVertex3dv( p0.data() );
-		glVertex3dv( p1.data() );
+		
+		data.push_back( p0.data()[0] );
+		data.push_back( p0.data()[1] );
+		data.push_back( p0.data()[2] );
+
+		data.push_back( p1.data()[0] );
+		data.push_back( p1.data()[1] );
+		data.push_back( p1.data()[2] );
 	}
-	glEnd();
-
-
+	renderer->draw( R_LINES, 3, data );
 }
 
+void FeaSlice::DrawSlicePlane( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, float linewidth )
+{
+	/* Set Color and Line Width */
+	renderer->setColor4ub( red, green, blue, alpha );
+	renderer->setLineWidth( linewidth );
+
+	/* Draw plane */
+	DrawSlicePlane();
+}
 
 void FeaSlice::Draw()
 {
-	glPointSize( 8.0 );
+	vector<double> data;
 
-	glBegin( GL_POINTS );
-		for ( int i = 0 ; i < (int)m_UpperPnts.size() ; i++ )
-			glVertex3dv( m_UpperPnts[i].data() );
-		for ( int i = 0 ; i < (int)m_LowerPnts.size() ; i++ )
-			glVertex3dv( m_LowerPnts[i].data() );
-	glEnd();
+	/* Set Point size */
+	renderer->setPointSize( 8.0 );
 
-	glBegin( GL_LINES );
-		for ( int i = 0 ; i < (int)m_UpperPnts.size() ; i++ )
-		{
-			glVertex3dv( m_UpperPnts[i].data() );
-			glVertex3dv( m_LowerPnts[i].data() );
-		}
-	glEnd();
+	/* Load Rendering Data */
+	for ( int i = 0 ; i < (int)m_UpperPnts.size() ; i++ )
+	{
+		data.push_back( m_UpperPnts[i].data()[0] );
+		data.push_back( m_UpperPnts[i].data()[1] );
+		data.push_back( m_UpperPnts[i].data()[2] );
 
-
-	//glBegin( GL_POINTS );
-	//	
-	//list< ISegChain* >::iterator c;
-	//for ( c = m_LowerChains.begin() ; c != m_LowerChains.end(); c++ )
-	//{
-	//	for ( int i = 0 ; i < (int)(*c)->m_TessVec.size() ; i++ )
-	//		glVertex3dv(  (*c)->m_TessVec[i]->m_Pnt.data() );
-	//}
-	//glEnd();
-
-
+		data.push_back( m_LowerPnts[i].data()[0] );
+		data.push_back( m_LowerPnts[i].data()[1] );
+		data.push_back( m_LowerPnts[i].data()[2] );
+	}
+	/* Draw Points */
+	renderer->draw( R_POINTS, 3, data );
+	/* Draw Lines */
+	renderer->draw( R_LINES, 3, data );
 }
 
 //============================================================================//
@@ -1232,20 +1463,26 @@ void FeaSpar::Draw( bool highlight )
 {
 	if ( highlight )
 	{
-		glColor3ub( 255, 0, 0 );
-		glLineWidth(3.0);
-		DrawSlicePlane();
+		DrawSlicePlane( 255, 0, 0, 255, 3.0 );
 	}
 	else
 	{
-		glColor3ub( 100, 150, 100 );
-		glLineWidth(2.0);
-		glBegin( GL_LINES );
-			vec3d p0 = (m_UpperStartChainPnt + m_LowerStartChainPnt)*0.5;
-			vec3d p1 = (m_UpperEndChainPnt   + m_LowerEndChainPnt)*0.5;
-			glVertex3dv( p0.data() );
-			glVertex3dv( p1.data() );
-		glEnd();
+		vector<double> data;
+		renderer->setColor3ub( 100, 150, 100 );
+		renderer->setLineWidth( 2.0 );
+
+		vec3d p0 = (m_UpperStartChainPnt + m_LowerStartChainPnt)*0.5;
+		vec3d p1 = (m_UpperEndChainPnt   + m_LowerEndChainPnt)*0.5;
+
+		data.push_back( p0.data()[0] );
+		data.push_back( p0.data()[1] );
+		data.push_back( p0.data()[2] );
+
+		data.push_back( p1.data()[0] );
+		data.push_back( p1.data()[1] );
+		data.push_back( p1.data()[2] );
+
+		renderer->draw( R_LINES, 3, data );
 	}
 }
 
@@ -1343,18 +1580,27 @@ void FeaRib::Draw( bool highlight )
 {
 	if ( highlight )
 	{
-		glColor3ub( 255, 0, 0 );
-		glLineWidth(3.0);
+		renderer->setColor3ub( 255, 0, 0 );
+		renderer->setLineWidth( 3.0 );
+
 		DrawSlicePlane();
 	}
 	else
 	{
-		glColor3ub( 150, 100, 150 );
-		glLineWidth(2.0);
-		glBegin( GL_LINES );
-			glVertex3dv( m_UpperEndPnts[0].data() );
-			glVertex3dv( m_UpperEndPnts[1].data() );
-		glEnd();
+		vector<double> data;
+
+		renderer->setColor3ub( 150, 100, 150 );
+		renderer->setLineWidth( 2.0 );
+
+		data.push_back( m_UpperEndPnts[0].data()[0] );
+		data.push_back( m_UpperEndPnts[0].data()[1] );
+		data.push_back( m_UpperEndPnts[0].data()[2] );
+
+		data.push_back( m_UpperEndPnts[1].data()[0] );
+		data.push_back( m_UpperEndPnts[1].data()[1] );
+		data.push_back( m_UpperEndPnts[1].data()[2] );
+
+		renderer->draw( R_LINES, 3, data );
 	}
 }
 
@@ -1651,54 +1897,66 @@ void FeaSkin::Draw( bool highlight )
 	{
 		if ( highlight && i == m_CurrSpliceLineID )
 		{
-			glColor3ub( 255, 0, 0 );
-			glLineWidth(4.0);
+			m_SpliceLineVec[i]->DrawMain( 255, 0, 0, 255, 4.0 );
 		}
 		else
 		{
-			glColor3ub( 0, 0, 255 );
-			glLineWidth(2.0);
+			m_SpliceLineVec[i]->DrawMain( 0, 0, 255, 255, 2.0 );
 		}	
-		m_SpliceLineVec[i]->DrawMain();
 	}
-
 }
 
 //============================================================================//
 //============================================================================//
 FeaPointMass::FeaPointMass()
 {
+	renderer = new renderMgr();
+	renderer->init();
 }
 
 FeaPointMass::~FeaPointMass()
 {
+	delete renderer;
 }
 
 void FeaPointMass::Draw( bool highlight )
 {
+	vector<double> data;
+
 	if ( highlight )
-		glColor3ub( 255, 0, 0 );
+		renderer->setColor3ub( 255, 0, 0 );
 	else
-		glColor3ub( 100, 100, 100 );
+		renderer->setColor3ub( 100, 100, 100 );
 
-	glLineWidth(2.0);
-	glPointSize(6.0);
-	glBegin( GL_LINES );
-		glVertex3dv( m_Pos.data() );
-		glVertex3dv( m_AttachPos.data() );
-	glEnd();
+	renderer->setLineWidth( 2.0 );
+	renderer->setPointSize( 6.0 );
 
-	glBegin( GL_POINTS );	
-		glVertex3dv( m_AttachPos.data() );
-	glEnd();
+	data.push_back( m_Pos.data()[0] );
+	data.push_back( m_Pos.data()[1] );
+	data.push_back( m_Pos.data()[2] );
 
-	glPointSize(12.0);
-	glColor3ub( 0, 0, 0 );
-	glBegin( GL_POINTS );	
-		glVertex3dv( m_Pos.data() );
-	glEnd();
+	data.push_back( m_AttachPos.data()[0] );
+	data.push_back( m_AttachPos.data()[1] );
+	data.push_back( m_AttachPos.data()[2] );
 
+	renderer->draw( R_LINES, 3, data );
+	data.clear();
 
+	data.push_back( m_AttachPos.data()[0] );
+	data.push_back( m_AttachPos.data()[1] );
+	data.push_back( m_AttachPos.data()[2] );
+
+	renderer->draw( R_POINTS, 3, data );
+	data.clear();
+
+	renderer->setPointSize( 12.0 );
+	renderer->setColor3ub( 0, 0, 0 );
+
+	data.push_back( m_Pos.data()[0] );
+	data.push_back( m_Pos.data()[1] );
+	data.push_back( m_Pos.data()[2] );
+
+	renderer->draw( R_POINTS, 3, data );
 }
 
 

@@ -21,6 +21,7 @@ public:
 public:
 	virtual void setLineWidth( float width );
 	virtual void setPointSize( float size );
+	virtual void transform( double * tMatrix );
 
 public:
 	virtual void draw( Primitive mode, int size, vector<double> data );
@@ -37,6 +38,9 @@ public:
 	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data );
 	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals );
 	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals, vector<double> texcoords );
+
+public:
+	virtual void drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, vector<double> data );
 
 protected:
 	virtual void bind( RenderProperties rp );

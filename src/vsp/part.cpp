@@ -13,18 +13,7 @@
 //    
 //******************************************************************************
 
-#ifdef WIN32
-#include <windows.h>		
-#endif
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
-
 #include <FL/Fl.H>
-
 
 #include "part.h"
 #include "geom.h"
@@ -176,10 +165,7 @@ void Perimeter::addSplitIntersections(double targetLength)
 			newedge->n1 = pnVec[j+1];
 		}
 	}
-
-
 }
-
 
 void Perimeter::removeSmallEdges(double thresh )
 {

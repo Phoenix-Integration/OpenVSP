@@ -1010,7 +1010,6 @@ void MeshGeom::draw()
 //==== Draw If Alpha < 1 and Shaded ====//
 void MeshGeom::drawAlpha()
 {
-
 	if ( displayFlag != GEOM_SHADE_FLAG )
 		return;
 
@@ -1020,28 +1019,12 @@ void MeshGeom::drawAlpha()
 	if ( mat && mat->diff[3] <= 0.99 )
 	{
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
 		mat->bind();
-
-		glEnable( GL_LIGHTING );
-
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		glEnable( GL_BLEND );
-		glEnable( GL_CULL_FACE );
-		glCullFace( GL_BACK );
-
 		for ( int i = 0 ; i < (int)tMeshVec.size() ; i++ )
 		{
-			tMeshVec[i]->draw_shaded();
+			tMeshVec[i]->draw_shaded( *model_mat );
 		}
-
-		glPopMatrix();
-
-		glDisable( GL_LIGHTING );
 	}
-
 }
 
 //==== Compute And Load Normals ====//

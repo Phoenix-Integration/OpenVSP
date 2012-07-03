@@ -54,6 +54,11 @@ void renderMgr::setPointSize( float size )
 	renderPtr->setPointSize( size );
 }
 
+void renderMgr::transform( double * tMatrix )
+{
+	renderPtr->transform( tMatrix );
+}
+
 void renderMgr::draw( Primitive mode, int size, vector< double > data )
 {
 	renderPtr->draw( mode, size, data );
@@ -102,4 +107,9 @@ void renderMgr::draw( Primitive mode, RenderProperties rp, float* matrix, int si
 void renderMgr::draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals, vector<double> texcoords )
 {
 	renderPtr->draw( mode, rp, matrix, size, data, normals, texcoords );
+}
+
+void renderMgr::drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, vector<double> data )
+{
+	renderPtr->drawLineStipple3d( factor, pattern, mode, data );
 }

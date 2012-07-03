@@ -18,6 +18,7 @@
 
 #include "stdio.h"
 #include "vorobj.h"
+#include "renderMgr.h"
 
 //==== Moved from VorObj ====//
 #define NUM_CP_FREQ 50
@@ -435,7 +436,7 @@ protected:
 
 	int curr_trap;
 
-
+	renderMgr * renderer;
 };
 
 #endif

@@ -17,16 +17,6 @@
 //       Modified to call unmodified trackball.c.
 //
 
-#ifdef WIN32
-#include <windows.h>		
-#endif
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
-
 #include <math.h>
 
 #include <stdio.h> 
@@ -37,6 +27,7 @@ extern "C" {
 
 #include "track_ball.h"
 #include "vec3d.h"
+#include "renderMgr.h"
 
 #ifndef M_SQRT1_2
 #define M_SQRT1_2 (0.707106781)
@@ -177,11 +168,14 @@ void track_ball::poll(int mstate, int x, int y)
 //===== Record Position Of Mouse At Click ====//    
 void track_ball::transform()
 {
-    double m[4][4];
+	renderMgr renderer = renderMgr();
+	renderer.init();
 
-    //==== Get Current Transformation ====//
-    gettracktransform(m);
-    glMultMatrixd( (GLdouble*)m);
+   double m[4][4];
+
+   //==== Get Current Transformation ====//
+   gettracktransform(m);
+	renderer.transform( *m );
 }
 
 //===== Initialize Trackball ====//    

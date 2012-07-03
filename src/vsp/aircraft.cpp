@@ -8,17 +8,17 @@
 //////////////////////////////////////////////////////////////////////
 
 
-#ifdef WIN32
-#include <windows.h>		
-#endif
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#  include <OpenGL/glu.h>
-#else
-#  include <GL/gl.h>
-#  include <GL/glu.h>
-#endif
+//#ifdef WIN32
+//#include <windows.h>		
+//#endif
+//
+//#ifdef __APPLE__
+//#  include <OpenGL/gl.h>
+//#  include <OpenGL/glu.h>
+//#else
+//#  include <GL/gl.h>
+//#  include <GL/glu.h>
+//#endif
 
 #include "aircraft.h"
 #include "screenMgr.h"

@@ -8,9 +8,9 @@
 //   J.R. Gloudemans - 2/14/09
 //******************************************************************************
 
-#ifdef WIN32
-#include <windows.h>		
-#endif
+//#ifdef WIN32
+//#include <windows.h>		
+//#endif
 
 #include <FL/Fl.H>
 

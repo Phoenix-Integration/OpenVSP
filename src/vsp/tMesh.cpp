@@ -13,16 +13,6 @@
 //    
 //******************************************************************************
 
-#ifdef WIN32
-#include <windows.h>		
-#endif
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
-
 #include "tMesh.h"
 #include "bbox.h"
 
@@ -184,11 +174,23 @@ TMesh::TMesh()
 	theoVol	 = wetVol = 0.0;
 	reflected_flag = false;
 	halfBoxFlag = false;
+
+	renderer = new renderMgr();
+	renderer->init();
+
+	/* Render Properties for drawing shaded */
+	rp_shaded.mode.blendMode.enabled = true;
+	rp_shaded.mode.blendMode.blendfunc.sfactor = R_SRC_ALPHA;
+	rp_shaded.mode.blendMode.blendfunc.dfactor = R_ONE_MINUS_SRC_ALPHA;
+
+	rp_shaded.mode.lightingMode.enabled = true;
+
+	rp_shaded.mode.cullFaceMode.enabled = true;
+	rp_shaded.mode.cullFaceMode.cullface.mode = R_BACK;
 }
 
 TMesh::~TMesh()
 {
-
 	int i;
 
 	for ( i = 0 ; i < (int)tVec.size() ; i++ )
@@ -198,6 +200,7 @@ TMesh::~TMesh()
 	for ( i = 0 ; i < (int)eVec.size() ; i++ )
 		delete eVec[i];
 
+	delete renderer;
 }
 
 void TMesh::copy( TMesh* m )
@@ -613,11 +616,11 @@ double TMesh::computeTrimVol()
 
 void TMesh::draw()
 {
-
-
 }
 
-
+void TMesh::draw( float * mat )
+{
+}
 
 //==== Draw Wire Frame =====//
 void TMesh::draw_wire( )
@@ -626,9 +629,11 @@ void TMesh::draw_wire( )
 	vec3d t1, t2, t3;
 	vertVec.clear();
 
-	double color[4];
-	glGetDoublev(GL_CURRENT_COLOR, color);
+	vector<double> data;
 
+	double color[4];
+	renderer->getColor4d( color );
+	
 	for ( i = 0 ; i < (int)tVec.size() ; i++ )
 	{
 		TTri* vec = tVec[i];
@@ -645,11 +650,20 @@ void TMesh::draw_wire( )
 					vertVec.push_back(t2);
 					vertVec.push_back(t3);
 
-					glBegin( GL_LINE_LOOP );
-						glVertex3dv( t1.data() );
-						glVertex3dv( t2.data() );
-						glVertex3dv( t3.data() );
-					glEnd();
+					data.push_back( t1.data()[0] );
+					data.push_back( t1.data()[1] );
+					data.push_back( t1.data()[2] );
+
+					data.push_back( t2.data()[0] );
+					data.push_back( t2.data()[1] );
+					data.push_back( t2.data()[2] );
+
+					data.push_back( t3.data()[0] );
+					data.push_back( t3.data()[1] );
+					data.push_back( t3.data()[2] );
+
+					renderer->draw( R_LINE_LOOP, 3, data );
+					data.clear();
 				}
 			}
 		}
@@ -657,13 +671,13 @@ void TMesh::draw_wire( )
 		{
 			if ( tVec[i]->invalidFlag )
 			{
-				glColor3d(1.0, 0.0, 0.0);
-				glLineWidth( 3.0 );
+				renderer->setColor3d( 1.0, 0.0, 0.0 );
+				renderer->setLineWidth( 3.0 );
 			}
 			else
 			{
-				glColor3dv(color);
-				glLineWidth( 1.0 );
+				renderer->setColor4d( color[0], color[1], color[2], color[3] );
+				renderer->setLineWidth( 1.0 );
 			}
 
 			if ( tVec[i]->interiorFlag == 0 )
@@ -674,64 +688,193 @@ void TMesh::draw_wire( )
 				vertVec.push_back(t1);
 				vertVec.push_back(t2);
 				vertVec.push_back(t3);
-				glBegin( GL_LINE_LOOP );
-					glVertex3dv( t1.data() );
-					glVertex3dv( t2.data() );
-					glVertex3dv( t3.data() );
-				glEnd();
-			}
 
+				data.push_back( t1.data()[0] );
+				data.push_back( t1.data()[1] );
+				data.push_back( t1.data()[2] );
+
+				data.push_back( t2.data()[0] );
+				data.push_back( t2.data()[1] );
+				data.push_back( t2.data()[2] );
+
+				data.push_back( t3.data()[0] );
+				data.push_back( t3.data()[1] );
+				data.push_back( t3.data()[2] );
+
+				renderer->draw( R_LINE_LOOP, 3, data );
+				data.clear();
+			}
 		}
 	}
 
-//Draw Normals 
+	//Draw Normals 
 	for ( int n = 0 ; n < (int)nVec.size() ; n++ )
 	{
-		glColor3d(1.0, 0.0, 0.0);
-		glBegin( GL_LINES );
+		renderer->setColor3d( 1.0, 0.0, 0.0 ); 
+
 		if ( nVec[n]->isectFlag )
 		{
-			glVertex3dv( nVec[n]->pnt.data() );
+			data.push_back( nVec[n]->pnt.data()[0] );
+			data.push_back( nVec[n]->pnt.data()[1] );
+			data.push_back( nVec[n]->pnt.data()[2] );
+
 			vec3d offnorm = nVec[n]->pnt + nVec[n]->norm;
-			glVertex3dv( offnorm.data() );
+			data.push_back( offnorm.data()[0] );
+			data.push_back( offnorm.data()[1] );
+			data.push_back( offnorm.data()[2] );
 		}
-		glEnd();
+		renderer->draw( R_LINES, 3, data );
+		data.clear();
 	}
-//Draw Isect Lines
-	glColor3d(1.0, 0.0, 1.0);
-	glBegin( GL_LINES );
+
+	//Draw Isect Lines
+	renderer->setColor3d( 1.0, 0.0, 1.0 );
 	for ( i = 0 ; i < (int)isectPairs.size() ; i+=2 )
 	{
-		glVertex3dv( isectPairs[i].data() );
-		glVertex3dv( isectPairs[i+1].data() );
+		data.push_back( isectPairs[i].data()[0] );
+		data.push_back( isectPairs[i].data()[1] );
+		data.push_back( isectPairs[i].data()[2] );
+
+		data.push_back( isectPairs[i+1].data()[0] );
+		data.push_back( isectPairs[i+1].data()[1] );
+		data.push_back( isectPairs[i+1].data()[2] );
 	}
-	glEnd();
+	renderer->draw( R_LINES, 3, data );
 
+	// Restore Color
+	renderer->setColor4d( color[0], color[1], color[2], color[3] ); 		
+}
 
-	glColor3dv(color);		// Restore Color
+void TMesh::draw_wire( float* mat  )
+{
+	int i, j;
+	vec3d t1, t2, t3;
+	vertVec.clear();
 
-/*
-	//==== Draw Intersection Curve ====//
-	glColor3ub(255, 255, 0);
-	for ( i = 0 ; i < tVec.size() ; i++ )
+	vector<double> data;
+
+	double color[4];
+	renderer->getColor4d( color );
+	
+	for ( i = 0 ; i < (int)tVec.size() ; i++ )
 	{
-		for ( j = 0 ; j < tVec[i]->iSectEdgeVec.size() ; j++ )
+		TTri* vec = tVec[i];
+		if ( tVec[i] && tVec[i]->splitVec.size() ) // HACK fixed potential access violation
 		{
-			glBegin( GL_LINES  );
-				glVertex3dv( tVec[i]->iSectEdgeVec[j]->n0->pnt.data() );
-				glVertex3dv( tVec[i]->iSectEdgeVec[j]->n1->pnt.data() );
-			glEnd();			
+			for ( j = 0 ; j < (int)tVec[i]->splitVec.size() ; j++ )
+			{
+				if ( tVec[i]->splitVec[j]->interiorFlag == 0 )
+				{
+					t1 = tVec[i]->splitVec[j]->n0->pnt;
+					t2 = tVec[i]->splitVec[j]->n1->pnt;
+					t3 = tVec[i]->splitVec[j]->n2->pnt;
+					vertVec.push_back(t1);
+					vertVec.push_back(t2);
+					vertVec.push_back(t3);
+
+					data.push_back( t1.data()[0] );
+					data.push_back( t1.data()[1] );
+					data.push_back( t1.data()[2] );
+
+					data.push_back( t2.data()[0] );
+					data.push_back( t2.data()[1] );
+					data.push_back( t2.data()[2] );
+
+					data.push_back( t3.data()[0] );
+					data.push_back( t3.data()[1] );
+					data.push_back( t3.data()[2] );
+
+					renderer->draw( R_LINE_LOOP, mat, 3, data );
+					data.clear();
+				}
+			}
+		}
+		else
+		{
+			if ( tVec[i]->invalidFlag )
+			{
+				renderer->setColor3d( 1.0, 0.0, 0.0 );
+				renderer->setLineWidth( 3.0 );
+			}
+			else
+			{
+				renderer->setColor4d( color[0], color[1], color[2], color[3] );
+				renderer->setLineWidth( 1.0 );
+			}
+
+			if ( tVec[i]->interiorFlag == 0 )
+			{
+				t1 = tVec[i]->n0->pnt;
+				t2 = tVec[i]->n1->pnt;
+				t3 = tVec[i]->n2->pnt;
+				vertVec.push_back(t1);
+				vertVec.push_back(t2);
+				vertVec.push_back(t3);
+
+				data.push_back( t1.data()[0] );
+				data.push_back( t1.data()[1] );
+				data.push_back( t1.data()[2] );
+
+				data.push_back( t2.data()[0] );
+				data.push_back( t2.data()[1] );
+				data.push_back( t2.data()[2] );
+
+				data.push_back( t3.data()[0] );
+				data.push_back( t3.data()[1] );
+				data.push_back( t3.data()[2] );
+
+				renderer->draw( R_LINE_LOOP, mat, 3, data );
+				data.clear();
+			}
 		}
 	}
-*/
 
+	//Draw Normals 
+	for ( int n = 0 ; n < (int)nVec.size() ; n++ )
+	{
+		renderer->setColor3d( 1.0, 0.0, 0.0 ); 
+		if ( nVec[n]->isectFlag )
+		{
+			data.push_back( nVec[n]->pnt.data()[0] );
+			data.push_back( nVec[n]->pnt.data()[1] );
+			data.push_back( nVec[n]->pnt.data()[2] );
+
+			vec3d offnorm = nVec[n]->pnt + nVec[n]->norm;
+			data.push_back( offnorm.data()[0] );
+			data.push_back( offnorm.data()[1] );
+			data.push_back( offnorm.data()[2] );
+		}
+		renderer->draw( R_LINES, mat, 3, data );
+		data.clear();
+	}
+
+	//Draw Isect Lines
+	renderer->setColor3d( 1.0, 0.0, 1.0 );
+	for ( i = 0 ; i < (int)isectPairs.size() ; i+=2 )
+	{
+		data.push_back( isectPairs[i].data()[0] );
+		data.push_back( isectPairs[i].data()[1] );
+		data.push_back( isectPairs[i].data()[2] );
+
+		data.push_back( isectPairs[i+1].data()[0] );
+		data.push_back( isectPairs[i+1].data()[1] );
+		data.push_back( isectPairs[i+1].data()[2] );
+	}
+	renderer->draw( R_LINES, mat, 3, data );
+	data.clear();
+
+	// Restore Color
+	renderer->setColor4d( color[0], color[1], color[2], color[3] ); 		
 }
+
 
 void TMesh::draw_shaded()
 {
 	int i,j;
 	vec3d t1, t2, t3;
 	vertVec.clear();
+
+	vector<double> data, normals;
 
 	for ( i = 0 ; i < (int)tVec.size() ; i++ )
 	{
@@ -747,12 +890,30 @@ void TMesh::draw_shaded()
 					vertVec.push_back(t1);
 					vertVec.push_back(t2);
 					vertVec.push_back(t3);
-					glBegin( GL_POLYGON );
-						glNormal3dv(tVec[i]->norm.data());
-						glVertex3dv( t1.data() );
-						glVertex3dv( t2.data() );
-						glVertex3dv( t3.data() );
-					glEnd();
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t1.data()[0] );
+					data.push_back( t1.data()[1] );
+					data.push_back( t1.data()[2] );
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t2.data()[0] );
+					data.push_back( t2.data()[1] );
+					data.push_back( t2.data()[2] );
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t3.data()[0] );
+					data.push_back( t3.data()[1] );
+					data.push_back( t3.data()[2] );
 				}
 			}
 		}
@@ -766,18 +927,124 @@ void TMesh::draw_shaded()
 				vertVec.push_back(t1);
 				vertVec.push_back(t2);
 				vertVec.push_back(t3);
-				glBegin( GL_POLYGON );
-					glNormal3dv(tVec[i]->norm.data());
-					glVertex3dv( t1.data() );
-					glVertex3dv( t2.data() );
-					glVertex3dv( t3.data() );
-				glEnd();
-			}
 
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t1.data()[0] );
+				data.push_back( t1.data()[1] );
+				data.push_back( t1.data()[2] );
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t2.data()[0] );
+				data.push_back( t2.data()[1] );
+				data.push_back( t2.data()[2] );
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t3.data()[0] );
+				data.push_back( t3.data()[1] );
+				data.push_back( t3.data()[2] );
+			}
 		}
 	}
+	renderer->draw( R_TRIANGLES, rp_shaded, 3, data, normals );
 }
 
+void TMesh::draw_shaded( float * mat )
+{
+	int i,j;
+	vec3d t1, t2, t3;
+	vertVec.clear();
+
+	vector<double> data, normals;
+
+	for ( i = 0 ; i < (int)tVec.size() ; i++ )
+	{
+		if ( tVec[i]->splitVec.size() )
+		{
+			for ( j = 0 ; j < (int)tVec[i]->splitVec.size() ; j++ )
+			{
+				if ( tVec[i]->splitVec[j]->interiorFlag == 0 )
+				{
+					t1 = tVec[i]->splitVec[j]->n0->pnt;
+					t2 = tVec[i]->splitVec[j]->n1->pnt;
+					t3 = tVec[i]->splitVec[j]->n2->pnt;
+					vertVec.push_back(t1);
+					vertVec.push_back(t2);
+					vertVec.push_back(t3);
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t1.data()[0] );
+					data.push_back( t1.data()[1] );
+					data.push_back( t1.data()[2] );
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t2.data()[0] );
+					data.push_back( t2.data()[1] );
+					data.push_back( t2.data()[2] );
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t3.data()[0] );
+					data.push_back( t3.data()[1] );
+					data.push_back( t3.data()[2] );
+				}
+			}
+		}
+		else
+		{
+			if ( tVec[i]->interiorFlag == 0 )
+			{
+				t1 = tVec[i]->n0->pnt;
+				t2 = tVec[i]->n1->pnt;
+				t3 = tVec[i]->n2->pnt;
+				vertVec.push_back(t1);
+				vertVec.push_back(t2);
+				vertVec.push_back(t3);
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t1.data()[0] );
+				data.push_back( t1.data()[1] );
+				data.push_back( t1.data()[2] );
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t2.data()[0] );
+				data.push_back( t2.data()[1] );
+				data.push_back( t2.data()[2] );
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t3.data()[0] );
+				data.push_back( t3.data()[1] );
+				data.push_back( t3.data()[2] );
+			}
+		}
+	}
+	renderer->draw( R_TRIANGLES, rp_shaded, mat, 3, data, normals );
+}
 
 void TMesh::addTri( const vec3d & v0, const vec3d & v1, const vec3d & v2, const vec3d & norm )
 {
@@ -998,6 +1265,9 @@ cnt++;
 	interiorFlag = 0; 
 	invalidFlag  = 0;
 	mass = 0.0;
+
+	renderer = new renderMgr();
+	renderer->init();
 }
 
 TTri::~TTri()
@@ -1032,6 +1302,7 @@ cnt++;
 		delete iSectEdgeVec[i];
 	}
 
+	delete renderer;
 }
 
 vec3d TTri::compNorm()
@@ -1862,22 +2133,39 @@ int TTri::dupEdge( TEdge* e0, TEdge* e1, double tol )
 void TTri::draw()
 {
 	int i;
+	vector<double> data, colors;
 
 	//==== Draw Sub Tris ====//
 	for ( i = 0 ; i < (int)splitVec.size() ; i++ )
 	{
 		if ( !splitVec[i]->interiorFlag )
 		{
-			glColor3ub( (i*50+100)%255, (i*80)%255, (i*100+50)%255 );
-			glBegin( GL_POLYGON );				
-				glVertex3dv( splitVec[i]->n0->pnt.data() );
-				glVertex3dv( splitVec[i]->n1->pnt.data() );
-				glVertex3dv( splitVec[i]->n2->pnt.data() );
-			glEnd();
+			colors.push_back( (i*50+100)%255 );
+			colors.push_back( (i*80)%255 );
+			colors.push_back( (i*100+50)%255 );
+
+			data.push_back( splitVec[i]->n0->pnt.data()[0] );
+			data.push_back( splitVec[i]->n0->pnt.data()[1] );
+			data.push_back( splitVec[i]->n0->pnt.data()[2] );
+
+			colors.push_back( (i*50+100)%255 );
+			colors.push_back( (i*80)%255 );
+			colors.push_back( (i*100+50)%255 );
+
+			data.push_back( splitVec[i]->n1->pnt.data()[0] );
+			data.push_back( splitVec[i]->n1->pnt.data()[1] );
+			data.push_back( splitVec[i]->n1->pnt.data()[2] );
+
+			colors.push_back( (i*50+100)%255 );
+			colors.push_back( (i*80)%255 );
+			colors.push_back( (i*100+50)%255 );
+
+			data.push_back( splitVec[i]->n2->pnt.data()[0] );
+			data.push_back( splitVec[i]->n2->pnt.data()[1] );
+			data.push_back( splitVec[i]->n2->pnt.data()[2] );
 		}
 	}
-
-
+	renderer->draw( R_TRIANGLES, 3, colors, 3, data );
 }
 
 void TTri::computeCosAngles( double* ang0, double* ang1, double* ang2 )
@@ -2031,6 +2319,8 @@ void  TBndBox::addLeafNodes( vector< TBndBox* > & leafVec )
 void TBndBox::draw()
 {
 	int i;
+	vector<double> data;
+
 	if ( sBoxVec[0] )
 	{
 		for ( i = 0 ; i < 8 ; i++ )
@@ -2040,39 +2330,101 @@ void TBndBox::draw()
 	}
 	else
 	{
-	  double temp[3];
-	  temp[0] = box.get_min(0);
-	  temp[1] = box.get_min(1);
-	  temp[2] = box.get_min(2);
+		double temp[3];
+		temp[0] = box.get_min(0);
+		temp[1] = box.get_min(1);
+		temp[2] = box.get_min(2);
 
-	  glBegin( GL_LINE_STRIP );
-		glVertex3dv(temp);		
-		temp[0] = box.get_max(0);		glVertex3dv(temp);
-		temp[1] = box.get_max(1);		glVertex3dv(temp);
-		temp[2] = box.get_max(2);		glVertex3dv(temp);
-		temp[0] = box.get_min(0);		glVertex3dv(temp);
-		temp[2] = box.get_min(2);		glVertex3dv(temp);
-		temp[1] = box.get_min(1);		glVertex3dv(temp);
-		temp[2] = box.get_max(2);		glVertex3dv(temp);
-		temp[0] = box.get_max(0);		glVertex3dv(temp);
-		temp[2] = box.get_min(2);		glVertex3dv(temp);
-	  glEnd();
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
 
-	  glBegin( GL_LINE_STRIP );
-		temp[2] = box.get_max(2);		glVertex3dv(temp);
-		temp[1] = box.get_max(1);		glVertex3dv(temp);
-	  glEnd();
+		temp[0] = box.get_max(0);	
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
 
-	  glBegin( GL_LINE_STRIP );
-		temp[2] = box.get_min(2);		glVertex3dv(temp);
-		temp[0] = box.get_min(0);		glVertex3dv(temp);
-	  glEnd();
+		temp[1] = box.get_max(1);	
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
 
-	  glBegin( GL_LINE_STRIP );
-		temp[2] = box.get_max(2);		glVertex3dv(temp);
-		temp[1] = box.get_min(1);		glVertex3dv(temp);
-	  glEnd();
- 
+		temp[2] = box.get_max(2);	
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
+
+		temp[0] = box.get_min(0);	
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
+
+		temp[2] = box.get_min(2);	
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
+
+		temp[1] = box.get_min(1);	
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
+
+		temp[2] = box.get_max(2);	
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
+
+		temp[0] = box.get_max(0);	
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
+
+		temp[2] = box.get_min(2);	
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
+
+		renderer->draw( R_LINE_STRIP, 3, data );
+		data.clear();
+
+		temp[2] = box.get_max(2);
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
+
+		temp[1] = box.get_max(1);	
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
+
+		renderer->draw( R_LINE_STRIP, 3, data );
+		data.clear();
+
+		temp[2] = box.get_min(2);
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
+
+		temp[0] = box.get_min(0);
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
+
+		renderer->draw( R_LINE_STRIP, 3, data );
+		data.clear();
+
+		temp[2] = box.get_max(2);	
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
+
+		temp[1] = box.get_min(1);	
+		data.push_back( temp[0] );
+		data.push_back( temp[1] );
+		data.push_back( temp[2] );
+
+		renderer->draw( R_LINE_STRIP, 3, data );
+		data.clear();
 	}
 }
 	

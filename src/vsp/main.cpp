@@ -7,20 +7,20 @@
 //#include "vld.h"  
 
 #include <stdio.h>
-#ifdef WIN32
-#include <windows.h>		
-#endif
+//#ifdef WIN32
+//#include <windows.h>		
+//#endif
 
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Gl_Window.H>
 
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
+//#ifdef __APPLE__
+//#  include <OpenGL/gl.h>
+//#else
+//#  include <GL/gl.h>
+//#endif
 #include "mainScreen.h"
 
 #include "main.h"

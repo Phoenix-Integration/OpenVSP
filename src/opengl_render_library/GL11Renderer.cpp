@@ -102,6 +102,16 @@ void GL11Renderer::setPointSize( float size )
 
 /******************************************************
 *
+* Matrix Transformation.
+*
+*******************************************************/
+void GL11Renderer::transform( double * tMatrix )
+{
+	glMultMatrixd( (GLdouble*)tMatrix );
+}
+
+/******************************************************
+*
 * Draw Geometry.
 *
 *******************************************************/
@@ -310,6 +320,37 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, float* matrix, int
 	draw( mode, rp, size, data, normals, texcoords );
 
 	glPopMatrix();
+}
+
+/******************************************************
+*
+* Draw Line Stipple ( data format - 3 doubles ).
+*
+* //FIXME: This function uses deprecated OpenGL API.
+*
+*******************************************************/
+void GL11Renderer::drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, vector<double> data )
+{
+	double ver[3];
+
+	glLineStipple( factor, pattern );
+	glEnable( GL_LINE_STIPPLE );
+
+	unsigned int pMode = 0;
+	commonUtil->getGLPrimitiveMode( mode, pMode );
+
+	glBegin( pMode );
+	for( int i = 0; i < data.size(); i+=3 )
+	{
+		for ( int j = 0; j < 3; j++ )
+		{
+			ver[j] = data[i+j];
+		}
+		glVertex3dv( ver );
+	}
+	glEnd();
+
+	glDisable( GL_LINE_STIPPLE );
 }
 
 /******************************************************

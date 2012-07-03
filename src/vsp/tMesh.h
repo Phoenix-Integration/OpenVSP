@@ -23,10 +23,11 @@
 #include "bbox.h"
 #include "stringc.h"
 #include "DragFactors.h"
+#include "renderMgr.h"
 
 #include <vector>				//jrg windows??	
 #include <algorithm>			//jrg windows??	
-using namespace std;			//jrg windows??
+//using namespace std;	/* avoid name conflict */		//jrg windows??
 
 extern "C"
 { void triangulate(char *, struct triangulateio *, struct triangulateio *,
@@ -202,6 +203,8 @@ public:
 	TNode* cn1;
 	TNode* cn2;
 
+protected:
+	renderMgr * renderer;
 
 private:
 
@@ -229,6 +232,9 @@ public:
 	virtual void addLeafNodes( vector< TBndBox* > & leafVec );
 
 	virtual void segIntersect( vec3d & p0, vec3d & p1, vector< vec3d > & ipntVec );
+
+protected:
+	renderMgr * renderer;
 
 };
 
@@ -297,9 +303,13 @@ public:
 	void loadBndBox();
 
 	virtual void draw();
+	virtual void draw( float * mat );
+
 	virtual void draw_wire();
-//	virtual void draw_hidden(); 
-    virtual void draw_shaded(); 
+	virtual void draw_wire( float * mat );
+
+   virtual void draw_shaded(); 
+	virtual void draw_shaded( float * mat );
 
 	virtual double computeTheoArea();
 	virtual double computeWetArea();
@@ -350,6 +360,9 @@ public:
 
 	bool halfBoxFlag;
 
+protected:
+	renderMgr * renderer;
+	RenderProperties rp_shaded;
 };
 
 

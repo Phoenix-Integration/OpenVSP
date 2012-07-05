@@ -248,11 +248,13 @@ Part::Part()
 	sliceMesh = NULL;
 	finalMesh = NULL;
 
+	renderer = new renderMgr();
+	renderer->init();
 }
 
 Part::~Part()
 {
-
+	delete renderer;
 }
 
 void Part::DeleteFinalMesh()
@@ -486,53 +488,92 @@ void ThreePntSlice::Draw()
 	if ( !geomPtr )
 		return;
 
+	vector<double> data, colors;
+
 	ComputePlanePnts();
 
 	if ( editFlag )
 	{
 		//==== Draw Grid Lines ====//
 		int num_grid = 5;
-		glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );
-		glBegin( GL_LINES );
+
+		renderer->setColor4d( 0.0, 0.0, 0.0, 0.0 );
 		for ( i = 0 ; i < num_grid ; i++ )
 		{
 			double fract = (double)i/(double)(num_grid-1);
+
 			vec3d g0 = plnPnt[0] + (plnPnt[1] - plnPnt[0])*fract;	
-			glVertex3dv( g0.data() );
+			data.push_back( g0.data()[0] );
+			data.push_back( g0.data()[1] );
+			data.push_back( g0.data()[2] );
 
 			vec3d g1 = plnPnt[3] + (plnPnt[2] - plnPnt[3])*fract;	
-			glVertex3dv( g1.data() );
+			data.push_back( g1.data()[0] );
+			data.push_back( g1.data()[1] );
+			data.push_back( g1.data()[2] );
 
 			vec3d g2 = plnPnt[1] + (plnPnt[2] - plnPnt[1])*fract;	
-			glVertex3dv( g2.data() );
+			data.push_back( g2.data()[0] );
+			data.push_back( g2.data()[1] );
+			data.push_back( g2.data()[2] );
 
 			vec3d g3 = plnPnt[0] + (plnPnt[3] - plnPnt[0])*fract;	
-			glVertex3dv( g3.data() );
-
+			data.push_back( g3.data()[0] );
+			data.push_back( g3.data()[1] );
+			data.push_back( g3.data()[2] );
 		}
-		glEnd();	
+		if ( data.size() > 0 );
+		{
+			renderer->draw( R_LINES, 3, data );
+			data.clear();
+		}
 
 		//==== Draw 3 Points ====//
-		glPointSize( 10.0 );
-		glBegin( GL_POINTS );
-		glColor4f( 1.0f, 1.0f, 0.0f, 1.0f );
-		glVertex3dv( projPnt[0].data() );
-		glColor4f( 0.0f, 1.0f, 0.0f, 1.0f );
-		glVertex3dv( projPnt[1].data() );
-		glColor4f( 1.0f, 0.0f, 1.0f, 1.0f );
-		glVertex3dv( projPnt[2].data() );
-		glEnd();
+		renderer->setPointSize( 10.0 );
+
+		colors.push_back( 1.0 );
+		colors.push_back( 1.0 );
+		colors.push_back( 0.0 );
+		colors.push_back( 1.0 );
+
+		data.push_back( projPnt[0].data()[0] );
+		data.push_back( projPnt[0].data()[1] );
+		data.push_back( projPnt[0].data()[2] );
+
+		colors.push_back( 0.0 );
+		colors.push_back( 1.0 );
+		colors.push_back( 0.0 );
+		colors.push_back( 1.0 );
+
+		data.push_back( projPnt[1].data()[0] );
+		data.push_back( projPnt[1].data()[1] );
+		data.push_back( projPnt[1].data()[2] );
+
+		colors.push_back( 1.0 );
+		colors.push_back( 0.0 );
+		colors.push_back( 1.0 );
+		colors.push_back( 1.0 );
+
+		data.push_back( projPnt[2].data()[0] );
+		data.push_back( projPnt[2].data()[1] );
+		data.push_back( projPnt[2].data()[2] );
+
+		renderer->draw( R_POINTS, 4, colors, 3, data );
+		data.clear();
 
 		if ( staleMesh )
 		{
 			//==== Draw Plane ====//
-			glColor4f( 0.1f, 0.1f, 0.1f, 0.2f );
-			glBegin( GL_POLYGON );	
-			glVertex3dv( plnPnt[0].data() );
-			glVertex3dv( plnPnt[1].data() );
-			glVertex3dv( plnPnt[2].data() );
-			glVertex3dv( plnPnt[3].data() );
-			glEnd();
+			renderer->setColor4d( 0.1, 0.1, 0.1, 0.2 );
+			for ( int i = 0; i < 4; i++ )
+			{
+				for ( int j = 0; j < 3; j++ )
+				{
+					data.push_back( plnPnt[i].data()[j] );
+				}
+			}
+			renderer->draw( R_QUADS, 3, data );
+			data.clear();
 		}
 
 	}
@@ -543,23 +584,14 @@ void ThreePntSlice::Draw()
 
 	if ( !staleMesh && mesh  )
 	{
-		glLineWidth( 2.0 );
-		if ( editFlag )
-		{
-			glColor4f( 1.0, 0.7f, 0.0, 1.0 );
-		}
-		else
-		{
-			glColor4f( 0.3f, 0.3f, 0.3f, 1.0 );
-		}
-
 		if ( !finalMesh )
-			mesh->draw_wire();
-//		mesh->draw_shaded();
+		{
+			if ( editFlag )
+				mesh->draw_wire( (int)(1.0 * 255), (int)(0.7 * 255), (int)(0.0 * 255), (int)(1.0 * 255), 2.0 );
+			else
+				mesh->draw_wire( (int)(0.3 * 255), (int)(0.3 * 255), (int)(0.3 * 255), (int)(1.0 * 255), 2.0 );
+		}
 	}
-
-
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

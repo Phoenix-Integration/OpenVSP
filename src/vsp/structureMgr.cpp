@@ -35,11 +35,13 @@ StructureMgr::StructureMgr()
 	currGeomID = 0;
 	finalTriArea = 0.05;
 	exportFileName = "FEA_Export.nas";
+
+	renderer = new renderMgr();
 }
 
 StructureMgr::~StructureMgr()
 {
-
+	delete renderer;
 }
 
 void StructureMgr::SetActiveFlag( bool flag )
@@ -278,11 +280,66 @@ vector<Stringc> StructureMgr::GetPartNames()
 
 void StructureMgr::Draw()
 {
+	//if ( !activeFlag )
+	//	return;
+
+	//int i;
+	//vector< Part* > partVec = GetAllParts();
+
+	//bool drawFinal = true;
+	//for ( i = 0 ; i < (int)partVec.size() ; i++ )
+	//{
+	//	if ( !partVec[i]->GetFinalMesh() )
+	//		drawFinal = false;
+	//}
+
+	//if ( drawFinal )
+	//{
+	//	//==== Draw Edge Lines ====//
+	//	glLineWidth( 3.0 );
+	//	glBegin( GL_LINES );
+	//		glColor3f( 0.0, 1.0, 0.0 );								// Perimeter Edges
+	//		for ( i = 0 ; i < (int)oneTriEdgeVec.size() ; i++ )
+	//			glVertex3dv( oneTriEdgeVec[i].data() );
+	//		glColor3f( 1.0, 1.0, 0.0 );								// Intersection Edges
+	//		for ( i = 0 ; i < (int)fourTriEdgeVec.size() ; i++ )
+	//			glVertex3dv( fourTriEdgeVec[i].data() );
+	//		glColor3f( 1.0, 0.0, 0.0 );								// Other Edges
+	//		for ( i = 0 ; i < (int)otherTriEdgeVec.size() ; i++ )
+	//			glVertex3dv( otherTriEdgeVec[i].data() );
+	//	glEnd();
+
+	//	glLineWidth( 1.0 );
+	//	glBegin( GL_LINES );
+	//		glColor4f( 0.7f, 0.7f, 0.7f, 0.3f );								// Interior Edges
+	//		for ( i = 0 ; i < (int)twoTriEdgeVec.size() ; i++ )
+	//			glVertex3dv( twoTriEdgeVec[i].data() );
+	//	glEnd();
+
+	//	glLineWidth( 2.0 );
+	//	glColor4f( 1.0f, 0.0f, 0.0f, 1.0f );								// Small Tris
+	//	for ( i = 0 ; i < (int)smallTris.size() ; i+=3 )
+	//	{
+	//		glBegin( GL_LINE_LOOP );
+	//			glVertex3dv( smallTris[i].data() );
+	//			glVertex3dv( smallTris[i+1].data() );
+	//			glVertex3dv( smallTris[i+2].data() );
+	//		glEnd();
+	//	}
+	//	glLineWidth( 1.0 );
+	//}
+
+	//for ( i = 0 ; i < (int)partVec.size() ; i++ )
+	//{
+	//	partVec[i]->Draw();
+	//}
+
 	if ( !activeFlag )
 		return;
 
 	int i;
 	vector< Part* > partVec = GetAllParts();
+	vector<double> data, colors;
 
 	bool drawFinal = true;
 	for ( i = 0 ; i < (int)partVec.size() ; i++ )
@@ -294,58 +351,91 @@ void StructureMgr::Draw()
 	if ( drawFinal )
 	{
 		//==== Draw Edge Lines ====//
-		glLineWidth( 3.0 );
-		glBegin( GL_LINES );
-			glColor3f( 0.0, 1.0, 0.0 );								// Perimeter Edges
-			for ( i = 0 ; i < (int)oneTriEdgeVec.size() ; i++ )
-				glVertex3dv( oneTriEdgeVec[i].data() );
-			glColor3f( 1.0, 1.0, 0.0 );								// Intersection Edges
-			for ( i = 0 ; i < (int)fourTriEdgeVec.size() ; i++ )
-				glVertex3dv( fourTriEdgeVec[i].data() );
-			glColor3f( 1.0, 0.0, 0.0 );								// Other Edges
-			for ( i = 0 ; i < (int)otherTriEdgeVec.size() ; i++ )
-				glVertex3dv( otherTriEdgeVec[i].data() );
-		glEnd();
+		renderer->setLineWidth( 3.0 );
 
-		glLineWidth( 1.0 );
-		glBegin( GL_LINES );
-			glColor4f( 0.7f, 0.7f, 0.7f, 0.3f );								// Interior Edges
-			for ( i = 0 ; i < (int)twoTriEdgeVec.size() ; i++ )
-				glVertex3dv( twoTriEdgeVec[i].data() );
-		glEnd();
+		// Perimeter Edges
+		for ( i = 0 ; i < (int)oneTriEdgeVec.size() ; i++ ) 
+		{
+			colors.push_back( 0.0 );
+			colors.push_back( 1.0 );
+			colors.push_back( 0.0 );
 
-		glLineWidth( 2.0 );
-		glColor4f( 1.0f, 0.0f, 0.0f, 1.0f );								// Small Tris
+			data.push_back( oneTriEdgeVec[i].data()[0] );
+			data.push_back( oneTriEdgeVec[i].data()[1] );
+			data.push_back( oneTriEdgeVec[i].data()[2] );
+		}
+		// Intersection Edges
+		for ( i = 0 ; i < (int)fourTriEdgeVec.size() ; i++ )
+		{
+			colors.push_back( 1.0 );
+			colors.push_back( 1.0 );
+			colors.push_back( 0.0 );
+
+			data.push_back( fourTriEdgeVec[i].data()[0] );
+			data.push_back( fourTriEdgeVec[i].data()[1] );
+			data.push_back( fourTriEdgeVec[i].data()[2] );
+		}
+		// Other Edges
+		for ( i = 0 ; i < (int)otherTriEdgeVec.size() ; i++ )
+		{
+			colors.push_back( 1.0 );
+			colors.push_back( 0.0 );
+			colors.push_back( 0.0 );
+
+			data.push_back( otherTriEdgeVec[i].data()[0] );
+			data.push_back( otherTriEdgeVec[i].data()[1] );
+			data.push_back( otherTriEdgeVec[i].data()[2] );
+		}
+		if ( data.size() > 0 )
+		{
+			renderer->draw( R_LINES, 3, colors, 3, data );
+			data.clear();
+			colors.clear();
+		}
+
+		renderer->setLineWidth( 1.0 );
+		renderer->setColor4d( 0.7, 0.7, 0.7, 0.3 );
+		// Interior Edges
+		for ( i = 0 ; i < (int)twoTriEdgeVec.size() ; i++ )
+		{
+			data.push_back( twoTriEdgeVec[i].data()[0] );
+			data.push_back( twoTriEdgeVec[i].data()[1] );
+			data.push_back( twoTriEdgeVec[i].data()[2] );
+		}
+		if ( data.size() > 0 )
+		{
+			renderer->draw( R_LINES, 3, data );
+			data.clear();
+		}
+
+		renderer->setLineWidth( 2.0 );
+		renderer->setColor4d( 1.0, 0.0, 0.0, 1.0 );
+		
+		// Small Tris
 		for ( i = 0 ; i < (int)smallTris.size() ; i+=3 )
 		{
-			glBegin( GL_LINE_LOOP );
-				glVertex3dv( smallTris[i].data() );
-				glVertex3dv( smallTris[i+1].data() );
-				glVertex3dv( smallTris[i+2].data() );
-			glEnd();
+			data.push_back( smallTris[i].data()[0] );
+			data.push_back( smallTris[i].data()[1] );
+			data.push_back( smallTris[i].data()[2] );
+
+			data.push_back( smallTris[i+1].data()[0] );
+			data.push_back( smallTris[i+1].data()[1] );
+			data.push_back( smallTris[i+1].data()[2] );
+
+			data.push_back( smallTris[i+2].data()[0] );
+			data.push_back( smallTris[i+2].data()[1] );
+			data.push_back( smallTris[i+2].data()[2] );
+
+			renderer->draw( R_LINE_LOOP, 3, data );
+			data.clear();
 		}
-		glLineWidth( 1.0 );
-
-		//glBegin( GL_LINES );
-		//	glColor4f( 1.0f, 0.2f, 0.2f, 1.0f );								// Draw Normals
-		//	for ( i = 0 ; i < (int)centerVec.size() ; i++ )
-		//	{
-		//		glVertex3dv( centerVec[i].data() );
-		//		vec3d poff = centerVec[i] + normVec[i]*0.25;
-		//		glVertex3dv( poff.data() );
-		//	}
-		//glEnd();
-
-
+		renderer->setLineWidth( 1.0 );
 	}
 
 	for ( i = 0 ; i < (int)partVec.size() ; i++ )
 	{
 		partVec[i]->Draw();
 	}
-
-
-
 }
 
 void StructureMgr::FinalMesh()

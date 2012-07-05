@@ -20,18 +20,9 @@
 #include <libxml/xpath.h>
 #include "xmlvsp.h"
 #include "tMesh.h"
+#include "renderMgr.h"
 
 #include <stdio.h>
-
-#ifdef WIN32
-#include <windows.h>		
-#endif
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
 
 #include "stringc.h"
 #include <vector>	
@@ -128,6 +119,7 @@ private:
 
 	vector< vec3d > smallTris;
 
+	renderMgr * renderer;
 };
 
 

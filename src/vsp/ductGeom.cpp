@@ -402,116 +402,12 @@ void DuctGeom::update_bbox()
 void DuctGeom::draw()
 {
 	Geom::draw();
-
-/*
-	if ( fastDrawFlag )
-		surf.fast_draw_on();
-	else
-		surf.fast_draw_off();
-
-	//==== Draw Highlighting Boxes ====//
-	draw_highlight_boxes();
-
-	//==== Check Noshow Flag ====//
-	if ( noshowFlag ) return;	
-
-	if ( displayFlag == GEOM_WIRE_FLAG )
-	{
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-		surf.draw_wire();
-		glPopMatrix();
-
-		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-		surf.draw_refl_wire(sym_code);
-		glPopMatrix();
-	}
-	else if ( displayFlag == GEOM_SHADE_FLAG )
-	{
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
-		Material* mat = matMgrPtr->getMaterial( materialID );
-		if ( mat )
-		{
-			mat->bind();
-			if ( mat->diff[3] > 0.99 )
-				surf.draw_shaded();
-		}
-		glPopMatrix();
-
-		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-		mat = matMgrPtr->getMaterial( materialID );
-		if ( mat )
-		{
-			mat->bind();
-			if  ( mat->diff[3] > 0.99 )
-				surf.draw_refl_shaded( sym_code);
-		}
-		glPopMatrix();
-	}
-	else if ( displayFlag == GEOM_HIDDEN_FLAG )
-	{
-		//==== Draw Hidden Surface ====//
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-		surf.draw_hidden();
-		glPopMatrix();
-
-		//==== Reflected Geom ====//
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-		surf.draw_refl_hidden(sym_code);
-		glPopMatrix();		
-	}
-*/
 }
 
 //==== Draw If Alpha < 1 and Shaded ====//
 void DuctGeom::drawAlpha()
 {
 	Geom::drawAlpha();
-/*
-	Material* mat = matMgrPtr->getMaterial( materialID );
-	if ( !mat )
-		return;
-
-	if ( mat->diff[3] > 0.99 )
-		return;
-	
-	if ( displayFlag == GEOM_SHADE_FLAG )
-	{
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
-		mat->bind();
-		surf.draw_shaded();
-
-		glPopMatrix();
-
-		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-
-		mat->bind();
-		surf.draw_refl_shaded( sym_code );
-
-		glPopMatrix();
-	}
-*/
 }
 
 //==== Compute And Load Normals ====//

@@ -17,13 +17,6 @@
 #include "engineGeom.h"
 #include "aircraft.h"
 #include "materialMgr.h"
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
-
 #include "defines.h"
 
 
@@ -1103,176 +1096,12 @@ void EngineGeom::update_bbox()
 void EngineGeom::draw()
 {
 	Geom::draw();
-/*
-	if ( fastDrawFlag )
-	{
-		inlet_surf.fast_draw_on();
-		inl_duct_in.fast_draw_on();
-		inl_duct_out.fast_draw_on();
-		nozzle_surf.fast_draw_on();
-		engine_surf.fast_draw_on();
-	}
-	else
-	{
-		inlet_surf.fast_draw_off();
-		inl_duct_in.fast_draw_off();
-		inl_duct_out.fast_draw_off();
-		nozzle_surf.fast_draw_off();
-		engine_surf.fast_draw_off();
-	}
-
-	//==== Draw Highlighting Boxes ====//
-	draw_highlight_boxes();
-
-	//==== Check Noshow Flag ====//
-	if ( noshowFlag ) return;	
-
-	if ( displayFlag == GEOM_WIRE_FLAG )
-	{
-		glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
-		  inlet_surf.draw_wire();
-		  inl_duct_in.draw_wire();
-		  inl_duct_out.draw_wire();
-		  nozzle_surf.draw_wire();
-		  engine_surf.draw_wire();
-
-		glPopMatrix();
-
-		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-
-		  inlet_surf.draw_refl_wire(sym_code);
-		  inl_duct_in.draw_refl_wire(sym_code);
-		  inl_duct_out.draw_refl_wire(sym_code);
-		  nozzle_surf.draw_refl_wire(sym_code);
-		  engine_surf.draw_refl_wire(sym_code);
-
-		glPopMatrix();
-	}
-	else if ( displayFlag == GEOM_SHADE_FLAG )
-	{
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
-		Material* mat = matMgrPtr->getMaterial( materialID );
-		if ( mat )
-		{
-			mat->bind();
-			if ( mat->diff[3] > 0.99 )
-			{
-				inlet_surf.draw_shaded();
-				inl_duct_in.draw_shaded();
-				inl_duct_out.draw_shaded();
-				nozzle_surf.draw_shaded();
-				engine_surf.draw_shaded();
-			}
-		}
-		glPopMatrix();
-
-		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-		mat = matMgrPtr->getMaterial( materialID );
-		if ( mat )
-		{
-			mat->bind();
-			if  ( mat->diff[3] > 0.99 )
-			{
-				inlet_surf.draw_refl_shaded( sym_code);
-				inl_duct_in.draw_refl_shaded( sym_code);
-				inl_duct_out.draw_refl_shaded( sym_code);
-				nozzle_surf.draw_refl_shaded( sym_code);
-				engine_surf.draw_refl_shaded( sym_code);
-			}
-		}
-		glPopMatrix();
-	}
-	else if ( displayFlag == GEOM_HIDDEN_FLAG )
-	{
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-			inlet_surf.draw_hidden();
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-			inl_duct_in.draw_hidden();
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-			inl_duct_out.draw_hidden();
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-			nozzle_surf.draw_hidden();
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-			engine_surf.draw_hidden();
-		glPopMatrix();
-
-		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat);
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-			inlet_surf.draw_refl_hidden( sym_code);
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-			inl_duct_in.draw_refl_hidden( sym_code);
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-			inl_duct_out.draw_refl_hidden( sym_code);
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-			nozzle_surf.draw_refl_hidden( sym_code);
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-			engine_surf.draw_refl_hidden( sym_code);
-		glPopMatrix();		
-	}
-*/
-
 }
 
 //==== Draw If Alpha < 1 and Shaded ====//
 void EngineGeom::drawAlpha()
 {
 	Geom::drawAlpha();
-/*
-
-	Material* mat = matMgrPtr->getMaterial( materialID );
-	if ( !mat )
-		return;
-
-	if ( mat->diff[3] > 0.99 )
-		return;
-	
-	if ( displayFlag == GEOM_SHADE_FLAG )
-	{
-		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
-		mat->bind();
-			inlet_surf.draw_shaded();
-			inl_duct_in.draw_shaded();
-			inl_duct_out.draw_shaded();
-			nozzle_surf.draw_shaded();
-			engine_surf.draw_shaded();
-
-		glPopMatrix();
-
-		//==== Reflected Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)reflect_mat); 
-
-		mat->bind();
-			inlet_surf.draw_refl_shaded(sym_code);
-			inl_duct_in.draw_refl_shaded(sym_code);
-			inl_duct_out.draw_refl_shaded(sym_code);
-			nozzle_surf.draw_refl_shaded(sym_code);
-			engine_surf.draw_refl_shaded(sym_code);
-
-		glPopMatrix();
-	}
-*/
-
 }
 
 void EngineGeom::scale()

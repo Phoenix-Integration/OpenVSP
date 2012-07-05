@@ -2690,30 +2690,6 @@ void CfdMeshMgr::Draw()
 	}
 
 #ifdef DEBUG_CFD_MESH
-	//if ( m_DebugDraw )
-	//{
-	//	for ( int i = 0 ; i < (int)m_DebugCurves.size() ; i++ )
-	//	{
-	//		glPointSize( 4.0 );
-	//		glLineWidth( 2.0 );
-	//		vec3d rgb = m_DebugColors[i];
-	//		glColor4ub( (GLbyte)rgb[0], (GLbyte)rgb[1], (GLbyte)rgb[2], 255 );
-
-	//		glBegin( GL_LINE_STRIP );
-	//		for ( int j = 0 ; j < (int)m_DebugCurves[i].size() ; j++ )
-	//		{
-	//			glVertex3dv( m_DebugCurves[i][j].data() );
-	//		}
-	//		glEnd();
-	//	
-	//		glBegin( GL_POINTS );
-	//		for ( int j = 0 ; j < (int)m_DebugCurves[i].size() ; j++ )
-	//		{
-	//			glVertex3dv( m_DebugCurves[i][j].data() );
-	//		}
-	//		glEnd();
-	//	}
-	//}
 
 #endif
 }

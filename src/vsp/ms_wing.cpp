@@ -22,13 +22,6 @@
 #include "wingGeom.h"
 #include "FeaMeshMgr.h"
 #include "parmLinkMgr.h"
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
-
 #include "defines.h"
 
 
@@ -1991,14 +1984,12 @@ void Ms_wing_geom::draw()
 		//==== Draw Hightlighted Stuff ====//
 		if ( redFlag )
 		{
-			glLineWidth(2);
-			glColor3f(0.75, 0, 0);
+			renderer->setLineWidth( 2 );
+			renderer->setColor3d( 0.75, 0, 0 );
 			if ( highlightType != MSW_HIGHLIGHT_NONE )
 				draw_sect_box();
 		}
-
 	}
-
 }
 
 //==== Draw If Alpha < 1 and Shaded ====//
@@ -2112,55 +2103,102 @@ void Ms_wing_geom::draw_refl_sect_box()
 //==== Draw Box ====//
 void Ms_wing_geom::draw_bbox( bbox & box )
 {
-  double temp[3];
-  temp[0] = box.get_min(0);
-  temp[1] = box.get_min(1);
-  temp[2] = box.get_min(2);
+	vector<double> data;
 
-  glBegin( GL_LINE_STRIP );
-    glVertex3dv(temp);
-    temp[0] = box.get_max(0);
-    glVertex3dv(temp);
-    temp[1] = box.get_max(1);
-    glVertex3dv(temp);
-    temp[2] = box.get_max(2);
-    glVertex3dv(temp);
-    temp[0] = box.get_min(0);
-    glVertex3dv(temp);
-    temp[2] = box.get_min(2);
-    glVertex3dv(temp);
-    temp[1] = box.get_min(1);
-    glVertex3dv(temp);
-    temp[2] = box.get_max(2);
-    glVertex3dv(temp);
-    temp[0] = box.get_max(0);
-    glVertex3dv(temp);
-    temp[2] = box.get_min(2);
-    glVertex3dv(temp);
-  glEnd();
+	double temp[3];
+	temp[0] = box.get_min(0);
+	temp[1] = box.get_min(1);
+	temp[2] = box.get_min(2);
 
-  glBegin( GL_LINE_STRIP );
-    temp[2] = box.get_max(2);
-    glVertex3dv(temp);
-    temp[1] = box.get_max(1);
-    glVertex3dv(temp);
-  glEnd();
+	data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
 
-  glBegin( GL_LINE_STRIP );
-    temp[2] = box.get_min(2);
-    glVertex3dv(temp);
-    temp[0] = box.get_min(0);
-    glVertex3dv(temp);
-  glEnd();
+   temp[0] = box.get_max(0);
+	data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
 
-  glBegin( GL_LINE_STRIP );
-    temp[2] = box.get_max(2);
-    glVertex3dv(temp);
-    temp[1] = box.get_min(1);
-    glVertex3dv(temp);
-  glEnd();
+   temp[1] = box.get_max(1);
+	data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
 
+   temp[2] = box.get_max(2);
+	data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
 
+   temp[0] = box.get_min(0);
+	data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
+
+   temp[2] = box.get_min(2);
+	data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
+
+   temp[1] = box.get_min(1);
+	data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
+
+   temp[2] = box.get_max(2);
+	data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
+
+   temp[0] = box.get_max(0);
+	data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
+
+   temp[2] = box.get_min(2);
+	data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
+
+	renderer->draw( R_LINE_STRIP, 3, data );
+	data.clear();
+
+	temp[2] = box.get_max(2);
+	data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
+
+	temp[1] = box.get_max(1);
+	data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
+
+	renderer->draw( R_LINE_STRIP, 3, data );
+	data.clear();
+
+   temp[2] = box.get_min(2);
+   data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
+
+   temp[0] = box.get_min(0);
+	data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
+
+	renderer->draw( R_LINE_STRIP, 3, data );
+	data.clear();
+
+   temp[2] = box.get_max(2);
+	data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
+
+   temp[1] = box.get_min(1);
+	data.push_back( temp[0] );
+	data.push_back( temp[1] );
+	data.push_back( temp[2] );
+
+	renderer->draw( R_LINE_STRIP, 3, data );
 }
 
 //==== Compute And Load Normals ====//

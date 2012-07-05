@@ -21,6 +21,7 @@
 #include "drawBase.h"
 #include "editCurve.h"
 #include "geom.h"
+#include "renderMgr.h"
 
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
@@ -221,7 +222,8 @@ protected:
   //==== Num of Interpolated Sections Next to This One ====//
   int numSectInterp1;		
   int numSectInterp2;		
- 
+
+  renderMgr * renderer;
 };
 
 #endif

@@ -304,12 +304,30 @@ public:
 
 	virtual void draw();
 	virtual void draw( float * mat );
+	virtual void draw( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha );
+	virtual void draw( float * mat, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha );
 
 	virtual void draw_wire();
 	virtual void draw_wire( float * mat );
+	virtual void draw_wire( float lineWidth );
+	virtual void draw_wire( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha );
+	virtual void draw_wire( float * mat, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha );
+	virtual void draw_wire( float * mat, float lineWidth );
+	virtual void draw_wire( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, float lineWidth );
+	virtual void draw_wire( float * mat, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, float lineWidth );
 
    virtual void draw_shaded(); 
 	virtual void draw_shaded( float * mat );
+	virtual void draw_shaded( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha );
+	virtual void draw_shaded( float * mat, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha );
+
+	virtual void draw_hidden();
+	virtual void draw_hidden( float * mat );
+	virtual void draw_hidden( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha );
+	virtual void draw_hidden( float * mat, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha );
+
+	virtual void draw_alpha();
+	virtual void draw_alpha( float * mat );
 
 	virtual double computeTheoArea();
 	virtual double computeWetArea();
@@ -363,9 +381,7 @@ public:
 protected:
 	renderMgr * renderer;
 	RenderProperties rp_shaded;
+	RenderProperties rp_hidden;
+	RenderProperties rp_alpha;
 };
-
-
-
-
 #endif

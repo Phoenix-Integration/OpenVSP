@@ -151,7 +151,8 @@ FuselageXSec::FuselageXSec(Geom* geom_ptr_in)
 	this->gen_parms();
 	this->generate();
 
-
+	renderer = new renderMgr();
+	renderer->init();
 }
 
 void FuselageXSec::set_fuse_ptr( Geom* geom_ptr_in )
@@ -189,11 +190,15 @@ void FuselageXSec::set_fuse_ptr( Geom* geom_ptr_in )
 	bot_str.set_geom( this );
 
 	edit_crv.set_geom( this );
+
+	renderer = new renderMgr();
+	renderer->init();
 }
 
 //===== Destructor  =====//
 FuselageXSec::~FuselageXSec()
 {
+	delete renderer;
 }
 
 ////===== Copy - Override Equals  =====//
@@ -271,74 +276,135 @@ void FuselageXSec::setAllTanStrFlag( int f )
 //==== Draw Cross Section In 2D Window ====//
 void FuselageXSec::draw()
 {
-	int i;
+	int i, j;
+	vector<double> data, colors;
+	float scale_mat[4][4];
 
-	glPushMatrix();
+	for ( i = 0; i < 4; i++ )
+	{
+		for ( j = 0; j < 4; j++ )
+		{
+			scale_mat[i][j] = 0;
+		}
+	}
 
-	glScalef( (float)drawScaleFactor, (float)drawScaleFactor, 1.0 );
+	scale_mat[0][0] = (float)drawScaleFactor;
+	scale_mat[1][1] = (float)drawScaleFactor;
+	scale_mat[2][2] = 1.0;
+	scale_mat[3][3] = 1.0;
 
 	//==== Draw Grid ====//
 	float gridSize;
-	if ( drawScaleFactor < 0.025 )		gridSize = 10.0f;
-	else if ( drawScaleFactor < 0.25 )	gridSize = 1.0f;
-	else								gridSize = 0.1f;
+	if ( drawScaleFactor < 0.025 )		
+		gridSize = 10.0f;
+	else if ( drawScaleFactor < 0.25 )	
+		gridSize = 1.0f;
+	else								
+		gridSize = 0.1f;
 
-	glLineWidth(1.0);
-	glColor3f(0.8f, 0.8f, 0.8f);
-	glBegin( GL_LINES );
+	renderer->setLineWidth( 1.0 );
+	renderer->setColor3d( 0.8, 0.8, 0.8 );
 	for ( i = 0 ; i < 41 ; i++ )
 	{
 		if ( i == 20 )
-			glColor3f(0.8f, 0.8f, 0.8f);
+		{
+			colors.push_back( 0.8 ); // red		// vertex 1
+			colors.push_back( 0.8 ); // green
+			colors.push_back( 0.8 ); // blue
+
+			colors.push_back( 0.8 ); // vertex 2
+			colors.push_back( 0.8 ); 
+			colors.push_back( 0.8 );
+
+			colors.push_back( 0.8 ); // vertex 3
+			colors.push_back( 0.8 ); 
+			colors.push_back( 0.8 );
+
+			colors.push_back( 0.8 ); // vertex 4
+			colors.push_back( 0.8 ); 
+			colors.push_back( 0.8 );
+		}
 		else
-			glColor3f(0.9f, 0.9f, 0.9f);
+		{
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
 
-		glVertex2f( gridSize*(float)i - 20.0f*gridSize, -20.0f*gridSize );
-		glVertex2f( gridSize*(float)i - 20.0f*gridSize,  20.0f*gridSize );
-		glVertex2f( -20.0f*gridSize, gridSize*(float)i - 20.0f*gridSize );
-		glVertex2f(  20.0f*gridSize, gridSize*(float)i - 20.0f*gridSize );
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+			colors.push_back( 0.9 );
+		}
+
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
+		data.push_back( -20.0f*gridSize );
+
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
+		data.push_back( 20.0f*gridSize );
+
+		data.push_back( -20.0f*gridSize );
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
+
+		data.push_back( 20.0f*gridSize );
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
 	}
-	glEnd();
+	renderer->draw( R_LINES, *scale_mat, 3, colors, 2, data );
+	data.clear();
 
-
-	glColor3f(1.0, 0.0, 0.0);
-	glBegin( GL_LINE_STRIP );
-    for (  i = 0 ; i < num_pnts ; i++)
-    {
+	renderer->setColor3d( 1.0, 0.0, 0.0 );
+   for (  i = 0 ; i < num_pnts ; i++)
+   {
 		vec3d p = pnts[i];
-		glVertex2d( p.y(), p.z() );
+		data.push_back( p.y() );
+		data.push_back( p.z() );
 	}
-	glEnd();
+	if ( data.size() > 0 )
+	{
+		renderer->draw( R_LINE_STRIP, *scale_mat, 2, data );
+		data.clear();
+	}
 
-
-	glColor3f(0.0, 0.0, 1.0);
-	glBegin( GL_LINES );
-		
+	renderer->setColor3d( 0.0, 0.0, 1.0 );
 	vec3d p = top_crv.get_pnt(0);
-	glVertex2d( p.y(), p.z() );
+	data.push_back( p.y() );
+	data.push_back( p.z() );
+
 	p = p + top_crv.get_tan(0);
-	glVertex2d( p.y(), p.z() );
+	data.push_back( p.y() );
+	data.push_back( p.z() );
 
 	p = top_crv.get_pnt(1);
-	glVertex2d( p.y(), p.z() );
+	data.push_back( p.y() );
+	data.push_back( p.z() );
+
 	p = p - top_crv.get_tan(1);
-	glVertex2d( p.y(), p.z() );
+	data.push_back( p.y() );
+	data.push_back( p.z() );
 	
 	p = bot_crv.get_pnt(0);
-	glVertex2d( p.y(), p.z() );
+	data.push_back( p.y() );
+	data.push_back( p.z() );
+
 	p = p + bot_crv.get_tan(0);
-	glVertex2d( p.y(), p.z() );
+	data.push_back( p.y() );
+	data.push_back( p.z() );
 
 	p = bot_crv.get_pnt(1);
-	glVertex2d( p.y(), p.z() );
+	data.push_back( p.y() );
+	data.push_back( p.z() );
+
 	p = p - bot_crv.get_tan(1);
-	glVertex2d( p.y(), p.z() );
+	data.push_back( p.y() );
+	data.push_back( p.z() );
 
-	glEnd();
- 
-
-	glPopMatrix();
-
+	renderer->draw( R_LINES, *scale_mat, 2, data );
 }
 
 //==== Parm Has Changed ReGenerate Component ====//

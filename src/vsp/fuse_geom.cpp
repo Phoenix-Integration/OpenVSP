@@ -2628,37 +2628,14 @@ void Fuse_geom::drawControlPoints()
 			data.push_back( pnt.data()[1] );
 			data.push_back( pnt.data()[2] );
 
-			//glBegin( GL_LINES );
-
-			//vec3d pnt = cPntVec[i].pnt3d;
-			//glVertex3dv( pnt.data() );
-			//if ( cPntVec[i].pntID == ControlPnt::TOP )
-			//	pnt.offset_z( length.get()/20.0 );
-			//else if ( cPntVec[i].pntID == ControlPnt::BOTTOM )
-			//	pnt.offset_z( -length.get()/20.0 );
-			//else if ( cPntVec[i].pntID == ControlPnt::SIDE )
-			//	pnt.offset_y( length.get()/20.0 );
-
-			//glVertex3dv( pnt.data() );
-
-			//glEnd();
-
 			renderer->draw( R_LINES, 3, data );
 			renderer->setPointSize( 16.0 );
-			//glPointSize( 16.0 );
 		}
 		else
 		{
-			//glColor3ub( 255, 0, 0 );
-			//glPointSize( 8.0 );
-
 			renderer->setColor3ub( 255, 0, 0 );
 			renderer->setPointSize( 8.0 );
 		}
-		//glBegin( GL_POINTS );
-		//cPntVec[i].pnt2d = projectPoint( cPntVec[i].pnt3d, 0 );
-		//glVertex3dv( cPntVec[i].pnt3d.data() );
-		//glEnd();
 		vector<double> data;
 		cPntVec[i].pnt2d = projectPoint( cPntVec[i].pnt3d, 0 );
 		data.push_back( cPntVec[i].pnt3d.data()[0] );
@@ -2666,6 +2643,7 @@ void Fuse_geom::drawControlPoints()
 		data.push_back( cPntVec[i].pnt3d.data()[2] );
 
 		renderer->draw( R_POINTS, 3, data );
+		data.clear();
 	}
 }
 

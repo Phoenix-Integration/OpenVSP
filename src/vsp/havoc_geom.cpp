@@ -16,13 +16,6 @@
 #include "aircraft.h"
 #include "materialMgr.h"
 #include "parmLinkMgr.h"
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
-
 #include "defines.h"
 
 static double infdenom = 0.0;

@@ -23,7 +23,7 @@
 #include "stringc.h"
 #include "xmlvsp.h"
 
-
+#include "renderMgr.h"
 #include "tMesh.h"
 
 
@@ -135,6 +135,7 @@ protected:
 	bool staleFlag;
 	bool editFlag;
 
+	renderMgr * renderer;
 };
 
 
@@ -166,12 +167,9 @@ public:
 	virtual void ReadParms( xmlNodePtr node );
 
 protected:
-
-
 	vec2d uwPnt[3];
 	vec3d projPnt[3];
 	vec3d plnPnt[4];
-
 };
 
 

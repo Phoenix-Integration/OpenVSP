@@ -27,6 +27,7 @@
 #include "drawBase.h"
 #include "editCurve.h"
 #include "geom.h"
+#include "renderMgr.h"
 
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
@@ -250,6 +251,9 @@ public:
 
   double computeArea();
  
+protected:
+	renderMgr * renderer;
+
 };
 
 #endif

@@ -8,9 +8,9 @@
 //   J.R. Gloudemans - 2/14/09
 //******************************************************************************
 
-//#ifdef WIN32
-//#include <windows.h>		
-//#endif
+#ifdef WIN32
+#	include <windows.h>		
+#endif
 
 #include <FL/Fl.H>
 
@@ -524,11 +524,6 @@ int FeaSpliceLine::processReleaseEvent()
 
 void FeaSpliceLine::DrawMain()
 {
-	//glBegin( GL_LINES );
-	//	glVertex3dv( m_EndPnts[0].data() );
-	//	glVertex3dv( m_EndPnts[1].data() );
-	//glEnd();
-
 	vector<double> data;
 
 	data.push_back( m_EndPnts[0].data()[0] );
@@ -540,15 +535,6 @@ void FeaSpliceLine::DrawMain()
 	data.push_back( m_EndPnts[1].data()[2] );
 
 	renderer->draw( R_LINES, 3, data );
-
-	//glPointSize(8.0);
-	//glBegin( GL_POINTS );
-	//for ( int i = 0 ; i < (int)m_SpliceVec.size() ; i++ )
-	//{
-	//	vec3d p = m_EndPnts[0] + (m_EndPnts[1] - m_EndPnts[0])*m_SpliceVec[i]->m_Pos;
-	//	glVertex3dv( p.data() );
-	//}
-	//glEnd();
 	data.clear();
 
 	renderer->setPointSize( 8.0 );
@@ -636,23 +622,6 @@ void FeaSpliceLine::draw()
 	}
 	renderer->draw( R_LINES, 3, lcolors, 2, ldata );
 
-	//glLineWidth(1.0);
-	//glColor3f(0.8f, 0.8f, 0.8f);
-	//glBegin( GL_LINES );
-	//for ( i = 0 ; i < 41 ; i++ )
-	//{
-	//	if ( i == 20 )
-	//		glColor3f(0.8f, 0.8f, 0.8f);
-	//	else
-	//		glColor3f(0.9f, 0.9f, 0.9f);
-
-	//	glVertex2f( gridSize*(float)i - 20.0f*gridSize, -20.0f*gridSize );
-	//	glVertex2f( gridSize*(float)i - 20.0f*gridSize,  20.0f*gridSize );
-	//	glVertex2f( -20.0f*gridSize, gridSize*(float)i - 20.0f*gridSize );
-	//	glVertex2f(  20.0f*gridSize, gridSize*(float)i - 20.0f*gridSize );
-	//}
-	//glEnd();
-
 	//==== Draw Thick Dist ====//
 	double max_thick = FindMaxThick();
 	double ar = (double)winHeight/(double)winWidth;
@@ -730,38 +699,6 @@ void FeaSpliceLine::draw()
 	/* Draw points */
 	renderer->draw( R_POINTS, 3, pcolors, 2, pdata );
 
-	//glLineWidth(1.0);
-	//glPointSize(5.0);
-	//for ( i = 0 ; i < (int)m_SpliceVec.size() ; i++ )
-	//{
-	//	double ht = 0.35;
-	//	FeaSplice* sp = m_SpliceVec[i];
-	//	if ( sp == m_EditSplice )
-	//	{
-	//		glColor3f( 1.0f, 0.0f, 0.0f );
-	//		ht = 0.45;
-	//	}
-	//	else if ( sp == m_HighlightSplice && m_Mode == NORMAL_MODE )
-	//	{
-	//		glColor3f( 0.3f, 0.3f, 0.3f);
-	//		ht = 0.40;
-	//	}
-	//	else
-	//	{
-	//		glColor3f( 0.6f, 0.6f, 0.6f );
-	//	}
-
-	//	glBegin( GL_LINES );
-	//		glVertex2d( m_WinXScale*sp->m_Pos - m_WinXScale*0.5,  ar*ht );
-	//		glVertex2d( m_WinXScale*sp->m_Pos - m_WinXScale*0.5, -ar*ht );
-	//	glEnd();
-
-	//	glBegin( GL_POINTS );
-	//			glVertex2d( m_WinXScale*sp->m_Pos - m_WinXScale*0.5,  ar*ht );
-	//	glEnd();
-	//	
-	//}
-
 	ldata.clear();
 
 	RenderProperties rp;
@@ -792,29 +729,6 @@ void FeaSpliceLine::draw()
 
 		renderer->draw( R_LINE_LOOP, rp, 2, ldata );
 	}
-
-	//glColor4f( 0.0f, 0.0f, 1.0f, 1.0f );
-	//glLineWidth(2.0);
-	//glEnable( GL_LINE_SMOOTH );
-
-	////==== Draw Thick Dist ====//
-	//for ( i = 0 ; i < (int)m_SpliceVec.size()-1 ; i++ )
-	//{
-	//	FeaSplice* sp0 = m_SpliceVec[i];
-	//	double t0 = (m_SpliceVec[i]->m_Thick/max_thick)*ar*0.5;
-	//	FeaSplice* sp1 = m_SpliceVec[i+1];
-	//	double t1 = (m_SpliceVec[i+1]->m_Thick/max_thick)*ar*0.5;
-	//	glBegin( GL_LINE_LOOP );
-	//		glVertex2d( m_WinXScale*sp0->m_Pos - m_WinXScale*0.5,  t0*0.5 );
-	//		glVertex2d( m_WinXScale*sp0->m_Pos - m_WinXScale*0.5, -t0*0.5 );
-	//		glVertex2d( m_WinXScale*sp1->m_Pos - m_WinXScale*0.5, -t1*0.5 );
-	//		glVertex2d( m_WinXScale*sp1->m_Pos - m_WinXScale*0.5,  t1*0.5 );
-	//	glEnd();
-	//}
-	//glDisable( GL_LINE_SMOOTH );
-
-
-
 }
 
 

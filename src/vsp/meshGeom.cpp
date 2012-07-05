@@ -20,11 +20,6 @@
 #include "vorGeom.h"
 #include "CfdMeshMgr.h"
 
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
 #include "defines.h"
 #include "tritri.h"
 #include "bbox.h"
@@ -881,6 +876,7 @@ void MeshGeom::draw()
 {
 	int i;
 	vec3d p;
+	vector<double> data, colors;
 
 	//==== Draw Highlighting Boxes ====//
 	draw_highlight_boxes();
@@ -894,10 +890,10 @@ void MeshGeom::draw()
 		{
 			if ( tMeshVec[i]->shellFlag )
 			{
-				glColor3ub( (int)tMeshVec[i]->color.x(), 
-                            (int)tMeshVec[i]->color.y(), 
-                            (int)tMeshVec[i]->color.z() );	
-				tMeshVec[i]->draw_wire();
+				tMeshVec[i]->draw_wire( (int)tMeshVec[i]->color.x(), 
+												(int)tMeshVec[i]->color.y(),
+												(int)tMeshVec[i]->color.z(),
+												255 );
 			}
 		}
 
@@ -910,31 +906,32 @@ void MeshGeom::draw()
 			if ( delDen > 0.0 )
 				fract = (mpTriVec[i]->mass - minTriDen)/delDen;
 
-			int red  = (int)(fract*255.0);
-			int blue = (int)((1.0-fract)*255.0);
+			colors.push_back( fract );
+			colors.push_back( 0 );
+			colors.push_back( 1.0 - fract );
 
-			glColor3ub( red, 0, blue );
+			data.push_back( mpTriVec[i]->n0->pnt.data()[0] );
+			data.push_back( mpTriVec[i]->n0->pnt.data()[1] );
+			data.push_back( mpTriVec[i]->n0->pnt.data()[2] );
 
-			glBegin( GL_POLYGON );
+			data.push_back( mpTriVec[i]->n1->pnt.data()[0] );
+			data.push_back( mpTriVec[i]->n1->pnt.data()[1] );
+			data.push_back( mpTriVec[i]->n1->pnt.data()[2] );
 
-			glVertex3dv( mpTriVec[i]->n0->pnt.data() );
-			glVertex3dv( mpTriVec[i]->n1->pnt.data() );
- 			glVertex3dv( mpTriVec[i]->n2->pnt.data() );
-
-			glEnd();
+			data.push_back( mpTriVec[i]->n2->pnt.data()[0] );
+			data.push_back( mpTriVec[i]->n2->pnt.data()[1] );
+			data.push_back( mpTriVec[i]->n2->pnt.data()[2] );
+		}
+		if( data.size() > 0 )
+		{
+			renderer->draw( R_TRIANGLES, 3, colors, 3, data );
 		}
 		return;
 	}
 
 	if ( displayFlag == GEOM_SHADE_FLAG )
 	{
-		glEnable( GL_LIGHTING );
-          
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-		glEnable( GL_LIGHTING );
- 
 		Material* mat = matMgrPtr->getMaterial( materialID );
 		if ( mat )
 		{
@@ -943,67 +940,66 @@ void MeshGeom::draw()
 			{
 				for ( i = 0 ; i < (int)tMeshVec.size() ; i++ )
 				{
-					tMeshVec[i]->draw_shaded();
+					tMeshVec[i]->draw_shaded( *model_mat );
 				}
 				for ( i = 0 ; i < (int)sliceVec.size() ; i++ )
 				{
-					sliceVec[i]->draw_shaded();
+					sliceVec[i]->draw_shaded( *model_mat );
 				}
 			}
 		}
-		glDisable( GL_LIGHTING );
-		glPopMatrix();
 	}
 	if ( displayFlag == GEOM_HIDDEN_FLAG ) 
 	{
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
-		glColor3ub( 255, 255, 255 );
 		for ( i = 0 ; i < (int)tMeshVec.size() ; i++ )
 		{
-			tMeshVec[i]->draw_shaded();
+			tMeshVec[i]->draw_hidden( *model_mat, 255, 255, 255, 255 );
 		}
 		for ( i = 0 ; i < (int)sliceVec.size() ; i++ )
 		{
-			sliceVec[i]->draw_shaded();
+			sliceVec[i]->draw_hidden( *model_mat, 255, 255, 255, 255 );
 		}
-
-		glPopMatrix();
 	}
 	if ( displayFlag == GEOM_WIRE_FLAG || displayFlag == GEOM_HIDDEN_FLAG )
 	{
-		//==== Set Line Width ====//  
-		glLineWidth(1);
-
-		if ( displayFlag == GEOM_HIDDEN_FLAG )
-			glLineWidth(2);
-
 		//==== Draw Geom ====//
-		glPushMatrix();
-		glMultMatrixf((GLfloat*)model_mat); 
-
-		if (meshType == MODEL_MESH )
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-
-		for ( i = 0 ; i < (int)tMeshVec.size() ; i++ )
+		if ( displayFlag == GEOM_HIDDEN_FLAG )
 		{
-			TMesh* tmesh = tMeshVec[i];
-			if ( tmesh )
+			for ( i = 0 ; i < (int)tMeshVec.size() ; i++ )
 			{
-				if ( meshType == INTERSECTION_MESH )
-					glColor3ub( (int)tmesh->color.x(), (int)tmesh->color.y(), (int)tmesh->color.z() );	
-				tmesh->draw_wire();
+				TMesh* tmesh = tMeshVec[i];
+				if ( tmesh )
+				{
+					if ( meshType == INTERSECTION_MESH )
+						tmesh->draw_wire( *model_mat, (int)tmesh->color.x(), (int)tmesh->color.y(), (int)tmesh->color.z(), 255, 2 );
+					else if ( meshType == MODEL_MESH )
+						tmesh->draw_wire( *model_mat, (int)color.x(), (int)color.y(), (int)color.z(), 255, 2 );
+				}
+			}
+			for ( i = 0 ; i < (int)sliceVec.size() ; i++ )
+			{
+				sliceVec[i]->draw_wire( *model_mat, (int)color.x(), (int)color.y(), (int)color.z(), 255, 2 );
 			}
 		}
-		for ( i = 0 ; i < (int)sliceVec.size() ; i++ )
+		else
 		{
-			glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-			sliceVec[i]->draw_wire();
+			for ( i = 0 ; i < (int)tMeshVec.size() ; i++ )
+			{
+				TMesh* tmesh = tMeshVec[i];
+				if ( tmesh )
+				{
+					if ( meshType == INTERSECTION_MESH )
+						tmesh->draw_wire( *model_mat, (int)tmesh->color.x(), (int)tmesh->color.y(), (int)tmesh->color.z(), 255, 1 );
+					else if ( meshType == MODEL_MESH )
+						tmesh->draw_wire( *model_mat, (int)color.x(), (int)color.y(), (int)color.z(), 255, 1 );
+				}
+			}
+			for ( i = 0 ; i < (int)sliceVec.size() ; i++ )
+			{
+				sliceVec[i]->draw_wire( *model_mat, (int)color.x(), (int)color.y(), (int)color.z(), 255, 1 );
+			}
 		}
-
-		glPopMatrix();
 	}
 }
 
@@ -1022,7 +1018,7 @@ void MeshGeom::drawAlpha()
 		mat->bind();
 		for ( int i = 0 ; i < (int)tMeshVec.size() ; i++ )
 		{
-			tMeshVec[i]->draw_shaded( *model_mat );
+			tMeshVec[i]->draw_alpha( *model_mat );
 		}
 	}
 }

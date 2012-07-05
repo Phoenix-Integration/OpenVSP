@@ -179,14 +179,17 @@ TMesh::TMesh()
 	renderer->init();
 
 	/* Render Properties for drawing shaded */
-	rp_shaded.mode.blendMode.enabled = true;
-	rp_shaded.mode.blendMode.blendfunc.sfactor = R_SRC_ALPHA;
-	rp_shaded.mode.blendMode.blendfunc.dfactor = R_ONE_MINUS_SRC_ALPHA;
-
 	rp_shaded.mode.lightingMode.enabled = true;
 
-	rp_shaded.mode.cullFaceMode.enabled = true;
-	rp_shaded.mode.cullFaceMode.cullface.mode = R_BACK;
+	/* Render Properties for drawing alpha */
+	rp_alpha.mode.lightingMode.enabled = true;
+
+	rp_alpha.mode.blendMode.enabled = true;
+	rp_alpha.mode.blendMode.blendfunc.sfactor = R_SRC_ALPHA;
+	rp_alpha.mode.blendMode.blendfunc.dfactor = R_ONE_MINUS_SRC_ALPHA;
+
+	rp_alpha.mode.cullFaceMode.enabled = true;
+	rp_alpha.mode.cullFaceMode.cullface.mode = R_BACK;
 }
 
 TMesh::~TMesh()
@@ -622,6 +625,14 @@ void TMesh::draw( float * mat )
 {
 }
 
+void TMesh::draw( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha )
+{
+}
+
+void TMesh::draw( float * mat, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha )
+{
+}
+
 //==== Draw Wire Frame =====//
 void TMesh::draw_wire( )
 {
@@ -843,9 +854,10 @@ void TMesh::draw_wire( float* mat  )
 			data.push_back( offnorm.data()[0] );
 			data.push_back( offnorm.data()[1] );
 			data.push_back( offnorm.data()[2] );
+
+			renderer->draw( R_LINES, mat, 3, data );
+			data.clear();
 		}
-		renderer->draw( R_LINES, mat, 3, data );
-		data.clear();
 	}
 
 	//Draw Isect Lines
@@ -860,13 +872,51 @@ void TMesh::draw_wire( float* mat  )
 		data.push_back( isectPairs[i+1].data()[1] );
 		data.push_back( isectPairs[i+1].data()[2] );
 	}
-	renderer->draw( R_LINES, mat, 3, data );
-	data.clear();
+	if ( data.size() > 0 )
+	{
+		renderer->draw( R_LINES, mat, 3, data );
+		data.clear();
+	}
 
 	// Restore Color
 	renderer->setColor4d( color[0], color[1], color[2], color[3] ); 		
 }
 
+void TMesh::draw_wire( float lineWidth )
+{
+	renderer->setLineWidth( lineWidth );
+	draw_wire();
+}
+
+void TMesh::draw_wire( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha )
+{
+	renderer->setColor4ub( red, green, blue, alpha );
+	draw_wire();
+}
+
+void TMesh::draw_wire( float * mat, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha )
+{
+	renderer->setColor4ub( red, green, blue, alpha );
+	draw_wire( mat );
+}
+
+void TMesh::draw_wire( float * mat, float lineWidth )
+{
+	renderer->setLineWidth( lineWidth );
+	draw_wire( mat );
+}
+
+void TMesh::draw_wire( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, float lineWidth )
+{
+	renderer->setLineWidth( lineWidth );
+	draw_wire( red, green, blue, alpha );
+}
+
+void TMesh::draw_wire( float * mat, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha, float lineWidth )
+{
+	renderer->setLineWidth( lineWidth );
+	draw_wire( mat, red, green, blue, alpha );
+}
 
 void TMesh::draw_shaded()
 {
@@ -954,7 +1004,10 @@ void TMesh::draw_shaded()
 			}
 		}
 	}
-	renderer->draw( R_TRIANGLES, rp_shaded, 3, data, normals );
+	if ( data.size() > 0 )
+	{
+		renderer->draw( R_TRIANGLES, rp_shaded, 3, data, normals );
+	}
 }
 
 void TMesh::draw_shaded( float * mat )
@@ -1043,7 +1096,402 @@ void TMesh::draw_shaded( float * mat )
 			}
 		}
 	}
-	renderer->draw( R_TRIANGLES, rp_shaded, mat, 3, data, normals );
+	if ( data.size() > 0 )
+	{
+		renderer->draw( R_TRIANGLES, rp_shaded, mat, 3, data, normals );
+	}
+}
+
+void TMesh::draw_shaded( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha )
+{
+	renderer->setColor4ub( red, green, blue, alpha );
+	draw_shaded();
+}
+
+void TMesh::draw_shaded( float * mat, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha )
+{
+	renderer->setColor4ub( red, green, blue, alpha );
+	draw_shaded( mat );
+}
+
+void TMesh::draw_hidden()
+{
+	int i,j;
+	vec3d t1, t2, t3;
+	vertVec.clear();
+
+	vector<double> data, normals;
+
+	for ( i = 0 ; i < (int)tVec.size() ; i++ )
+	{
+		if ( tVec[i]->splitVec.size() )
+		{
+			for ( j = 0 ; j < (int)tVec[i]->splitVec.size() ; j++ )
+			{
+				if ( tVec[i]->splitVec[j]->interiorFlag == 0 )
+				{
+					t1 = tVec[i]->splitVec[j]->n0->pnt;
+					t2 = tVec[i]->splitVec[j]->n1->pnt;
+					t3 = tVec[i]->splitVec[j]->n2->pnt;
+					vertVec.push_back(t1);
+					vertVec.push_back(t2);
+					vertVec.push_back(t3);
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t1.data()[0] );
+					data.push_back( t1.data()[1] );
+					data.push_back( t1.data()[2] );
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t2.data()[0] );
+					data.push_back( t2.data()[1] );
+					data.push_back( t2.data()[2] );
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t3.data()[0] );
+					data.push_back( t3.data()[1] );
+					data.push_back( t3.data()[2] );
+				}
+			}
+		}
+		else
+		{
+			if ( tVec[i]->interiorFlag == 0 )
+			{
+				t1 = tVec[i]->n0->pnt;
+				t2 = tVec[i]->n1->pnt;
+				t3 = tVec[i]->n2->pnt;
+				vertVec.push_back(t1);
+				vertVec.push_back(t2);
+				vertVec.push_back(t3);
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t1.data()[0] );
+				data.push_back( t1.data()[1] );
+				data.push_back( t1.data()[2] );
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t2.data()[0] );
+				data.push_back( t2.data()[1] );
+				data.push_back( t2.data()[2] );
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t3.data()[0] );
+				data.push_back( t3.data()[1] );
+				data.push_back( t3.data()[2] );
+			}
+		}
+	}
+	if ( data.size() > 0 )
+	{
+		renderer->draw( R_TRIANGLES, rp_hidden, 3, data, normals );
+	}
+}
+
+void TMesh::draw_hidden( float * mat )
+{
+	int i,j;
+	vec3d t1, t2, t3;
+	vertVec.clear();
+
+	vector<double> data, normals;
+
+	for ( i = 0 ; i < (int)tVec.size() ; i++ )
+	{
+		if ( tVec[i]->splitVec.size() )
+		{
+			for ( j = 0 ; j < (int)tVec[i]->splitVec.size() ; j++ )
+			{
+				if ( tVec[i]->splitVec[j]->interiorFlag == 0 )
+				{
+					t1 = tVec[i]->splitVec[j]->n0->pnt;
+					t2 = tVec[i]->splitVec[j]->n1->pnt;
+					t3 = tVec[i]->splitVec[j]->n2->pnt;
+					vertVec.push_back(t1);
+					vertVec.push_back(t2);
+					vertVec.push_back(t3);
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t1.data()[0] );
+					data.push_back( t1.data()[1] );
+					data.push_back( t1.data()[2] );
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t2.data()[0] );
+					data.push_back( t2.data()[1] );
+					data.push_back( t2.data()[2] );
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t3.data()[0] );
+					data.push_back( t3.data()[1] );
+					data.push_back( t3.data()[2] );
+				}
+			}
+		}
+		else
+		{
+			if ( tVec[i]->interiorFlag == 0 )
+			{
+				t1 = tVec[i]->n0->pnt;
+				t2 = tVec[i]->n1->pnt;
+				t3 = tVec[i]->n2->pnt;
+				vertVec.push_back(t1);
+				vertVec.push_back(t2);
+				vertVec.push_back(t3);
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t1.data()[0] );
+				data.push_back( t1.data()[1] );
+				data.push_back( t1.data()[2] );
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t2.data()[0] );
+				data.push_back( t2.data()[1] );
+				data.push_back( t2.data()[2] );
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t3.data()[0] );
+				data.push_back( t3.data()[1] );
+				data.push_back( t3.data()[2] );
+			}
+		}
+	}
+	if ( data.size() > 0 )
+	{
+		renderer->draw( R_TRIANGLES, rp_hidden, mat, 3, data, normals );
+	}
+}
+
+void TMesh::draw_hidden( unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha )
+{
+	renderer->setColor4ub( red, green, blue, alpha );
+	draw_hidden();
+}
+
+void TMesh::draw_hidden( float * mat, unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha )
+{
+	renderer->setColor4ub( red, green, blue, alpha );
+	draw_hidden( mat );
+}
+
+void TMesh::draw_alpha()
+{
+	int i,j;
+	vec3d t1, t2, t3;
+	vertVec.clear();
+
+	vector<double> data, normals;
+
+	for ( i = 0 ; i < (int)tVec.size() ; i++ )
+	{
+		if ( tVec[i]->splitVec.size() )
+		{
+			for ( j = 0 ; j < (int)tVec[i]->splitVec.size() ; j++ )
+			{
+				if ( tVec[i]->splitVec[j]->interiorFlag == 0 )
+				{
+					t1 = tVec[i]->splitVec[j]->n0->pnt;
+					t2 = tVec[i]->splitVec[j]->n1->pnt;
+					t3 = tVec[i]->splitVec[j]->n2->pnt;
+					vertVec.push_back(t1);
+					vertVec.push_back(t2);
+					vertVec.push_back(t3);
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t1.data()[0] );
+					data.push_back( t1.data()[1] );
+					data.push_back( t1.data()[2] );
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t2.data()[0] );
+					data.push_back( t2.data()[1] );
+					data.push_back( t2.data()[2] );
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t3.data()[0] );
+					data.push_back( t3.data()[1] );
+					data.push_back( t3.data()[2] );
+				}
+			}
+		}
+		else
+		{
+			if ( tVec[i]->interiorFlag == 0 )
+			{
+				t1 = tVec[i]->n0->pnt;
+				t2 = tVec[i]->n1->pnt;
+				t3 = tVec[i]->n2->pnt;
+				vertVec.push_back(t1);
+				vertVec.push_back(t2);
+				vertVec.push_back(t3);
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t1.data()[0] );
+				data.push_back( t1.data()[1] );
+				data.push_back( t1.data()[2] );
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t2.data()[0] );
+				data.push_back( t2.data()[1] );
+				data.push_back( t2.data()[2] );
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t3.data()[0] );
+				data.push_back( t3.data()[1] );
+				data.push_back( t3.data()[2] );
+			}
+		}
+	}
+	if ( data.size() > 0 )
+	{
+		renderer->draw( R_TRIANGLES, rp_alpha, 3, data, normals );
+	}
+}
+
+void TMesh::draw_alpha( float * mat )
+{
+	int i,j;
+	vec3d t1, t2, t3;
+	vertVec.clear();
+
+	vector<double> data, normals;
+
+	for ( i = 0 ; i < (int)tVec.size() ; i++ )
+	{
+		if ( tVec[i]->splitVec.size() )
+		{
+			for ( j = 0 ; j < (int)tVec[i]->splitVec.size() ; j++ )
+			{
+				if ( tVec[i]->splitVec[j]->interiorFlag == 0 )
+				{
+					t1 = tVec[i]->splitVec[j]->n0->pnt;
+					t2 = tVec[i]->splitVec[j]->n1->pnt;
+					t3 = tVec[i]->splitVec[j]->n2->pnt;
+					vertVec.push_back(t1);
+					vertVec.push_back(t2);
+					vertVec.push_back(t3);
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t1.data()[0] );
+					data.push_back( t1.data()[1] );
+					data.push_back( t1.data()[2] );
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t2.data()[0] );
+					data.push_back( t2.data()[1] );
+					data.push_back( t2.data()[2] );
+
+					normals.push_back( tVec[i]->norm.data()[0] );
+					normals.push_back( tVec[i]->norm.data()[1] );
+					normals.push_back( tVec[i]->norm.data()[2] );
+
+					data.push_back( t3.data()[0] );
+					data.push_back( t3.data()[1] );
+					data.push_back( t3.data()[2] );
+				}
+			}
+		}
+		else
+		{
+			if ( tVec[i]->interiorFlag == 0 )
+			{
+				t1 = tVec[i]->n0->pnt;
+				t2 = tVec[i]->n1->pnt;
+				t3 = tVec[i]->n2->pnt;
+				vertVec.push_back(t1);
+				vertVec.push_back(t2);
+				vertVec.push_back(t3);
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t1.data()[0] );
+				data.push_back( t1.data()[1] );
+				data.push_back( t1.data()[2] );
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t2.data()[0] );
+				data.push_back( t2.data()[1] );
+				data.push_back( t2.data()[2] );
+
+				normals.push_back( tVec[i]->norm.data()[0] );
+				normals.push_back( tVec[i]->norm.data()[1] );
+				normals.push_back( tVec[i]->norm.data()[2] );
+
+				data.push_back( t3.data()[0] );
+				data.push_back( t3.data()[1] );
+				data.push_back( t3.data()[2] );
+			}
+		}
+	}
+	if ( data.size() > 0 )
+	{
+		renderer->draw( R_TRIANGLES, rp_alpha, mat, 3, data, normals );
+	}
 }
 
 void TMesh::addTri( const vec3d & v0, const vec3d & v1, const vec3d & v2, const vec3d & norm )
@@ -1086,9 +1534,6 @@ void TMesh::addTri( TNode* node0, TNode* node1, TNode* node2, const vec3d & norm
 	nVec.push_back( ttri->n0 );
 	nVec.push_back( ttri->n1 );
 	nVec.push_back( ttri->n2 );
-
-
-
 }
 
 

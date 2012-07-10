@@ -17,14 +17,10 @@ BaseSource::BaseSource()
 {
 	m_Name = Stringc("Source_Name");
 	m_ReflSource = NULL;
-
-	renderer = new renderMgr();
-	renderer->init();
 }
 
 BaseSource::~BaseSource()
 {
-	delete renderer;
 }
 
 void BaseSource::CheckCorrectRad( double base_len )

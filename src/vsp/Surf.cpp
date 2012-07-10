@@ -19,9 +19,6 @@ Surf::Surf()
 	m_CompID = -1;
 	m_SurfID = -1;
 	m_Mesh.SetSurfPtr( this );
-
-	renderer = new renderMgr();
-	renderer->init();
 }
 
 Surf::~Surf()
@@ -34,8 +31,6 @@ Surf::~Surf()
 	//==== Delete SCurves ====//
 	for ( i = 0 ; i < (int)m_SCurveVec.size() ; i++ )
 		delete m_SCurveVec[i];
-
-	delete renderer;
 }
 
 void Surf::BuildClean()

@@ -11,16 +11,6 @@
 #if !defined(GRIDDENSITY_GRIDDENSITY__INCLUDED_)
 #define GRIDDENSITY_GRIDDENSITY__INCLUDED_
 
-//#ifdef _WIN32
-//#	include <windows.h>
-//#endif
-//
-//#ifdef __APPLE__
-//#	include <OpenGL\gl.h>
-//#else
-//#	include <gl\GL.h>
-//#endif
-
 #include <stdio.h>
 #include "vec2d.h"
 #include "vec3d.h"
@@ -91,8 +81,6 @@ protected:
 	Stringc m_Name;
 
 	Geom* m_GeomPtr;
-
-	renderMgr* renderer;
 
 	int m_Type;
 

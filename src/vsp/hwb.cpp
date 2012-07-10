@@ -1851,14 +1851,12 @@ void HwbBaseGeom::draw()
 		//==== Draw Hightlighted Stuff ====//
 		if ( redFlag )
 		{
-			glLineWidth(2);
-			glColor3f(0.75, 0, 0);
+			renderer->setLineWidth( 2 );
+			renderer->setColor3d( 0.75, 0, 0 );
 			if ( highlightType != MSW_HIGHLIGHT_NONE )
 				draw_sect_box();
 		}
-
 	}
-
 }
 
 //==== Draw If Alpha < 1 and Shaded ====//

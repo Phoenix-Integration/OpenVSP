@@ -893,12 +893,9 @@ void SurfPatch::AddTVal( double t, vector< double > & t_vals )
 void SurfPatch::Draw()
 {
 	vector<double> data;
-	
-	renderMgr renderer = renderMgr();
-	renderer.init();
 
-	renderer.setLineWidth( 1.0 );
-	renderer.setColor3ub( 0, 255, 0 );
+	renderer->setLineWidth( 1.0 );
+	renderer->setColor3ub( 0, 255, 0 );
 
 	data.push_back( pnts[0][0].data()[0] );
 	data.push_back( pnts[0][0].data()[1] );
@@ -920,7 +917,7 @@ void SurfPatch::Draw()
 	data.push_back( pnts[0][3].data()[2] );
 	data.push_back( pnts[0][3].data()[3] );
 
-	renderer.draw( R_LINE_LOOP, 3, data );
+	renderer->draw( R_LINE_LOOP, 3, data );
 }
 
 

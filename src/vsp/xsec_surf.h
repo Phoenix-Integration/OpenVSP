@@ -16,16 +16,6 @@
 #ifndef XSEC_SURF_H
 #define XSEC_SURF_H
 
-//#ifdef WIN32
-//#include <windows.h>		
-//#endif
-//
-//#ifdef __APPLE__
-//#  include <OpenGL/gl.h>
-//#else
-//#  include <GL/gl.h>
-//#endif
-
 #pragma warning(disable:4786)
 
 #include <stdio.h>
@@ -56,8 +46,7 @@ class Xsec_surf
 private:
  
 protected:
- 
-	renderMgr* surfRenderer;
+
 	RenderProperties rp_shaded;
 	RenderProperties rp_texture;
 	RenderProperties rp_hidden;
@@ -145,24 +134,30 @@ public:
 
 	void draw_wire();
    void draw_wire( float* mat );
+
 	void draw_hidden();
    void draw_hidden( float* mat ); 
-	void draw_shaded();
-   void draw_shaded( float* mat );
-	void draw_texture( AppliedTex& atex );
-   void draw_texture( AppliedTex& atex, float* mat );
-	void draw_refl_texture( AppliedTex& atex, int sym_code_in );
-   void draw_refl_texture( AppliedTex& atex, int sym_code_in, float* mat );
+
+	void draw_shaded( bool cullFlag );
+   void draw_shaded( float* mat, bool cullFlag );
+
+	void draw_texture( AppliedTex& atex, bool cullFlag );
+   void draw_texture( AppliedTex& atex, float* mat, bool cullFlag );
+
+	void draw_refl_texture( AppliedTex& atex, int sym_code_in, bool cullFlag );
+   void draw_refl_texture( AppliedTex& atex, int sym_code_in, float* mat, bool cullFlag );
+
+	void draw_refl_shaded( int sym_code_in, bool cullFlag );
+   void draw_refl_shaded( int sym_code_in, float* mat, bool cullFlag ); 
+
+	void draw_refl_wire( int sym_code_in );
+   void draw_refl_wire( int sym_code_in, float* mat );
+
+	void draw_refl_hidden( int sym_code_in );
+   void draw_refl_hidden( int sym_code_in, float* mat );
 
    void remap_texture( double u, double width, bool wrapFlag, vector< double > & valVec, 
 						vector< int > & indexVec, vector< double > & valRemap );
-
-	void draw_refl_wire( int sym_code_in );
-   void draw_refl_wire( int sym_code_in, float* mat ); 
-	void draw_refl_hidden( int sym_code_in );
-   void draw_refl_hidden( int sym_code_in, float* mat );
-	void draw_refl_shaded( int sym_code_in );
-   void draw_refl_shaded( int sym_code_in, float* mat ); 
 
    void write(xmlNodePtr node);
    void read(xmlNodePtr node);

@@ -44,9 +44,22 @@ public:
 
 public:
 	virtual void drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, vector<double> data );
+	virtual void drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, float* matrix, vector<double> data );
 
 protected:
 	IRenderer* renderPtr;
 };
+
+class RenderPtr
+{
+public:
+	RenderPtr();
+	virtual ~RenderPtr();
+
+	renderMgr * renMgr;
+};
+
+static RenderPtr renderPtr;
+#define renderer (renderPtr.renMgr)
 
 #endif

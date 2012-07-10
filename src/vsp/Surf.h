@@ -17,7 +17,6 @@
 #include "Mesh.h"
 #include "GridDensity.h"
 #include "SurfPatch.h"
-#include "renderMgr.h"
 
 #include <assert.h>
 
@@ -141,8 +140,6 @@ protected:
 	bool m_ScaleUFlag;
 	vector< double > m_UScaleMap;
 	vector< double > m_WScaleMap;
-
-	renderMgr * renderer;
 };
 
 

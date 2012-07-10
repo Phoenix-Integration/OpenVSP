@@ -49,9 +49,6 @@ CfdMeshMgr::CfdMeshMgr()
 
 	m_YSlicePlane = new Surf();
 
-	renderer = new renderMgr();
-	renderer->init();
-
 	rp_cfdmesh.mode.polygonOffsetMode.enabled = true;
 	rp_cfdmesh.mode.polygonOffsetMode.polygonOffset.factor = 2.0;
 	rp_cfdmesh.mode.polygonOffsetMode.polygonOffset.units = 1.0;
@@ -71,8 +68,6 @@ CfdMeshMgr::~CfdMeshMgr()
 {
 	CleanUp();
 	delete m_YSlicePlane;
-
-	delete renderer;
 
 #ifdef DEBUG_CFD_MESH
 	if (m_DebugFile)

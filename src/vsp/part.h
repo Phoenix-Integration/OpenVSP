@@ -23,7 +23,6 @@
 #include "stringc.h"
 #include "xmlvsp.h"
 
-#include "renderMgr.h"
 #include "tMesh.h"
 
 
@@ -134,8 +133,6 @@ protected:
 	bool staleMesh;
 	bool staleFlag;
 	bool editFlag;
-
-	renderMgr * renderer;
 };
 
 

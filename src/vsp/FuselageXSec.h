@@ -222,8 +222,6 @@ protected:
   //==== Num of Interpolated Sections Next to This One ====//
   int numSectInterp1;		
   int numSectInterp2;		
-
-  renderMgr * renderer;
 };
 
 #endif

@@ -95,15 +95,10 @@ VorSlice::VorSlice()
 	 Vor->ncsftrap[i] = 0;
      Vor->csftrap[i] = (int *)calloc(MAX_TRAP, sizeof(int));
   }
-
-  renderer = new renderMgr();
-  renderer->init();
 }
 
 VorSlice::~VorSlice()
 {
-	delete renderer;
-
 	free( Vor->ncsftrap );
 	free( Vor->csftype );
 	free( Vor->csfreflect );
@@ -127,33 +122,6 @@ VorSlice::~VorSlice()
 
 void VorSlice::drawherm()
 {
-	//int icomp, i, j;
-
-	///* --- Loop Through Components ----*/
-	//for ( icomp = 0 ; icomp < Vor->ncomps ; icomp++)
-	//{
-	//	for ( i = 0 ; i < Vor->ncross[icomp] ; i++)
-	//	{
- //         /* ---- Draw Cross Sections ----*/
-	//      glBegin( GL_LINE_STRIP );
- //         for ( j = 0 ; j < Vor->npts[icomp] ; j++)
- //         {
- // 			  glVertex3fv( Vor->herm[icomp][i][j] );
- //         }
- //         glEnd();
- //       }
-	//	for ( j = 0 ; j < Vor->npts[icomp] ; j++)
- //       {
- //         /* ---- Draw Stringer Lines ----*/
-	//	  glBegin( GL_LINE_STRIP );
- //         for ( i = 0 ; i < Vor->ncross[icomp] ; i++)
- //         {
-	//		  glVertex3fv( Vor->herm[icomp][i][j] );
- //         }
- //         glEnd();
- //       }
- //   }
-
 	int icomp, i, j;
 
 	vector<double> data;
@@ -186,6 +154,43 @@ void VorSlice::drawherm()
           renderer->draw( R_LINE_STRIP, 3, data );
 			 data.clear();
         }
+    }
+}
+
+void VorSlice::drawherm( float* trans_mat )
+{
+	int icomp, i, j;
+
+	vector<double> data;
+
+	/* --- Loop Through Components ----*/
+	for ( icomp = 0 ; icomp < Vor->ncomps ; icomp++)
+	{
+		for ( i = 0 ; i < Vor->ncross[icomp] ; i++)
+		{
+          /* ---- Draw Cross Sections ----*/
+          for ( j = 0 ; j < Vor->npts[icomp] ; j++)
+          {
+				data.push_back( Vor->herm[icomp][i][j][0] );
+				data.push_back( Vor->herm[icomp][i][j][1] );
+				data.push_back( Vor->herm[icomp][i][j][2] );
+          }
+			 renderer->draw( R_LINE_STRIP, trans_mat, 3, data );
+			 data.clear();
+      }
+
+		for ( j = 0 ; j < Vor->npts[icomp] ; j++)
+      {
+          /* ---- Draw Stringer Lines ----*/
+          for ( i = 0 ; i < Vor->ncross[icomp] ; i++)
+          {
+				data.push_back( Vor->herm[icomp][i][j][0] );
+				data.push_back( Vor->herm[icomp][i][j][1] );
+				data.push_back( Vor->herm[icomp][i][j][2] );
+          }
+          renderer->draw( R_LINE_STRIP, trans_mat, 3, data );
+			 data.clear();
+       }
     }
 }
 
@@ -334,6 +339,130 @@ void VorSlice::drawslices()
 	}
 }
 
+void VorSlice::drawslices( float* trans_mat )
+{
+	vector<double> data;
+
+	renderer->setLineWidth( 3.0 );
+	renderer->setColor3ub( 150, 150, 150 );
+	for ( int islc = 0 ; islc < Vor->ntraps ; islc++) 
+	{
+		// ---- Draw Outline of Traps ----//
+		for (int i = 0 ; i < 4 ; i++)
+		{
+			data.push_back( Vor->trap[islc][i][0] );
+			data.push_back( Vor->trap[islc][i][1] );
+			data.push_back( Vor->trap[islc][i][2] );
+		}
+		renderer->draw( R_LINE_LOOP, trans_mat, 3, data );
+		data.clear();
+	}
+
+	//==== Draw Current Key Slice ====//
+	int numKey = get_num_key_slices(); 
+	if ( numKey > 0 )
+	{
+		for ( int i = 0 ; i < numKey ; i++ )
+		{
+			float y = key_slice.y[i];
+
+			renderer->setLineWidth( 1.0 );
+			renderer->setColor3ub( 0, 200, 0 );
+
+			if ( i == key_slice.current_key && !get_key_slice_temp_flag() )
+			{
+				renderer->setLineWidth( 3.0 );
+				renderer->setColor3ub( 255, 0, 255 );
+			}
+			if ( key_slice.symmetry_flag && i == get_opposite_keyslice() )
+			{
+				renderer->setLineWidth( 3.0 );
+				renderer->setColor3ub( 255, 0, 255 );
+			}
+
+			data.push_back( key_slice.xmin );
+			data.push_back( y );
+			data.push_back( key_slice.zmin );
+
+			data.push_back( key_slice.xmax );
+			data.push_back( y );
+			data.push_back( key_slice.zmin );
+
+			data.push_back( key_slice.xmax );
+			data.push_back( y );
+			data.push_back( key_slice.zmax );
+
+			data.push_back( key_slice.xmin );
+			data.push_back( y );
+			data.push_back( key_slice.zmax );
+
+			renderer->draw( R_LINE_LOOP, trans_mat, 3, data );
+			data.clear();
+
+			for ( int j = 0 ; j < 8 ; j++ )
+			{
+				float fract = (float)(j+1)/10.0f;
+				float xval = key_slice.xmin + fract*(key_slice.xmax - key_slice.xmin);
+
+				data.push_back( xval );
+				data.push_back( y );
+				data.push_back( key_slice.zmin );
+
+				data.push_back( xval );
+				data.push_back( y );
+				data.push_back( key_slice.zmax );
+
+				renderer->draw( R_LINES, trans_mat, 3, data );
+				data.clear();
+			}
+		}
+
+		if ( get_key_slice_temp_flag() )
+		{
+			float y = key_slice.ytemp;
+
+			renderer->setLineWidth( 2.0 );
+			renderer->setColor3ub( 255, 0, 0 );
+
+			data.push_back( key_slice.xmin );
+			data.push_back( y );
+			data.push_back( key_slice.zmin );
+
+			data.push_back( key_slice.xmax );
+			data.push_back( y );
+			data.push_back( key_slice.zmin );
+
+			data.push_back( key_slice.xmax );
+			data.push_back( y );
+			data.push_back( key_slice.zmax );
+
+			data.push_back( key_slice.xmin );
+			data.push_back( y );
+			data.push_back( key_slice.zmax );
+
+			renderer->draw( R_LINE_LOOP, trans_mat, 3, data );
+			data.clear();
+
+			for ( int j = 0 ; j < 8 ; j++ )
+			{
+				float fract = (float)(j+1)/10.0f;
+				float xval = key_slice.xmin + fract*(key_slice.xmax - key_slice.xmin);
+
+				data.push_back( xval );
+				data.push_back( y );
+				data.push_back( key_slice.zmin );
+
+				data.push_back( xval );
+				data.push_back( y );
+				data.push_back( key_slice.zmax );
+
+				renderer->draw( R_LINES, trans_mat, 3, data );
+				data.clear();
+			}
+		}
+	}
+}
+
 void VorSlice::drawcsf()
 {
 	int i, icsf, itrap;
@@ -472,6 +601,145 @@ void VorSlice::drawcsf()
 	renderer->setLineWidth( 1.0 );
 }
 
+void VorSlice::drawcsf( float* trans_mat )
+{
+	int i, icsf, itrap;
+	float vert[3];
+	float x1, x2, z1, z2;
+
+	vector<double> data;
+
+	//==== Draw Current Trap ====//
+	int ctrap = this->get_curr_trap();
+	if ( ctrap >= 0 )
+	{
+		renderer->setLineWidth( 6.0 );
+		renderer->setColor3ub( 255, 0, 0 );
+
+		for ( i = 0 ; i < 4 ; i++)
+		{
+			data.push_back( Vor->trap[ctrap][i][0] );
+			data.push_back( Vor->trap[ctrap][i][1] );
+			data.push_back( Vor->trap[ctrap][i][2] );
+		}
+
+		renderer->drawLineStipple3d( 2, 0x0F0F, R_LINE_LOOP, trans_mat, data );
+		data.clear();
+
+		renderer->setLineWidth( 1.0 );
+	}
+	renderer->setLineWidth( 3.0 );
+
+	//==== Loop Thru All Control Surfaces ====//
+	for (icsf = 0 ; icsf < Vor->ntotcsf ; icsf++)
+    {
+		//==== Load Color For The Control Surface ====//
+		int r, g, b;
+		get_csf_color(icsf, &r, &g, &b);
+		renderer->setColor3ub( r, g, b );
+
+		//==== Loop Through Each Trap In The Control Surface ====//
+		for (itrap = 0 ; itrap < Vor->ncsftrap[icsf] ; itrap++)
+		{
+			//==== Find Trap Index ====//
+			int trap_ind = Vor->csftrap[icsf][itrap];
+  
+			//==== Check Control Surface Type ====//
+			if (Vor->csftype[icsf] == 0)		// Flap
+			{
+				data.push_back( Vor->trap[trap_ind][1][0] );
+				data.push_back( Vor->trap[trap_ind][1][1] );
+				data.push_back( Vor->trap[trap_ind][1][2] );
+
+				x1 = Vor->trap[trap_ind][0][0];
+				x2 = Vor->trap[trap_ind][1][0];
+                vert[0] = (x1 - x2)*Vor->csfchord[icsf] + x2;
+
+				vert[1] = Vor->trap[trap_ind][0][1];
+
+				z1 = Vor->trap[trap_ind][0][2];
+				z2 = Vor->trap[trap_ind][1][2];
+                vert[2] = (z1 - z2)*Vor->csfchord[icsf] + z2;
+
+				data.push_back( vert[0] );
+				data.push_back( vert[1] );
+				data.push_back( vert[2] );
+
+				x1 = Vor->trap[trap_ind][3][0];
+				x2 = Vor->trap[trap_ind][2][0];
+                vert[0] = (x1 - x2)*Vor->csfchord[icsf] + x2;
+
+				vert[1] = Vor->trap[trap_ind][2][1];
+
+				z1 = Vor->trap[trap_ind][3][2];
+				z2 = Vor->trap[trap_ind][2][2];
+                vert[2] = (z1 - z2)*Vor->csfchord[icsf] + z2;
+
+				data.push_back( vert[0] );
+				data.push_back( vert[1] );
+				data.push_back( vert[2] );
+
+				data.push_back( Vor->trap[trap_ind][2][0] );
+				data.push_back( Vor->trap[trap_ind][2][1] );
+				data.push_back( Vor->trap[trap_ind][2][2] );
+			}
+         else if (Vor->csftype[icsf] == 1)	// Slat
+         {
+				x1 = Vor->trap[trap_ind][0][0];
+				x2 = Vor->trap[trap_ind][1][0];
+
+            vert[0] = x1;
+				vert[1] = Vor->trap[trap_ind][0][1];
+				vert[2] = Vor->trap[trap_ind][0][2];
+
+				data.push_back( vert[0] );
+				data.push_back( vert[1] );
+				data.push_back( vert[2] );
+
+				vert[0] = (x2 - x1)*Vor->csfchord[icsf] + x1;
+
+				z1 = Vor->trap[trap_ind][0][2];
+				z2 = Vor->trap[trap_ind][1][2];
+				vert[2] = (z2 - z1)*Vor->csfchord[icsf] + z1;
+ 
+				data.push_back( vert[0] );
+				data.push_back( vert[1] );
+				data.push_back( vert[2] );
+
+				x1 = Vor->trap[trap_ind][3][0];
+				x2 = Vor->trap[trap_ind][2][0];
+                vert[0] = (x2 - x1)*Vor->csfchord[icsf] + x1;
+				vert[1] = Vor->trap[trap_ind][2][1];
+
+				z1 = Vor->trap[trap_ind][3][2];
+				z2 = Vor->trap[trap_ind][2][2];
+                vert[2] = (z2 - z1)*Vor->csfchord[icsf] + z1;
+
+				data.push_back( vert[0] );
+				data.push_back( vert[1] );
+				data.push_back( vert[2] );
+
+				data.push_back( Vor->trap[trap_ind][3][0] );
+				data.push_back( Vor->trap[trap_ind][3][1] );
+				data.push_back( Vor->trap[trap_ind][3][2] );
+			}
+			else		// All
+			{
+				for (i = 0 ; i < 4 ; i++)
+            {
+					data.push_back( Vor->trap[trap_ind][i][0] );
+					data.push_back( Vor->trap[trap_ind][i][1] );
+					data.push_back( Vor->trap[trap_ind][i][2] );
+					data.push_back( Vor->trap[trap_ind][i][3] );
+				}
+			}
+		}
+		renderer->draw( R_POLYGON, trans_mat, 3, data );
+	}      
+	renderer->setLineWidth( 1.0 );
+}
+
+
 /*
  * _draw_point_
  *
@@ -535,6 +803,27 @@ void VorSlice::drawsubpols()
 	}
 }
 
+void VorSlice::drawsubpols( float* trans_mat )
+{
+	int isub, i;
+	vector<double> data;
+
+	renderer->setLineWidth( 1.0 );
+
+	/* ---- Loop Through All Sub-Polys ----*/
+	for ( isub = 0 ; isub < Vor->nsubp ; isub++)
+   {
+      for (i = 0 ; i < 4 ; i++)
+      {
+			data.push_back( Vor->subp[isub][i][0] );
+			data.push_back( Vor->subp[isub][i][1] );
+			data.push_back( Vor->subp[isub][i][2] );
+      }
+		renderer->draw( R_LINE_LOOP, trans_mat, 3, data );
+		data.clear();
+	}
+}
+
 /*======================================================================*
 * Module Name:  drawcpvals
 *=======================================================================*
@@ -569,6 +858,34 @@ void VorSlice::drawcpvals()
           }
 		}
 		renderer->draw( R_QUADS, 3, colors, 3, data );
+	}
+}
+
+void VorSlice::drawcpvals( float* trans_mat )
+{
+	int isub, i;
+ 
+	vector<double> data, colors;
+
+	/* ---- Check If Cp Data Matches Sub-Poly Data ---*/
+	if (Vor->ncpv == Vor->nsubp)
+	{
+      /* ---- Loop Through Sub-Polygons ----*/
+      for ( isub = 0 ; isub < Vor->nsubp ; isub++)
+		{
+          for (i = 0 ; i < 4 ; i++)
+          {
+				 /* ---- Set Color For Each Polygon ----*/
+				 colors.push_back( Vor->cpcol[isub][0] / 255 );
+				 colors.push_back( Vor->cpcol[isub][1] / 255 );
+				 colors.push_back( Vor->cpcol[isub][2] / 255 );
+
+				 data.push_back( Vor->subp[isub][i][0] );
+				 data.push_back( Vor->subp[isub][i][1] );
+				 data.push_back( Vor->subp[isub][i][2] );
+          }
+		}
+		renderer->draw( R_QUADS, trans_mat, 3, colors, 3, data );
 	}
 }
 
@@ -654,6 +971,78 @@ void VorSlice::drawrgb()
 	renderer->draw( R_QUADS, 3, colors, 3, data );
 }
 
+void VorSlice::drawrgb( float* trans_mat )
+{
+	int icomp, i, j;
+	float pcent;
+	short cvec[3];
+
+	vector<double> data, colors;
+
+	/* --- Loop Through Components ----*/
+	for ( icomp = 0 ; icomp < Vor->ncomps ; icomp++)
+	{
+		for ( i = 0 ; i < Vor->ncross[icomp]-1 ; i++)
+      {
+			for ( j = 0 ; j < Vor->npts[icomp]-1 ; j++)
+         {
+				pcent = (Vor->herm[icomp][i][j][3]-Vor->cp_surf_min_clamp)/
+                         (Vor->cp_surf_max_clamp-Vor->cp_surf_min_clamp);
+            find_rgb(pcent, cvec);
+
+				colors.push_back( cvec[0] / 255.0 );
+				colors.push_back( cvec[1] / 255.0 );
+				colors.push_back( cvec[2] / 255.0 );
+
+				data.push_back( Vor->herm[icomp][i][j][0] );
+				data.push_back( Vor->herm[icomp][i][j][1] );
+				data.push_back( Vor->herm[icomp][i][j][2] );
+
+
+            pcent = (Vor->herm[icomp][i+1][j][3]-Vor->cp_surf_min_clamp)/
+                    (Vor->cp_surf_max_clamp-Vor->cp_surf_min_clamp);
+
+            find_rgb(pcent, cvec);
+
+				colors.push_back( cvec[0] / 255.0 );
+				colors.push_back( cvec[1] / 255.0 );
+				colors.push_back( cvec[2] / 255.0 );
+
+				data.push_back( Vor->herm[icomp][i+1][j][0] );
+				data.push_back( Vor->herm[icomp][i+1][j][1] );
+				data.push_back( Vor->herm[icomp][i+1][j][2] );
+            
+				pcent= (Vor->herm[icomp][i+1][j+1][3]-Vor->cp_surf_min_clamp)/
+                   (Vor->cp_surf_max_clamp-Vor->cp_surf_min_clamp);
+
+            find_rgb(pcent, cvec);
+
+				colors.push_back( cvec[0] / 255.0 );
+				colors.push_back( cvec[1] / 255.0 );
+				colors.push_back( cvec[2] / 255.0 );
+
+				data.push_back( Vor->herm[icomp][i+1][j+1][0] );
+				data.push_back( Vor->herm[icomp][i+1][j+1][1] );
+				data.push_back( Vor->herm[icomp][i+1][j+1][2] ); 
+
+
+				pcent = (Vor->herm[icomp][i][j+1][3]-Vor->cp_surf_min_clamp)/
+                    (Vor->cp_surf_max_clamp-Vor->cp_surf_min_clamp);
+
+            find_rgb(pcent, cvec);
+
+				colors.push_back( cvec[0] / 255.0 );
+				colors.push_back( cvec[1] / 255.0 );
+				colors.push_back( cvec[2] / 255.0 );
+
+				data.push_back( Vor->herm[icomp][i][j+1][0] );
+				data.push_back( Vor->herm[icomp][i][j+1][1] );
+				data.push_back( Vor->herm[icomp][i][j+1][2] ); 
+			}
+		}
+	}
+	renderer->draw( R_QUADS, trans_mat, 3, colors, 3, data );
+}
 
 /*======================================================================*
 * Module Name:  write_surf_press_pnts
@@ -894,6 +1283,79 @@ void VorSlice::drawcamber()
 		data.push_back( z1 + delta*normal[2] );
 
 		renderer->draw( R_LINES, 3, data );
+		data.clear();
+	}
+}
+
+void VorSlice::drawcamber( float* trans_mat )
+{
+	int islc, icamb;
+	float x1, x2, xdelt;
+	float y1, y2, ydelt;
+	float z1, z2, zdelt;
+	float vert[3], x, y, z, f, delta;
+	float zmax = 0.; /* lep debug */
+	float normal[3];
+  
+	vector<double> data;
+
+	/* ---- Loop Through All Trapizoids ----*/
+	for ( islc = 0 ; islc < Vor->ntraps ; islc++)
+	{
+		vert[1] = (Vor->trap[islc][0][1] + Vor->trap[islc][3][1])/2.0f;
+      x1 = (Vor->trap[islc][0][0] + Vor->trap[islc][3][0])/2.0f;
+      x2 = (Vor->trap[islc][1][0] + Vor->trap[islc][2][0])/2.0f;
+      xdelt = (x2 - x1)/(float)(Vor->ncamb - 1);
+
+      y1 = (Vor->trap[islc][0][1] + Vor->trap[islc][3][1])/2.0f;
+      y2 = (Vor->trap[islc][1][1] + Vor->trap[islc][2][1])/2.0f;
+      ydelt = (y2 - y1)/(float)(Vor->ncamb - 1);
+
+      z1 = (Vor->trap[islc][0][2] + Vor->trap[islc][3][2])/2.0f;
+      z2 = (Vor->trap[islc][1][2] + Vor->trap[islc][2][2])/2.0f;
+      zdelt = (z2 - z1)/(float)(Vor->ncamb - 1);
+
+      /* Calculate normal for this trap */           
+      get_trap_normal(islc,normal);
+      
+      /* Draw the camber line */
+		renderer->setColor3d( 1.0, 0.0, 1.0 );
+
+		for (icamb = 0 ; icamb < Vor->ncamb ; icamb++) 
+		{
+			x = x1 + (float)(icamb)*xdelt;
+         y = y1 + (float)(icamb)*ydelt;
+         z = z1 + (float)(icamb)*zdelt;
+             
+         f = Vor->camb[islc][icamb];
+
+         vert[0] = x;
+         vert[1] = y + f*zm_camb*normal[1];
+         vert[2] = z + f*zm_camb*normal[2];
+             
+			data.push_back( vert[0] );
+			data.push_back( vert[1] );
+			data.push_back( vert[2] );
+
+			if (vert[2] > zmax) /* lep debug */
+				zmax = vert[2];  /* lep debug */
+		}
+		renderer->draw( R_LINE_STRIP, trans_mat, 3, data );
+		data.clear();
+      
+      /* Draw the normal vector */      
+		renderer->setColor3ub( 0, 255, 0 );
+
+		data.push_back( x1 );
+		data.push_back( y1 );
+		data.push_back( z1 );
+
+      delta = Vor->scale;        
+		data.push_back( x1 + delta*normal[0] );
+		data.push_back( y1 + delta*normal[1] );
+		data.push_back( z1 + delta*normal[2] );
+
+		renderer->draw( R_LINES, trans_mat, 3, data );
 		data.clear();
 	}
 }

@@ -302,7 +302,7 @@ private:
 	//==== Custom Default Component Stuff ====//
 	map< int, Geom* > m_DefaultCompMap;
 
-
+	float identityMatrix[4][4];
 };
 
 #endif // !defined(AFX_AIRCRAFT_H__9E994B80_7FDF_11D7_AC31_0003473A025A__INCLUDED_)

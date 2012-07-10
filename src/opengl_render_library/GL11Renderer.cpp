@@ -355,6 +355,21 @@ void GL11Renderer::drawLineStipple3d( int factor, unsigned short pattern, Primit
 
 /******************************************************
 *
+* Draw Line Stipple.
+*
+*******************************************************/
+void GL11Renderer::drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, float* matrix, vector<double> data )
+{
+	glPushMatrix();
+	glMultMatrixf( (GLfloat*)matrix );
+
+	drawLineStipple3d( factor, pattern, mode, data );
+
+	glPopMatrix();
+}
+
+/******************************************************
+*
 * Apply Customized Rendering Properties.
 *
 *******************************************************/

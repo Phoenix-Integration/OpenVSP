@@ -247,14 +247,10 @@ Part::Part()
 	editFlag = false;
 	sliceMesh = NULL;
 	finalMesh = NULL;
-
-	renderer = new renderMgr();
-	renderer->init();
 }
 
 Part::~Part()
 {
-	delete renderer;
 }
 
 void Part::DeleteFinalMesh()

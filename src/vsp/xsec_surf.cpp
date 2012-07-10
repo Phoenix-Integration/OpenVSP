@@ -47,10 +47,6 @@ Xsec_surf::Xsec_surf()
 
   draw_flag = true;
 
-  /* Initialize Renderer */
-  surfRenderer = new renderMgr();
-  surfRenderer->init();
-
   /* Customized Render Properties */ 
 
   /* Render Properties for drawing hidden */
@@ -362,7 +358,7 @@ void Xsec_surf::draw_wire()
 	double color[4];
 
 	//==== Set Line Width ====//  
-	surfRenderer->setLineWidth( 1.0 );
+	renderer->setLineWidth( 1.0 );
 
 	fast_1 = fast_2 = 1;
 	if ( fast_draw_flag ) 
@@ -379,9 +375,9 @@ void Xsec_surf::draw_wire()
 	{
 		if ( highlight_xsec_flag && i == highlight_xsec_id )
 		{
-			surfRenderer->getColor4d( color );
-			surfRenderer->setColor3d( highlight_xsec_color.x(), highlight_xsec_color.y(), highlight_xsec_color.z() );
-			surfRenderer->setLineWidth( 3.0 );
+			renderer->getColor4d( color );
+			renderer->setColor3d( highlight_xsec_color.x(), highlight_xsec_color.y(), highlight_xsec_color.z() );
+			renderer->setLineWidth( 3.0 );
 		}
 
 		vector<double> data;
@@ -392,12 +388,12 @@ void Xsec_surf::draw_wire()
 			data.push_back( dpnt[1] );
 			data.push_back( dpnt[2] );
 		}
-		surfRenderer->draw( R_LINE_STRIP, 3, data );
+		renderer->draw( R_LINE_STRIP, 3, data );
 
 		if ( highlight_xsec_flag && i == highlight_xsec_id )
 		{
-			surfRenderer->setColor3d( color[0], color[1], color[2] );
-			surfRenderer->setLineWidth( 1.0 );
+			renderer->setColor3d( color[0], color[1], color[2] );
+			renderer->setLineWidth( 1.0 );
 		}
 	}
 
@@ -412,7 +408,7 @@ void Xsec_surf::draw_wire()
 			data.push_back( dpnt[1] );
 			data.push_back( dpnt[2] );
 		}
-		surfRenderer->draw( R_LINE_STRIP, 3, data );
+		renderer->draw( R_LINE_STRIP, 3, data );
     }
 }
 
@@ -429,7 +425,7 @@ void Xsec_surf::draw_wire( float* mat )
 	double color[4];
 
 	//==== Set Line Width ====//  
-	surfRenderer->setLineWidth( 1.0 );
+	renderer->setLineWidth( 1.0 );
 
 	fast_1 = fast_2 = 1;
 	if ( fast_draw_flag ) 
@@ -446,9 +442,9 @@ void Xsec_surf::draw_wire( float* mat )
 	{
 		if ( highlight_xsec_flag && i == highlight_xsec_id )
 		{
-			surfRenderer->getColor4d( color );
-			surfRenderer->setColor3d( highlight_xsec_color.x(), highlight_xsec_color.y(), highlight_xsec_color.z() );
-			surfRenderer->setLineWidth( 3.0 );
+			renderer->getColor4d( color );
+			renderer->setColor3d( highlight_xsec_color.x(), highlight_xsec_color.y(), highlight_xsec_color.z() );
+			renderer->setLineWidth( 3.0 );
 		}
 
 		vector<double> data;
@@ -459,12 +455,12 @@ void Xsec_surf::draw_wire( float* mat )
 			data.push_back( dpnt[1] );
 			data.push_back( dpnt[2] );
 		}
-		surfRenderer->draw( R_LINE_STRIP, mat, 3, data );
+		renderer->draw( R_LINE_STRIP, mat, 3, data );
 
 		if ( highlight_xsec_flag && i == highlight_xsec_id )
 		{
-			surfRenderer->setColor3d( color[0], color[1], color[2] );
-			surfRenderer->setLineWidth( 1.0 );
+			renderer->setColor3d( color[0], color[1], color[2] );
+			renderer->setLineWidth( 1.0 );
 		}
 	}
 
@@ -479,7 +475,7 @@ void Xsec_surf::draw_wire( float* mat )
 			data.push_back( dpnt[1] );
 			data.push_back( dpnt[2] );
 		}
-		surfRenderer->draw( R_LINE_STRIP, mat, 3, data );
+		renderer->draw( R_LINE_STRIP, mat, 3, data );
     }
 }
 
@@ -508,7 +504,7 @@ void Xsec_surf::draw_refl_wire( int sym_code_in )
 	}
 
 	//==== Set Line Width ====//  
-	surfRenderer->setLineWidth( 1.0 );
+	renderer->setLineWidth( 1.0 );
 
 	//==== Draw Cross Sections ====//  
 	vector<double> data;
@@ -523,7 +519,7 @@ void Xsec_surf::draw_refl_wire( int sym_code_in )
 			data.push_back( dpnt[1] );
 			data.push_back( dpnt[2] );
 		}
-		surfRenderer->draw( R_LINE_STRIP, 3, data );
+		renderer->draw( R_LINE_STRIP, 3, data );
 	}
 
 	//==== Draw Stringers ====//  
@@ -537,7 +533,7 @@ void Xsec_surf::draw_refl_wire( int sym_code_in )
 			data.push_back( dpnt[1] );
 			data.push_back( dpnt[2] );
 		}
-		surfRenderer->draw( R_LINE_STRIP, 3, data );
+		renderer->draw( R_LINE_STRIP, 3, data );
 	}
 }
 
@@ -572,7 +568,7 @@ void Xsec_surf::draw_refl_wire( int sym_code_in, float* mat )
 	}
 
 	//==== Set Line Width ====//  
-	surfRenderer->setLineWidth( 1.0 );
+	renderer->setLineWidth( 1.0 );
 
 	//==== Draw Cross Sections ====//  
 	vector<double> data;
@@ -587,7 +583,7 @@ void Xsec_surf::draw_refl_wire( int sym_code_in, float* mat )
 			data.push_back( dpnt[1] );
 			data.push_back( dpnt[2] );
 		}
-		surfRenderer->draw( R_LINE_STRIP, mat, 3, data );
+		renderer->draw( R_LINE_STRIP, mat, 3, data );
 	}
 
 	//==== Draw Stringers ====//  
@@ -601,7 +597,7 @@ void Xsec_surf::draw_refl_wire( int sym_code_in, float* mat )
 			data.push_back( dpnt[1] );
 			data.push_back( dpnt[2] );
 		}
-		surfRenderer->draw( R_LINE_STRIP, mat, 3, data );
+		renderer->draw( R_LINE_STRIP, mat, 3, data );
 	}
 }
 
@@ -614,7 +610,7 @@ void Xsec_surf::draw_hidden()
 	draw_wire();
 
 	//==== Draw Hidden Surface ====//
-	surfRenderer->setColor3d( 1.0, 1.0, 1.0 );
+	renderer->setColor3d( 1.0, 1.0, 1.0 );
 
 	fast_1 = fast_2 = 1;
 	if ( fast_draw_flag ) 
@@ -651,7 +647,7 @@ void Xsec_surf::draw_hidden()
 			data.push_back( dpnt[2] );
 		}
 	}
-	surfRenderer->draw( R_QUADS, rp_hidden, 3, data );
+	renderer->draw( R_QUADS, rp_hidden, 3, data );
 }
 
 //==== Draw Hidden Surf =====//
@@ -668,7 +664,7 @@ void Xsec_surf::draw_hidden( float* mat )
 	draw_wire( mat );
 
 	//==== Draw Hidden Surface ====//
-	surfRenderer->setColor3d( 1.0, 1.0, 1.0 );
+	renderer->setColor3d( 1.0, 1.0, 1.0 );
 
 	fast_1 = fast_2 = 1;
 	if ( fast_draw_flag ) 
@@ -705,7 +701,7 @@ void Xsec_surf::draw_hidden( float* mat )
 			data.push_back( dpnt[2] );
 		}
 	}
-	surfRenderer->draw( R_QUADS, rp_hidden, mat, 3, data );
+	renderer->draw( R_QUADS, rp_hidden, mat, 3, data );
 }
 
 //==== Draw Reflected Hidden Surf =====//
@@ -742,7 +738,7 @@ void Xsec_surf::draw_refl_hidden( int sym_code_in )
   //==== Draw Hidden Surface ====//
 	vector<double> data;
 
-	surfRenderer->setColor3d( 1.0, 1.0, 1.0 );
+	renderer->setColor3d( 1.0, 1.0, 1.0 );
 	for ( i = 0 ; i < num_xsecs-1 ; i += fast_1 )
    {
 		for ( j = 0 ; j < num_pnts-1 ; j += fast_2 )
@@ -768,7 +764,7 @@ void Xsec_surf::draw_refl_hidden( int sym_code_in )
 			data.push_back(dpnt[2]);
 		}
 	}
-	surfRenderer->draw( R_QUADS, rp_hidden, 3, data);
+	renderer->draw( R_QUADS, rp_hidden, 3, data);
 }
 
 //==== Draw Reflected Hidden Surf =====//
@@ -811,7 +807,7 @@ void Xsec_surf::draw_refl_hidden( int sym_code_in, float* mat )
   //==== Draw Hidden Surface ====//
 	vector<double> data;
 
-	surfRenderer->setColor3d( 1.0, 1.0, 1.0 );
+	renderer->setColor3d( 1.0, 1.0, 1.0 );
 	for ( i = 0 ; i < num_xsecs-1 ; i += fast_1 )
    {
 		for ( j = 0 ; j < num_pnts-1 ; j += fast_2 )
@@ -837,11 +833,16 @@ void Xsec_surf::draw_refl_hidden( int sym_code_in, float* mat )
 			data.push_back(dpnt[2]);
 		}
 	}
-	surfRenderer->draw( R_QUADS, rp_hidden, mat, 3, data);
+	renderer->draw( R_QUADS, rp_hidden, mat, 3, data);
 }
 
 //==== Draw Shaded Surf =====//
-void Xsec_surf::draw_shaded()
+/******************************************************
+*
+* Draw Shaded Surf.
+*
+*******************************************************/
+void Xsec_surf::draw_shaded( bool cullFlag )
 {
 	int i, j;
 	int fast_1, fast_2;
@@ -906,7 +907,20 @@ void Xsec_surf::draw_shaded()
 			  data.push_back( dpnt[2] );
         }
     }
-	 surfRenderer->draw( R_QUADS, rp_shaded, 3, data, norms );
+	 
+	 if ( cullFlag )
+	 {
+		 rp_shaded.mode.cullFaceMode.enabled = true;
+		 rp_shaded.mode.cullFaceMode.cullface.mode = R_BACK;
+
+		 renderer->draw( R_QUADS, rp_shaded, 3, data, norms );
+
+		 rp_shaded.mode.cullFaceMode.enabled = false;
+	 }
+	 else
+	 {
+		 renderer->draw( R_QUADS, rp_shaded, 3, data, norms );
+	 }
 }
 
 //==== Draw Shaded Surf =====//
@@ -915,7 +929,7 @@ void Xsec_surf::draw_shaded()
 * Draw Shaded Surf with Transformation Matrix.
 *
 *******************************************************/
-void Xsec_surf::draw_shaded( float* mat )
+void Xsec_surf::draw_shaded( float* mat, bool cullFlag )
 {
 	int i, j;
 	int fast_1, fast_2;
@@ -980,8 +994,22 @@ void Xsec_surf::draw_shaded( float* mat )
 			  data.push_back( dpnt[2] );
         }
     }
-	 surfRenderer->draw( R_QUADS, rp_shaded, mat, 3, data, norms );
+	 
+	 if ( cullFlag )
+	 {
+		 rp_shaded.mode.cullFaceMode.enabled = true;
+		 rp_shaded.mode.cullFaceMode.cullface.mode = R_BACK;
+
+		 renderer->draw( R_QUADS, rp_shaded, mat, 3, data, norms );
+
+		 rp_shaded.mode.cullFaceMode.enabled = false;
+	 }
+	 else
+	 {
+		 renderer->draw( R_QUADS, rp_shaded, mat, 3, data, norms );
+	 }
 }
+
 
 //==== Remap Texture Coordinates - Handle Translation/Scale and Seams ====//
 void Xsec_surf::remap_texture( double upos, double width, bool wrapFlag, vector< double > & uVec, 
@@ -1077,7 +1105,7 @@ void Xsec_surf::remap_texture( double upos, double width, bool wrapFlag, vector<
 }
 
 //==== Draw Textured Surf =====//
-void Xsec_surf::draw_texture( AppliedTex& tex )
+void Xsec_surf::draw_texture( AppliedTex& tex, bool cullFlag )
 {
 	if ( num_xsecs <= 0 || num_pnts <= 0 )
 		return;
@@ -1251,11 +1279,24 @@ void Xsec_surf::draw_texture( AppliedTex& tex )
 			}
 		}
 	}
-	surfRenderer->draw( R_QUADS, rp_texture, 3, data, norms, texcoords );
+	
+	if ( cullFlag )
+	{
+		rp_texture.mode.cullFaceMode.enabled = true;
+		rp_texture.mode.cullFaceMode.cullface.mode = R_BACK;
+
+		renderer->draw( R_QUADS, rp_texture, 3, data, norms, texcoords );
+
+		rp_texture.mode.cullFaceMode.enabled = false;
+	}
+	else
+	{
+		renderer->draw( R_QUADS, rp_texture, 3, data, norms, texcoords );
+	}
 }
 
 //==== Draw Textured Surf =====//
-void Xsec_surf::draw_texture( AppliedTex& tex, float* mat )
+void Xsec_surf::draw_texture( AppliedTex& tex, float* mat, bool cullFlag )
 {
 	if ( num_xsecs <= 0 || num_pnts <= 0 )
 		return;
@@ -1429,11 +1470,27 @@ void Xsec_surf::draw_texture( AppliedTex& tex, float* mat )
 			}
 		}
 	}
-	surfRenderer->draw( R_QUADS, rp_texture, mat, 3, data, norms, texcoords );
+
+	if ( cullFlag )
+	{
+		rp_texture.mode.cullFaceMode.enabled = true;
+		rp_texture.mode.cullFaceMode.cullface.mode = R_BACK;
+
+		renderer->draw( R_QUADS, rp_texture, mat, 3, data, norms, texcoords );
+	}
+	else
+	{
+		renderer->draw( R_QUADS, rp_texture, mat, 3, data, norms, texcoords );
+	}
 }
 
 //==== Draw Reflected Textured Surf =====//
-void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in )
+/******************************************************
+*
+* Draw Reflected Textured Surf.
+*
+*******************************************************/
+void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in, bool cullFlag )
 {
 	if (sym_code_in == NO_SYM) return;
 
@@ -1619,7 +1676,20 @@ void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in )
 			}
 		}
 	}
-	surfRenderer->draw( R_QUADS, rp_texture, 3, data, norms, texcoords );	
+
+	if ( cullFlag )
+	{
+		rp_texture.mode.cullFaceMode.enabled = true;
+		rp_texture.mode.cullFaceMode.cullface.mode = R_BACK;
+
+		renderer->draw( R_QUADS, rp_texture, 3, data, norms, texcoords );	
+
+		rp_texture.mode.cullFaceMode.enabled = false;
+	}
+	else
+	{
+		renderer->draw( R_QUADS, rp_texture, 3, data, norms, texcoords );	
+	}
 }
 
 //==== Draw Reflected Textured Surf =====//
@@ -1629,7 +1699,7 @@ void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in )
 * Transformation Matrix.
 *
 *******************************************************/
-void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in, float* mat )
+void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in, float* mat, bool cullFlag )
 {
 	if (sym_code_in == NO_SYM) return;
 
@@ -1815,11 +1885,24 @@ void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in, float* mat 
 			}
 		}
 	}
-	surfRenderer->draw( R_QUADS, rp_texture, mat, 3, data, norms, texcoords );	
+	
+	if ( cullFlag )
+	{
+		rp_texture.mode.cullFaceMode.enabled = true;
+		rp_texture.mode.cullFaceMode.cullface.mode = R_BACK;
+
+		renderer->draw( R_QUADS, rp_texture, mat, 3, data, norms, texcoords );	
+
+		rp_texture.mode.cullFaceMode.enabled = false;
+	}
+	else
+	{
+		renderer->draw( R_QUADS, rp_texture, mat, 3, data, norms, texcoords );	
+	}
 }
 
 //==== Draw Reflected Shaded Surf =====//
-void Xsec_surf::draw_refl_shaded( int sym_code_in )
+void Xsec_surf::draw_refl_shaded( int sym_code_in, bool cullFlag )
 {
 	if (sym_code_in == NO_SYM) return;
 
@@ -1897,7 +1980,20 @@ void Xsec_surf::draw_refl_shaded( int sym_code_in )
 			data.push_back( dpnt[2] );
 		}
 	}
-	surfRenderer->draw( R_QUADS, rp_shaded, 3, data, norms );
+
+	if ( cullFlag )
+	{
+		rp_shaded.mode.cullFaceMode.enabled = true;
+		rp_shaded.mode.cullFaceMode.cullface.mode = R_BACK;
+
+		renderer->draw( R_QUADS, rp_shaded, 3, data, norms );
+
+		rp_shaded.mode.cullFaceMode.enabled = false;
+	}
+	else
+	{
+		renderer->draw( R_QUADS, rp_shaded, 3, data, norms );
+	}
 }
 
 //==== Draw Reflected Shaded Surf =====//
@@ -1907,7 +2003,7 @@ void Xsec_surf::draw_refl_shaded( int sym_code_in )
 * with Transformation Matrix.
 *
 *******************************************************/
-void Xsec_surf::draw_refl_shaded( int sym_code_in, float* mat)
+void Xsec_surf::draw_refl_shaded( int sym_code_in, float* mat, bool cullFlag )
 {
 	if (sym_code_in == NO_SYM) return;
 
@@ -1985,7 +2081,20 @@ void Xsec_surf::draw_refl_shaded( int sym_code_in, float* mat)
 			data.push_back( dpnt[2] );
 		}
 	}
-	surfRenderer->draw( R_QUADS, rp_shaded, mat, 3, data, norms );
+
+	if ( cullFlag )
+	{
+		rp_shaded.mode.cullFaceMode.enabled = true;
+		rp_shaded.mode.cullFaceMode.cullface.mode = R_BACK;
+
+		renderer->draw( R_QUADS, rp_shaded, mat, 3, data, norms );
+
+		rp_shaded.mode.cullFaceMode.enabled = false;
+	}
+	else
+	{
+		renderer->draw( R_QUADS, rp_shaded, mat, 3, data, norms );
+	}
 }
 
 //==== Load Reflected Pnts And Xsec Array =====//

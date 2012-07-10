@@ -203,9 +203,6 @@ public:
 	TNode* cn1;
 	TNode* cn2;
 
-protected:
-	renderMgr * renderer;
-
 private:
 
 	virtual int onEdge( vec3d & p, TEdge* e, double onEdgeTol );
@@ -232,10 +229,6 @@ public:
 	virtual void addLeafNodes( vector< TBndBox* > & leafVec );
 
 	virtual void segIntersect( vec3d & p0, vec3d & p1, vector< vec3d > & ipntVec );
-
-protected:
-	renderMgr * renderer;
-
 };
 
 class NBndBox
@@ -379,7 +372,6 @@ public:
 	bool halfBoxFlag;
 
 protected:
-	renderMgr * renderer;
 	RenderProperties rp_shaded;
 	RenderProperties rp_hidden;
 	RenderProperties rp_alpha;

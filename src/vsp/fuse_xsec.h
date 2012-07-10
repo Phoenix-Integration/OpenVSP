@@ -250,10 +250,6 @@ public:
   void setNumSectInterp2(int val)							{ numSectInterp2 = val; }
 
   double computeArea();
- 
-protected:
-	renderMgr * renderer;
-
 };
 
 #endif

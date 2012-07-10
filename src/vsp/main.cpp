@@ -110,6 +110,8 @@ int batchMode(int argc, char *argv[], Aircraft* airPtr)
     /* Parse the input */
     i = 1;
 
+#define NORENDER
+
     while ( i <= argc - 1 ) {
 
        /* Do batch */

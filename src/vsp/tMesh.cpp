@@ -175,9 +175,6 @@ TMesh::TMesh()
 	reflected_flag = false;
 	halfBoxFlag = false;
 
-	renderer = new renderMgr();
-	renderer->init();
-
 	/* Render Properties for drawing shaded */
 	rp_shaded.mode.lightingMode.enabled = true;
 
@@ -202,8 +199,6 @@ TMesh::~TMesh()
 		delete nVec[i];
 	for ( i = 0 ; i < (int)eVec.size() ; i++ )
 		delete eVec[i];
-
-	delete renderer;
 }
 
 void TMesh::copy( TMesh* m )
@@ -1710,9 +1705,6 @@ cnt++;
 	interiorFlag = 0; 
 	invalidFlag  = 0;
 	mass = 0.0;
-
-	renderer = new renderMgr();
-	renderer->init();
 }
 
 TTri::~TTri()
@@ -1746,8 +1738,6 @@ cnt++;
 		delete iSectEdgeVec[i]->n1;
 		delete iSectEdgeVec[i];
 	}
-
-	delete renderer;
 }
 
 vec3d TTri::compNorm()

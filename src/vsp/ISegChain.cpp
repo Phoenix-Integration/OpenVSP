@@ -348,9 +348,6 @@ void ISeg::Draw()
 {
 	vector<double> data;
 
-	renderMgr renderer = renderMgr();
-	renderer.init();
-
 	data.push_back( m_IPnt[0]->m_Pnt.data()[0] );
 	data.push_back( m_IPnt[0]->m_Pnt.data()[1] );
 	data.push_back( m_IPnt[0]->m_Pnt.data()[2] );
@@ -359,7 +356,7 @@ void ISeg::Draw()
 	data.push_back( m_IPnt[1]->m_Pnt.data()[1] );
 	data.push_back( m_IPnt[1]->m_Pnt.data()[2] );
 
-	renderer.draw( R_LINES, 3, data );
+	renderer->draw( R_LINES, 3, data );
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -1110,11 +1107,8 @@ void ISegChain::Draw()
 {
 	vector<double> data;
 
-	renderMgr renderer = renderMgr();
-	renderer.init();
-
-	renderer.setLineWidth( 1.0 );
-	renderer.setPointSize( 4.0 );
+	renderer->setLineWidth( 1.0 );
+	renderer->setPointSize( 4.0 );
 
 	for ( int i = 0 ; i < (int)m_TessVec.size() ; i++ )
 	{
@@ -1126,7 +1120,7 @@ void ISegChain::Draw()
 		data.push_back( p.data()[1] );
 		data.push_back( p.data()[2] );
 	}
-	renderer.draw( R_LINE_STRIP, 3, data );
-	renderer.draw( R_POINTS, 3, data );
+	renderer->draw( R_LINE_STRIP, 3, data );
+	renderer->draw( R_POINTS, 3, data );
 }
 

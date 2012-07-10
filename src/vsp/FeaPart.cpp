@@ -92,13 +92,10 @@ void FeaNode::WriteCalculix( FILE* fp )
 //============================================================================//
 FeaElement::FeaElement()
 {
-	renderer = new renderMgr();
-	renderer->init();
 }
 
 FeaElement::~FeaElement()
 {
-	delete renderer;
 }
 
 void FeaElement::DeleteAllNodes()
@@ -272,15 +269,11 @@ FeaSpliceLine::FeaSpliceLine(double default_thick)
 	s1->m_Thick = m_DefaultThick;
 	s1->m_FixedFlag = true;
 	m_SpliceVec.push_back( s1 );
-
-	renderer = new renderMgr();
-	renderer->init();
 }
 
 FeaSpliceLine::~FeaSpliceLine()
 {
 	ClearSpliceVec();
-	delete renderer;
 }
 
 
@@ -767,15 +760,11 @@ FeaSlice::FeaSlice()
 	m_Surf->SetCfdMeshMgr( feaMeshMgrPtr );
 	m_Surf->SetCompID( COMP_ID );
 	m_NumDivisions = 1;
-
-	renderer = new renderMgr();
-	renderer->init();
 }
 
 FeaSlice::~FeaSlice()
 {
 	delete m_Surf;
-	delete renderer;
 }
 
 void FeaSlice::Clean()
@@ -1824,13 +1813,10 @@ void FeaSkin::Draw( bool highlight )
 //============================================================================//
 FeaPointMass::FeaPointMass()
 {
-	renderer = new renderMgr();
-	renderer->init();
 }
 
 FeaPointMass::~FeaPointMass()
 {
-	delete renderer;
 }
 
 void FeaPointMass::Draw( bool highlight )

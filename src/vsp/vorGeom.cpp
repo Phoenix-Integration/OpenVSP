@@ -600,54 +600,48 @@ void VorGeom::draw()
 	//==== Check Noshow Flag ====//
 	if ( noshowFlag ) return;	
 
-	glColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );	
-	glLineWidth( 1.0 );
+	renderer->setColor3ub( (int)color.x(), (int)color.y(), (int)color.z() );
+	renderer->setLineWidth( 1.0 );
 
 	//==== Draw Geom ====//
-	glPushMatrix();
-	glMultMatrixf((GLfloat*)model_mat); 
-
 	if ( drawFlags[DRAW_XSEC] )
 	{
 		if ( airPtr->getGeomVec().size() == 0 )
-			vorSlicePtr->drawherm();
+			vorSlicePtr->drawherm( *model_mat );
 	}
 
 	if ( drawFlags[DRAW_SLICE] )
 	{
-		glColor3ub( 0, 0, 0 );	
-		vorSlicePtr->drawslices();
+		renderer->setColor3ub( 0, 0, 0 );
+		vorSlicePtr->drawslices( *model_mat );
 	}
 	if ( drawFlags[DRAW_CSF] )
 	{
-		vorSlicePtr->drawcsf();
+		vorSlicePtr->drawcsf( *model_mat );
 	}
 
 	if ( drawFlags[DRAW_SUBPOLY] )
 	{
-		glColor3ub( 0, 0, 0 );	
-		vorSlicePtr->drawsubpols();
+		renderer->setColor3ub( 0, 0, 0 );
+		vorSlicePtr->drawsubpols( *model_mat );
 	}
 
 	if ( drawFlags[DRAW_CP] )
 	{
-		vorSlicePtr->drawcpvals();
+		vorSlicePtr->drawcpvals( *model_mat );
 	}
 
 	if ( drawFlags[DRAW_CP_SURF] )
 	{
-		vorSlicePtr->drawrgb();
+		vorSlicePtr->drawrgb( *model_mat );
 	}
 
 	if ( drawFlags[DRAW_CAMBER] )
 	{
-		glColor3ub( 255, 255, 0 );	
-		glLineWidth( 2.0 );
-		vorSlicePtr->drawcamber();
+		renderer->setColor3ub( 255, 255, 0 );
+		renderer->setLineWidth( 2.0 );
+		vorSlicePtr->drawcamber( *model_mat );
 	}
-
-
-	glPopMatrix();
 }
 
 //==== Draw If Alpha < 1 and Shaded ====//

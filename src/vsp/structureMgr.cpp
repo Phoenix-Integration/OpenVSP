@@ -35,13 +35,10 @@ StructureMgr::StructureMgr()
 	currGeomID = 0;
 	finalTriArea = 0.05;
 	exportFileName = "FEA_Export.nas";
-
-	renderer = new renderMgr();
 }
 
 StructureMgr::~StructureMgr()
 {
-	delete renderer;
 }
 
 void StructureMgr::SetActiveFlag( bool flag )

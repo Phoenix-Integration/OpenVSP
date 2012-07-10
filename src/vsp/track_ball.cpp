@@ -168,14 +168,11 @@ void track_ball::poll(int mstate, int x, int y)
 //===== Record Position Of Mouse At Click ====//    
 void track_ball::transform()
 {
-	renderMgr renderer = renderMgr();
-	renderer.init();
-
    double m[4][4];
 
    //==== Get Current Transformation ====//
    gettracktransform(m);
-	renderer.transform( *m );
+	renderer->transform( *m );
 }
 
 //===== Initialize Trackball ====//    

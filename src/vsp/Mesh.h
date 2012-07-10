@@ -14,7 +14,6 @@
 #include "vec2d.h"
 #include "vec3d.h"
 #include "Tri.h"
-#include "renderMgr.h"
 
 class Surf;
 class GridDensity;
@@ -144,9 +143,6 @@ protected:
 
 	vector< vec3d > simpPntVec;
 	vector< SimpTri > simpTriVec;
-
-	renderMgr * renderer;
-
 };
 
 

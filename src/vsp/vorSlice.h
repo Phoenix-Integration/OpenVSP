@@ -117,17 +117,32 @@ public:
 
 	//draw.c
 	void drawherm();
+	void drawherm( float* trans_mat );
+
 	void drawslices();
+	void drawslices( float* trans_mat );
+
+	void drawcsf();
+	void drawcsf( float* trans_mat );
+
+	void drawsubpols();
+	void drawsubpols( float* trans_mat );
+
+	void drawcpvals();
+	void drawcpvals( float* trans_mat );
+
+	void drawrgb();
+	void drawrgb( float* trans_mat );
+
+	void drawcamber();
+	void drawcamber( float* trans_mat );
+
+	float getcamberzoom()								{ return zm_camb; }
+	void setcamberzoom(float z)							{ zm_camb = z; }
+
 	void draw_point(float xyz[],int pnt);
 	void draw_main_point(float xyz[]);
 	void draw_other_point(float xyz[]);
-	void drawsubpols();
-	void drawcpvals();
-	void drawrgb();
-	void drawcamber();
-	float getcamberzoom()								{ return zm_camb; }
-	void setcamberzoom(float z)							{ zm_camb = z; }
-	void drawcsf();
 
 	void get_trap_normal(int islc, float *normal);
 	void vector_cross(float *vec1, float *vec2, float *cross);
@@ -435,8 +450,6 @@ protected:
 	int initKeyFlag;
 
 	int curr_trap;
-
-	renderMgr * renderer;
 };
 
 #endif

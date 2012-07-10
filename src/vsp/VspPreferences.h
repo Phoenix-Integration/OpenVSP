@@ -15,21 +15,7 @@
 #include <libxml/xpath.h>
 #include "xmlvsp.h"
 
-
 #include <stdio.h>
-
-
-
-#ifdef WIN32
-#include <windows.h>		
-#endif
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
-
 #include "stringc.h"
 #include <vector>				//jrg windows??	
 using namespace std;			//jrg windows??

@@ -14,9 +14,6 @@ SCurve::SCurve()
 	m_Surf = NULL;
 	m_StartSearchIndex = 0;
 	m_ICurve = NULL;
-
-	renderer = new renderMgr();
-	renderer->init();
 }
 
 SCurve::SCurve(Surf* s)
@@ -24,14 +21,10 @@ SCurve::SCurve(Surf* s)
 	m_Surf = s;
 	m_StartSearchIndex = 0;
 	m_ICurve = NULL;
-
-	renderer = new renderMgr();
-	renderer->init();
 }
 
 SCurve::~SCurve()
 {
-	delete renderer;
 }
 
 //==== Load Bezier Control Points =====//	

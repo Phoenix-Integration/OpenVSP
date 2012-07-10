@@ -22,7 +22,6 @@
 #include "ISegChain.h"
 #include "GridDensity.h"
 #include "bezier_curve.h"
-#include "renderMgr.h"
 
 #include "vec2d.h"
 #include "vec3d.h"
@@ -176,7 +175,6 @@ protected:
 
 	Aircraft* aircraftPtr;
 
-	renderMgr* renderer;
 	RenderProperties rp_cfdmesh;
 
 	int m_CurrGeomID;

@@ -34,17 +34,12 @@ Mesh::Mesh()
 
 	m_Surf = NULL;
 	m_GridDensity = NULL;
-
-	renderer = new renderMgr();
-	renderer->init();
 }
 
 Mesh::~Mesh()
 {
 	DumpGarbage();
 	Clear();
-
-	delete renderer;
 }
 
 void Mesh::Clear()

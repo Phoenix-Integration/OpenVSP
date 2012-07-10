@@ -150,9 +150,6 @@ FuselageXSec::FuselageXSec(Geom* geom_ptr_in)
 
 	this->gen_parms();
 	this->generate();
-
-	renderer = new renderMgr();
-	renderer->init();
 }
 
 void FuselageXSec::set_fuse_ptr( Geom* geom_ptr_in )
@@ -190,15 +187,11 @@ void FuselageXSec::set_fuse_ptr( Geom* geom_ptr_in )
 	bot_str.set_geom( this );
 
 	edit_crv.set_geom( this );
-
-	renderer = new renderMgr();
-	renderer->init();
 }
 
 //===== Destructor  =====//
 FuselageXSec::~FuselageXSec()
 {
-	delete renderer;
 }
 
 ////===== Copy - Override Equals  =====//

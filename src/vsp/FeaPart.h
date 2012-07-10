@@ -83,7 +83,7 @@ public:
 
 protected:
 	int m_Type;
-	renderMgr* renderer;
+	//renderMgr* renderer;
 };
 
 //==== 6 Point Triangle Element ====//
@@ -183,7 +183,7 @@ public:
 
 	vec3d m_EndPnts[2];
 
-	renderMgr* renderer;
+	//renderMgr* renderer;
 
 };
 
@@ -311,8 +311,8 @@ public:
 	Surf* m_CapUpperSurf[2];
 	Surf* m_CapLowerSurf[2];
 
-protected:
-	renderMgr* renderer;
+//protected:
+//	renderMgr* renderer;
 };
 
 
@@ -362,9 +362,6 @@ public:
 	vec3d m_AttachPos;
 
 	virtual void Draw( bool highlight );
-
-protected:
-	renderMgr * renderer;
 };
 
 #endif

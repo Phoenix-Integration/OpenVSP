@@ -80,9 +80,6 @@ protected:
 
 	vector< double > m_UTess;	// Tess Curve Pnts in U Space
 	vector< vec3d > m_UWTess;	// Tess Curve Pnts in UW Space
-
-	renderMgr * renderer;
-
 };
 
 

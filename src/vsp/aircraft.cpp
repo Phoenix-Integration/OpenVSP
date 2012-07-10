@@ -7,19 +7,6 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-
-//#ifdef WIN32
-//#include <windows.h>		
-//#endif
-//
-//#ifdef __APPLE__
-//#  include <OpenGL/gl.h>
-//#  include <OpenGL/glu.h>
-//#else
-//#  include <GL/gl.h>
-//#  include <GL/glu.h>
-//#endif
-
 #include "aircraft.h"
 #include "screenMgr.h"
 #include "vspGlWindow.h"
@@ -109,6 +96,18 @@ Aircraft::Aircraft()
 	dragBuildTsvFileName = "VspAircraft_DragBuild.tsv";
 	exportDragBuildTsvFile = false;
 
+	/* Initialize Identity Matrix */
+	for ( int i = 0; i < 4; i++ )
+	{
+		for ( int j = 0; j < 4; j++ )
+		{
+			identityMatrix[i][j] = 0.0;
+		}
+	}
+	identityMatrix[0][0] = 1.0;
+	identityMatrix[1][1] = 1.0;
+	identityMatrix[2][2] = 1.0;
+	identityMatrix[3][3] = 1.0;
 }
 
 Aircraft::~Aircraft()
@@ -1350,16 +1349,13 @@ void Aircraft::drawHighlight()
 		//draw
 		if (highlightVertex.isSet())
 		{
-			glColor4f(1,0,0,0.7f);
-			glPointSize(8);
-			glPushMatrix();
-			{
-				glLoadIdentity();
-				glBegin(GL_POINTS);
-				glVertex2d(highlight.x(), highlight.y());
-				glEnd();
-			}
-			glPopMatrix();
+			vector<double> data;
+			data.push_back( highlight.x() );
+			data.push_back( highlight.y() );
+
+			renderer->setColor4d( 1.0, 0, 0, 0.7 );
+			renderer->setPointSize( 8.0 );
+			renderer->draw( R_POINTS, *identityMatrix, 2, data );
 		}
 	}
 }
@@ -1402,14 +1398,11 @@ void Aircraft::draw()
 
 	feaMeshMgrPtr->Draw();
 
-    glCullFace( GL_BACK );						// Cull Back Faces For Trans
-	glEnable( GL_CULL_FACE );
 	for ( i = 0 ; i < (int)geomVec.size() ; i++ )
 	{
 		geomVec[i]->drawAlpha();
 	}
 	vorGeom->drawAlpha();
-	glDisable( GL_CULL_FACE );
 
 	glDisable(GL_DEPTH_TEST);	
 	glPushMatrix();
@@ -1423,10 +1416,6 @@ void Aircraft::draw()
 	}
 	glPopMatrix();
 	glEnable(GL_DEPTH_TEST);	
-	
-	
-//	screenMgr->getLabelScreen()->draw();
-	
 }
 
 
@@ -1458,11 +1447,8 @@ void Aircraft::drawCG()
 
 void Aircraft::drawMarker( vec3d& pos, double size, int r, int g, int b )
 {
-	GLboolean smoothFlag = 0;
-
-	glGetBooleanv( GL_LINE_SMOOTH, &smoothFlag );
-	if ( smoothFlag )
-		glDisable( GL_LINE_SMOOTH );
+	float trans_mat[4][4];
+	vector<double> data;
 
 	static double zero[3]  = { 0.0,    0.0,   0.0};
 	static double vxy_1[3] = { 1.0,    0.0,   0.0};
@@ -1490,96 +1476,144 @@ void Aircraft::drawMarker( vec3d& pos, double size, int r, int g, int b )
 	static double vyz_7[3] = {0.0,    0.0,    -1.0};
 	static double vyz_8[3] = {0.0,     0.707, -0.707};
 
-	glPushMatrix();
+	for ( int i = 0; i < 4; i++ )
+	{
+		for ( int j = 0; j < 4; j++ )
+		{
+			trans_mat[i][j] = 0.0;
+		}
+	}
+	trans_mat[0][0] = (float)size;
+	trans_mat[1][1] = (float)size;
+	trans_mat[2][2] = (float)size;
+	trans_mat[3][3] = 1.0;
 
-	glTranslatef( (float)pos.x(), (float)pos.y(), (float)pos.z());
-	glScalef( (float)size, (float)size, (float)size );
+	trans_mat[3][0] = (float)pos.x();
+	trans_mat[3][1] = (float)pos.y();
+	trans_mat[3][2] = (float)pos.z();
 
-	glLineWidth(2);
+	renderer->setLineWidth( 2.0 );
+	renderer->setColor3ub( r, g, b );
 
-	glColor3ub(r,g,b);
+	data.push_back( vxy_1[0] );	data.push_back( vxy_1[1] );	data.push_back( vxy_1[2] );
+	data.push_back( vxy_2[0] );	data.push_back( vxy_2[1] );	data.push_back( vxy_2[2] );
+	data.push_back( vxy_3[0] );	data.push_back( vxy_3[1] );	data.push_back( vxy_3[2] );
+	data.push_back( vxy_4[0] );	data.push_back( vxy_4[1] );	data.push_back( vxy_4[2] );
+	data.push_back( vxy_5[0] );	data.push_back( vxy_5[1] );	data.push_back( vxy_5[2] );
+	data.push_back( vxy_6[0] );	data.push_back( vxy_6[1] );	data.push_back( vxy_6[2] );
+	data.push_back( vxy_7[0] );	data.push_back( vxy_7[1] );	data.push_back( vxy_7[2] );
+	data.push_back( vxy_8[0] );	data.push_back( vxy_8[1] );	data.push_back( vxy_8[2] );
 
-	  glBegin( GL_LINE_LOOP );
-		glVertex3dv(vxy_1);  glVertex3dv(vxy_2);  glVertex3dv(vxy_3);  glVertex3dv(vxy_4);  
-		glVertex3dv(vxy_5);  glVertex3dv(vxy_6);  glVertex3dv(vxy_7);  glVertex3dv(vxy_8); 
-	  glEnd();
-	  glBegin( GL_LINE_LOOP );
-		glVertex3dv(vxz_1);  glVertex3dv(vxz_2);  glVertex3dv(vxz_3);  glVertex3dv(vxz_4);  
-		glVertex3dv(vxz_5);  glVertex3dv(vxz_6);  glVertex3dv(vxz_7);  glVertex3dv(vxz_8); 
-	  glEnd();
-	  glBegin( GL_LINE_LOOP );
-		glVertex3dv(vyz_1);  glVertex3dv(vyz_2);  glVertex3dv(vyz_3);  glVertex3dv(vyz_4);  
-		glVertex3dv(vyz_5);  glVertex3dv(vyz_6);  glVertex3dv(vyz_7);  glVertex3dv(vyz_8);  
-	  glEnd();
-	  glBegin( GL_POLYGON );
-		glVertex3dv(zero);   glVertex3dv(vxy_1);   glVertex3dv(vxy_2);  glVertex3dv(vxy_3); 
-	  glEnd();
-	  glBegin( GL_POLYGON );
-		glVertex3dv(zero);   glVertex3dv(vxy_5);   glVertex3dv(vxy_6);  glVertex3dv(vxy_7); 
-	  glEnd();
-	  glBegin( GL_POLYGON );
-		glVertex3dv(zero);   glVertex3dv(vxz_1);   glVertex3dv(vxz_2);  glVertex3dv(vxz_3); 
-	  glEnd();
-	  glBegin( GL_POLYGON );
-		glVertex3dv(zero);   glVertex3dv(vxz_5);   glVertex3dv(vxz_6);  glVertex3dv(vxz_7); 
-	  glEnd();
-	  glBegin( GL_POLYGON );
-		glVertex3dv(zero);   glVertex3dv(vyz_1);   glVertex3dv(vyz_2);  glVertex3dv(vyz_3); 
-	  glEnd();
-	  glBegin( GL_POLYGON );
-		glVertex3dv(zero);   glVertex3dv(vyz_5);   glVertex3dv(vyz_6);  glVertex3dv(vyz_7); 
-	  glEnd();
-	  glBegin( GL_POLYGON );
-		glVertex3dv(vxy_2);  glVertex3dv(vxz_2);  glVertex3dv(vyz_2);
-	  glEnd();
-	  glBegin( GL_POLYGON );
-		glVertex3dv(vxz_2);  glVertex3dv(vyz_2);  glVertex3dv(vyz_3);
-	  glEnd();
-	  glBegin( GL_POLYGON );
-		glVertex3dv(vxz_2);  glVertex3dv(vxy_2);  glVertex3dv(vxy_1);
-	  glEnd();
-	  glBegin( GL_POLYGON );
-		glVertex3dv(vxy_2);  glVertex3dv(vyz_2);  glVertex3dv(vyz_1);
-	  glEnd();
-	  glBegin( GL_POLYGON );
-		glVertex3dv(vxy_6);  glVertex3dv(vxz_6);  glVertex3dv(vyz_6);
-	  glEnd();
-	  glBegin( GL_POLYGON );
-		glVertex3dv(vxz_6);  glVertex3dv(vxy_6);  glVertex3dv(vxy_5);
-	  glEnd();
-	  glBegin( GL_POLYGON );
-		glVertex3dv(vxz_6);  glVertex3dv(vyz_6);  glVertex3dv(vyz_7);
-	  glEnd();
-	  glBegin( GL_POLYGON );
-		glVertex3dv(vxy_6);  glVertex3dv(vyz_6);  glVertex3dv(vxy_7);
-	  glEnd();
-	  glPopMatrix();
+	renderer->draw( R_LINE_LOOP, *trans_mat, 3, data );
+	data.clear();
 
-	if ( smoothFlag )
-		glEnable( GL_LINE_SMOOTH );
+	data.push_back( vxz_1[0] );	data.push_back( vxz_1[1] );	data.push_back( vxz_1[2] );
+	data.push_back( vxz_2[0] );	data.push_back( vxz_2[1] );	data.push_back( vxz_2[2] );
+	data.push_back( vxz_3[0] );	data.push_back( vxz_3[1] );	data.push_back( vxz_3[2] );
+	data.push_back( vxz_4[0] );	data.push_back( vxz_4[1] );	data.push_back( vxz_4[2] );
+	data.push_back( vxz_5[0] );	data.push_back( vxz_5[1] );	data.push_back( vxz_5[2] );
+	data.push_back( vxz_6[0] );	data.push_back( vxz_6[1] );	data.push_back( vxz_6[2] );
+	data.push_back( vxz_7[0] );	data.push_back( vxz_7[1] );	data.push_back( vxz_7[2] );
+	data.push_back( vxz_8[0] );	data.push_back( vxz_8[1] );	data.push_back( vxz_8[2] );
+
+	renderer->draw( R_LINE_LOOP, *trans_mat, 3, data );
+	data.clear();
+
+	data.push_back( vyz_1[0] );	data.push_back( vyz_1[1] );	data.push_back( vyz_1[2] );
+	data.push_back( vyz_2[0] );	data.push_back( vyz_2[1] );	data.push_back( vyz_2[2] );
+	data.push_back( vyz_3[0] );	data.push_back( vyz_3[1] );	data.push_back( vyz_3[2] );
+	data.push_back( vyz_4[0] );	data.push_back( vyz_4[1] );	data.push_back( vyz_4[2] );
+	data.push_back( vyz_5[0] );	data.push_back( vyz_5[1] );	data.push_back( vyz_5[2] );
+	data.push_back( vyz_6[0] );	data.push_back( vyz_6[1] );	data.push_back( vyz_6[2] );
+	data.push_back( vyz_7[0] );	data.push_back( vyz_7[1] );	data.push_back( vyz_7[2] );
+	data.push_back( vyz_8[0] );	data.push_back( vyz_8[1] );	data.push_back( vyz_8[2] );
+
+	renderer->draw( R_LINE_LOOP, *trans_mat, 3, data );
+	data.clear();
+
+	data.push_back( zero[0] );		data.push_back( zero[1] );		data.push_back( zero[2] );
+	data.push_back( vxy_1[0] );	data.push_back( vxy_1[1] );	data.push_back( vxy_1[2] );
+	data.push_back( vxy_2[0] );	data.push_back( vxy_2[1] );	data.push_back( vxy_2[2] );
+	data.push_back( vxy_3[0] );	data.push_back( vxy_3[1] );	data.push_back( vxy_3[2] );
+
+	data.push_back( zero[0] );		data.push_back( zero[1] );		data.push_back( zero[2] );
+	data.push_back( vxy_5[0] );	data.push_back( vxy_5[1] );	data.push_back( vxy_5[2] );
+	data.push_back( vxy_6[0] );	data.push_back( vxy_6[1] );	data.push_back( vxy_6[2] );
+	data.push_back( vxy_7[0] );	data.push_back( vxy_7[1] );	data.push_back( vxy_7[2] );
+
+	data.push_back( zero[0] );		data.push_back( zero[1] );		data.push_back( zero[2] );
+	data.push_back( vxz_1[0] );	data.push_back( vxz_1[1] );	data.push_back( vxz_1[2] );
+	data.push_back( vxz_2[0] );	data.push_back( vxz_2[1] );	data.push_back( vxz_2[2] );
+	data.push_back( vxz_3[0] );	data.push_back( vxz_3[1] );	data.push_back( vxz_3[2] );
+
+	data.push_back( zero[0] );		data.push_back( zero[1] );		data.push_back( zero[2] );
+	data.push_back( vxz_5[0] );	data.push_back( vxz_5[1] );	data.push_back( vxz_5[2] );
+	data.push_back( vxz_6[0] );	data.push_back( vxz_6[1] );	data.push_back( vxz_6[2] );
+	data.push_back( vxz_7[0] );	data.push_back( vxz_7[1] );	data.push_back( vxz_7[2] );
+
+	data.push_back( zero[0] );		data.push_back( zero[1] );		data.push_back( zero[2] );
+	data.push_back( vyz_1[0] );	data.push_back( vyz_1[1] );	data.push_back( vyz_1[2] );
+	data.push_back( vyz_2[0] );	data.push_back( vyz_2[1] );	data.push_back( vyz_2[2] );
+	data.push_back( vyz_3[0] );	data.push_back( vyz_3[1] );	data.push_back( vyz_3[2] );
+
+	data.push_back( zero[0] );		data.push_back( zero[1] );		data.push_back( zero[2] );
+	data.push_back( vyz_5[0] );	data.push_back( vyz_5[1] );	data.push_back( vyz_5[2] );
+	data.push_back( vyz_6[0] );	data.push_back( vyz_6[1] );	data.push_back( vyz_6[2] );
+	data.push_back( vyz_7[0] );	data.push_back( vyz_7[1] );	data.push_back( vyz_7[2] );
+
+	renderer->draw( R_QUADS, *trans_mat, 3, data );
+	data.clear();
+
+	data.push_back( vxy_2[0] );	data.push_back( vxy_2[1] );	data.push_back( vxy_2[2] );
+	data.push_back( vxz_2[0] );	data.push_back( vxz_2[1] );	data.push_back( vxz_2[2] );
+	data.push_back( vyz_2[0] );	data.push_back( vyz_2[1] );	data.push_back( vyz_2[2] );
+
+	data.push_back( vxz_2[0] );	data.push_back( vxz_2[1] );	data.push_back( vxz_2[2] );
+	data.push_back( vyz_2[0] );	data.push_back( vyz_2[1] );	data.push_back( vyz_2[2] );
+	data.push_back( vyz_3[0] );	data.push_back( vyz_3[1] );	data.push_back( vyz_3[2] );
+
+	data.push_back( vxz_2[0] );	data.push_back( vxz_2[1] );	data.push_back( vxz_2[2] );
+	data.push_back( vxy_2[0] );	data.push_back( vxy_2[1] );	data.push_back( vxy_2[2] );
+	data.push_back( vxy_1[0] );	data.push_back( vxy_1[1] );	data.push_back( vxy_1[2] );
+
+	data.push_back( vxz_2[0] );	data.push_back( vxz_2[1] );	data.push_back( vxz_2[2] );
+	data.push_back( vyz_2[0] );	data.push_back( vyz_2[1] );	data.push_back( vyz_2[2] );
+	data.push_back( vyz_1[0] );	data.push_back( vyz_1[1] );	data.push_back( vyz_1[2] );	
+
+	data.push_back( vxy_6[0] );	data.push_back( vxy_6[1] );	data.push_back( vxy_6[2] );
+	data.push_back( vxz_6[0] );	data.push_back( vxz_6[1] );	data.push_back( vxz_6[2] );
+	data.push_back( vyz_6[0] );	data.push_back( vyz_6[1] );	data.push_back( vyz_6[2] );	
+
+	data.push_back( vxz_6[0] );	data.push_back( vxz_6[1] );	data.push_back( vxz_6[2] );
+	data.push_back( vxy_6[0] );	data.push_back( vxy_6[1] );	data.push_back( vxy_6[2] );
+	data.push_back( vxy_5[0] );	data.push_back( vxy_5[1] );	data.push_back( vxy_5[2] );	
+
+	data.push_back( vxz_6[0] );	data.push_back( vxz_6[1] );	data.push_back( vxz_6[2] );
+	data.push_back( vyz_6[0] );	data.push_back( vyz_6[1] );	data.push_back( vyz_6[2] );
+	data.push_back( vyz_7[0] );	data.push_back( vyz_7[1] );	data.push_back( vyz_7[2] );	
+
+	data.push_back( vxy_6[0] );	data.push_back( vxy_6[1] );	data.push_back( vxy_6[2] );
+	data.push_back( vyz_6[0] );	data.push_back( vyz_6[1] );	data.push_back( vyz_6[2] );
+	data.push_back( vxy_7[0] );	data.push_back( vxy_7[1] );	data.push_back( vxy_7[2] );	
+
+	renderer->draw( R_TRIANGLES, *trans_mat, 3, data );
+	data.clear();
 
 	//==== Draw Lines ====//
 	double off = size*50.0;
-		
-	glLineStipple( 2, 0x00FF );
-	glEnable(GL_LINE_STIPPLE);
 
-	glLineWidth(2.0);
+	renderer->setLineWidth( 2.0 );
+	
+	data.push_back( pos.x() + off );		data.push_back( pos.y() );		data.push_back( pos.z() );
+	data.push_back( pos.x() - off );		data.push_back( pos.y() );		data.push_back( pos.z() );
 
-	glBegin( GL_LINES );
+	data.push_back( pos.x() );		data.push_back( pos.y() + off );		data.push_back( pos.z() );
+	data.push_back( pos.x() );		data.push_back( pos.y() - off );		data.push_back( pos.z() );
 
-	glVertex3d( pos.x() + off, pos.y(),   pos.z() );
-	glVertex3d( pos.x() - off, pos.y(),   pos.z() );
+	data.push_back( pos.x() );		data.push_back( pos.y() );		data.push_back( pos.z() + off );
+	data.push_back( pos.x() );		data.push_back( pos.y() );		data.push_back( pos.z() - off );
 
-	glVertex3d( pos.x(),       pos.y() + off, pos.z() );
-	glVertex3d( pos.x(),       pos.y() - off, pos.z() );
-
-	glVertex3d( pos.x(),       pos.y(),   pos.z()+off );
-	glVertex3d( pos.x(),       pos.y(),   pos.z()-off );
-
-	glEnd();
-
-	glDisable(GL_LINE_STIPPLE);
+	renderer->drawLineStipple3d( 2, 0x00FF, R_LINES, data );
 }
 
 

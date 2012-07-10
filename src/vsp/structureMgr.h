@@ -20,7 +20,6 @@
 #include <libxml/xpath.h>
 #include "xmlvsp.h"
 #include "tMesh.h"
-#include "renderMgr.h"
 
 #include <stdio.h>
 
@@ -118,8 +117,6 @@ private:
 	vector< vec3d > normVec;
 
 	vector< vec3d > smallTris;
-
-	renderMgr * renderer;
 };
 
 

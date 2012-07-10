@@ -113,3 +113,19 @@ void renderMgr::drawLineStipple3d( int factor, unsigned short pattern, Primitive
 {
 	renderPtr->drawLineStipple3d( factor, pattern, mode, data );
 }
+
+void renderMgr::drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, float* matrix, vector<double> data )
+{
+	renderPtr->drawLineStipple3d( factor, pattern, mode, matrix, data );
+}
+
+RenderPtr::RenderPtr()
+{
+	renMgr = new renderMgr();
+	renMgr->init();
+}
+
+RenderPtr::~RenderPtr()
+{
+	delete renMgr;
+}

@@ -141,9 +141,6 @@ fuse_xsec::fuse_xsec(Geom* geom_ptr_in)
 
   this->gen_parms();
   this->generate();
-
-  renderer = new renderMgr();
-  renderer->init();
 }
 
 void fuse_xsec::set_fuse_ptr( Geom* geom_ptr_in )
@@ -178,15 +175,11 @@ void fuse_xsec::set_fuse_ptr( Geom* geom_ptr_in )
 
 	edit_crv[i].set_geom( this );
   }
-
-  renderer = new renderMgr();
-  renderer->init();
 }
 
 //===== Destructor  =====//
 fuse_xsec::~fuse_xsec()
 {
-	delete renderer;
 }
 
 //===== Copy - Override Equals  =====//

@@ -323,13 +323,11 @@ void WingSection::ComputePerSpanChord( vec3d & pnt, double* per_span, double* pe
 void WingSection::Draw( bool highlight )
 {
 	vector<double> data;
-	renderMgr renderer = renderMgr();
-	renderer.init();
 
 	if ( highlight )
-		renderer.setColor4ub( 220, 220, 220, 240 );
+		renderer->setColor4ub( 220, 220, 220, 240 );
 	else
-		renderer.setColor4ub( 170, 170, 170, 240 );
+		renderer->setColor4ub( 170, 170, 170, 240 );
 
 	data.push_back( m_CornerPnts[UW00].data()[0] );
 	data.push_back( m_CornerPnts[UW00].data()[1] );
@@ -347,7 +345,7 @@ void WingSection::Draw( bool highlight )
 	data.push_back( m_CornerPnts[UW01].data()[1] );
 	data.push_back( m_CornerPnts[UW01].data()[2] );
 
-	renderer.draw( R_QUADS, 3, data );
+	renderer->draw( R_QUADS, 3, data );
 }
 
 //=============================================================//

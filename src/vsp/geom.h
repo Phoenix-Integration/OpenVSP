@@ -376,7 +376,7 @@ protected:
 	Geom* parentGeom;
 	vector< Geom* > childGeomVec;
 
-	renderMgr* renderer;
+	//renderMgr* renderer;
 
 	int displayChildrenFlag;
 

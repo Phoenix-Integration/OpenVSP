@@ -197,7 +197,6 @@ Geom::Geom( Aircraft* aptr ) : GeomBase()
 	currTexID = 0;
 	currPartID = 0;
 	currSourceID = 0;
-
 }
 
 Geom::~Geom()
@@ -1547,9 +1546,9 @@ void Geom::drawTextures(bool reflFlag)
 				if ( appTexVec[i].surfID == s || appTexVec[i].allSurfFlag )
 				{
 					if ( reflFlag )	
-						surfVec[s]->draw_refl_texture( appTexVec[i], sym_code, *reflect_mat, false );
+						surfVec[s]->draw_refl_texture( appTexVec[i], sym_code, *reflect_mat );
 					else
-						surfVec[s]->draw_texture( appTexVec[i], *model_mat, false );
+						surfVec[s]->draw_texture( appTexVec[i], *model_mat );
 				}
 			}
 		}
@@ -1585,7 +1584,7 @@ void Geom::draw()
 		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 		{
 			if ( surfVec[i]->get_draw_flag() )
-				surfVec[i]->draw_refl_wire(sym_code, *reflect_mat);
+				surfVec[i]->draw_refl_wire( sym_code, *reflect_mat );
 		}
 	}
 	else if ( displayFlag == GEOM_SHADE_FLAG || displayFlag == GEOM_TEXTURE_FLAG)
@@ -1619,7 +1618,7 @@ void Geom::draw()
 				for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 				{
 					if ( surfVec[i]->get_draw_flag() )
-						surfVec[i]->draw_refl_shaded(sym_code, *reflect_mat);
+						surfVec[i]->draw_refl_shaded( sym_code, *reflect_mat );
 				}
 
 				if ( displayFlag == GEOM_TEXTURE_FLAG )
@@ -1676,53 +1675,24 @@ void Geom::drawAlpha()
 		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 		{
 			if ( surfVec[i]->get_draw_flag() )
-				surfVec[i]->draw_shaded( *model_mat, true );
+				surfVec[i]->draw_shaded( *model_mat );
 		}
 
 		/* Draw Texture with Face Culling */
 		if ( displayFlag == GEOM_TEXTURE_FLAG )
-		{
-			for ( int i = 0 ; i < (int)appTexVec.size() ; i++ )
-			{
-				// White Base Material For Textures
-				Material wmat = matMgrPtr->getWhiteMaterial( (float)appTexVec[i].bright, mat->shine );	
-				wmat.diff[3] = (float)appTexVec[i].alpha;
-				wmat.bind();
+			drawTextures( false );
 
-				for ( int s = 0 ; s < (int)surfVec.size() ; s++ )
-				{
-					if ( surfVec[s]->get_draw_flag() )
-						if ( appTexVec[i].surfID == s || appTexVec[i].allSurfFlag )
-							surfVec[s]->draw_texture( appTexVec[i], *model_mat, true );
-				}
-			}
-		}
 		//==== Reflected Geom ====//
 		mat->bind();
 		for ( i = 0 ; i < (int)surfVec.size() ; i++ )
 		{
 			if ( surfVec[i]->get_draw_flag() )
-				surfVec[i]->draw_refl_shaded( sym_code, *reflect_mat, true );
+				surfVec[i]->draw_refl_shaded( sym_code, *reflect_mat );
 		}
 
 		/* Draw Reflected Texture with Face Culling */
 		if ( displayFlag == GEOM_TEXTURE_FLAG )
-		{
-			for ( int i = 0 ; i < (int)appTexVec.size() ; i++ )
-			{
-				// White Base Material For Textures
-				Material wmat = matMgrPtr->getWhiteMaterial( (float)appTexVec[i].bright, mat->shine );	
-				wmat.diff[3] = (float)appTexVec[i].alpha;
-				wmat.bind();
-
-				for ( int s = 0 ; s < (int)surfVec.size() ; s++ )
-				{
-					if ( surfVec[s]->get_draw_flag() )
-						if ( appTexVec[i].surfID == s || appTexVec[i].allSurfFlag )
-							surfVec[s]->draw_refl_texture( appTexVec[i], sym_code, *reflect_mat, true );
-				}
-			}
-		}
+			drawTextures( true );
 	}
 }
 //=====================================================================================================//

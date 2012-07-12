@@ -168,6 +168,13 @@ struct AlphaTestMode
 struct DepthMaskMode
 {
 	bool enabled;
+
+	DepthMaskMode():enabled(false) {}
+};
+
+struct DepthTestMode
+{
+	bool enabled;
 	struct DepthFunc
 	{
 		ParameterMask func;
@@ -175,7 +182,7 @@ struct DepthMaskMode
 		DepthFunc():func(R_LESS) {}
 	}	depthfunc;
 
-	DepthMaskMode():enabled(false), depthfunc() {}
+	DepthTestMode():enabled(false), depthfunc() {}
 };
 
 struct CullFaceMode
@@ -205,13 +212,14 @@ struct RenderProperties
 		AlphaTestMode alphaTestMode;
 		BlendMode blendMode;
 		DepthMaskMode depthMaskMode;
+		DepthTestMode depthTestMode;
 		LightingMode lightingMode;
 		PolygonOffsetMode polygonOffsetMode;
 		Texture2DMode texture2DMode;
 		CullFaceMode cullFaceMode;
 		LineSmoothMode lineSmoothMode;
 
-		RenderMode():alphaTestMode(), blendMode(), depthMaskMode(), lightingMode(), polygonOffsetMode(), 
+		RenderMode():alphaTestMode(), blendMode(), depthMaskMode(), depthTestMode(), lightingMode(), polygonOffsetMode(), 
 			texture2DMode(), cullFaceMode(), lineSmoothMode() {}
 	}	mode;
 
@@ -247,11 +255,13 @@ public:
 
 	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data ) {}
 	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals ) {}
-	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals, vector<double> texcoords ) {}
+	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data, int tsize, vector<double> texcoords ) {}
+	virtual void draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals, int tsize, vector<double> texcoords ) {}
 
 	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data ) {}
 	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals ) {}
-	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals, vector<double> texcoords ) {}
+	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, int tsize, vector<double> texcoords ) {}
+	virtual void draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals, int tsize, vector<double> texcoords ) {}
 
 public:
 	virtual void drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, vector<double> data ) {}

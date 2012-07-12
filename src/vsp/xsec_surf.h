@@ -132,29 +132,41 @@ public:
    void set_highlight_xsec_flag( int flag )	{ highlight_xsec_flag  = flag; }
    void set_highlight_xsec_color( vec3d c )	{ highlight_xsec_color = c; }
 
+	/* Draw Wire */
 	void draw_wire();
    void draw_wire( float* mat );
-
-	void draw_hidden();
-   void draw_hidden( float* mat ); 
-
-	void draw_shaded( bool cullFlag );
-   void draw_shaded( float* mat, bool cullFlag );
-
-	void draw_texture( AppliedTex& atex, bool cullFlag );
-   void draw_texture( AppliedTex& atex, float* mat, bool cullFlag );
-
-	void draw_refl_texture( AppliedTex& atex, int sym_code_in, bool cullFlag );
-   void draw_refl_texture( AppliedTex& atex, int sym_code_in, float* mat, bool cullFlag );
-
-	void draw_refl_shaded( int sym_code_in, bool cullFlag );
-   void draw_refl_shaded( int sym_code_in, float* mat, bool cullFlag ); 
 
 	void draw_refl_wire( int sym_code_in );
    void draw_refl_wire( int sym_code_in, float* mat );
 
+	/* Draw Hidden */
+	void draw_hidden();
+   void draw_hidden( float* mat ); 
+
 	void draw_refl_hidden( int sym_code_in );
    void draw_refl_hidden( int sym_code_in, float* mat );
+
+	/* Draw Shaded */
+	void draw_shaded();
+	void draw_shaded( float* mat );
+	void draw_shaded( RenderProperties rp_custom );
+	void draw_shaded( float* mat, RenderProperties rp_custom );
+
+	void draw_refl_shaded( int sym_code_in );
+	void draw_refl_shaded( int sym_code_in, float * mat );
+	void draw_refl_shaded( int sym_code_in, RenderProperties rp_custom );
+	void draw_refl_shaded( int sym_code_in, float * mat, RenderProperties rp_custom );
+
+	/* Draw Texture */
+	void draw_texture( AppliedTex& atex );
+	void draw_texture( AppliedTex& atex, float * mat );
+	void draw_texture( AppliedTex& atex, RenderProperties rp_custom );
+	void draw_texture( AppliedTex& atex, float * mat, RenderProperties rp_custom );
+
+	void draw_refl_texture( AppliedTex& atex, int sym_code_in );
+	void draw_refl_texture( AppliedTex& atex, int sym_code_in, float * mat );
+	void draw_refl_texture( AppliedTex& atex, int sym_code_in, RenderProperties rp_custom );
+	void draw_refl_texture( AppliedTex& atex, int sym_code_in, float * mat, RenderProperties rp_custom );
 
    void remap_texture( double u, double width, bool wrapFlag, vector< double > & valVec, 
 						vector< int > & indexVec, vector< double > & valRemap );

@@ -94,7 +94,7 @@ public:
 	virtual ~TextureLoader();
 
 public:
-	int loadTex( const char* name );
+	virtual int loadTex( const char* name );
 
 private:
 	map< string, Texture* >::iterator texMapIter;

@@ -1429,7 +1429,7 @@ void Fuse_geom::draw()
 				mat->bind();
 				if ( mat->diff[3] > 0.99 )
 				{
-					iml_surf.draw_shaded(*model_mat);
+					iml_surf.draw_shaded( *model_mat );
 				}
 			}
 		}
@@ -1439,7 +1439,7 @@ void Fuse_geom::draw()
 			mat->bind();
 			if ( mat->diff[3] > 0.99 )
 			{
-				oml_surf.draw_shaded(*model_mat);
+				oml_surf.draw_shaded( *model_mat );
 
 				if ( displayFlag == GEOM_TEXTURE_FLAG )
 					drawTextures(false);
@@ -1511,7 +1511,7 @@ void Fuse_geom::drawAlpha()
 		{
 			//==== Draw Geom ====//
 			mat->bind();
-			iml_surf.draw_shaded(*model_mat);
+			iml_surf.draw_shaded( *model_mat );
 
 			//==== Reflected Geom ====//
 			mat->bind();
@@ -1525,7 +1525,7 @@ void Fuse_geom::drawAlpha()
 	{
 		//==== Draw Geom ====//
 		mat->bind();
-		oml_surf.draw_shaded(*model_mat);
+		oml_surf.draw_shaded( *model_mat );
 		
 		if ( displayFlag == GEOM_TEXTURE_FLAG )
 			drawTextures(false);

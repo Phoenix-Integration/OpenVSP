@@ -1626,7 +1626,7 @@ void WingGeom::draw()
 			mat->bind();
 			if ( mat->diff[3] > 0.99 )
 			{
-				mwing_surf.draw_shaded(*model_mat);
+				mwing_surf.draw_shaded( *model_mat );
 			}
 		}
 
@@ -1667,7 +1667,7 @@ void WingGeom::drawAlpha()
 	{
 		//==== Draw Geom ====//
 		mat->bind();
-		mwing_surf.draw_shaded(*model_mat);
+		mwing_surf.draw_shaded( *model_mat );
 
 		//==== Reflected Geom ====//
 		mat->bind();

@@ -376,8 +376,6 @@ protected:
 	Geom* parentGeom;
 	vector< Geom* > childGeomVec;
 
-	//renderMgr* renderer;
-
 	int displayChildrenFlag;
 
    int ptrID;
@@ -454,9 +452,6 @@ protected:
    int autoRefCbarFlag;
    vec3d aeroCenter;
    int autoAeroCenterFlag;
-
- 
-
 };
 
 

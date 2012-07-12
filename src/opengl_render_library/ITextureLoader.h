@@ -10,7 +10,7 @@ public:
 	virtual ~ITextureLoader() {}
 
 public:
-	int loadTex( const char* name ) { return 0; }
+	virtual int loadTex( const char* name ) { return 0; }
 };
 
 #endif

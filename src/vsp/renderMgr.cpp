@@ -89,9 +89,14 @@ void renderMgr::draw( Primitive mode, RenderProperties rp, int size, vector<doub
 	renderPtr->draw( mode, rp, size, data, normals );
 }
 
-void renderMgr::draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals, vector<double> texcoords )
+void renderMgr::draw( Primitive mode, RenderProperties rp, int size, vector<double> data, int tsize, vector<double> texcoords )
 {
-	renderPtr->draw( mode, rp, size, data, normals, texcoords );
+	renderPtr->draw( mode, rp, size, data, tsize, texcoords );
+}
+
+void renderMgr::draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals, int tsize, vector<double> texcoords )
+{
+	renderPtr->draw( mode, rp, size, data, normals, tsize, texcoords );
 }
 
 void renderMgr::draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data )
@@ -104,9 +109,14 @@ void renderMgr::draw( Primitive mode, RenderProperties rp, float* matrix, int si
 	renderPtr->draw( mode, rp, matrix, size, data, normals );
 }
 
-void renderMgr::draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals, vector<double> texcoords )
+void renderMgr::draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, int tsize, vector<double> texcoords )
 {
-	renderPtr->draw( mode, rp, matrix, size, data, normals, texcoords );
+	renderPtr->draw( mode, rp, matrix, size, data, tsize, texcoords );
+}
+
+void renderMgr::draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals, int tsize, vector<double> texcoords )
+{
+	renderPtr->draw( mode, rp, matrix, size, data, normals, tsize, texcoords );
 }
 
 void renderMgr::drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, vector<double> data )

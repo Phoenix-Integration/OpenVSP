@@ -251,7 +251,35 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 * Draw Geometry.
 *
 *******************************************************/
-void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals, vector<double> texcoords )
+void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<double> data, int tsize, vector<double> texcoords )
+{
+	unsigned int pMode = 0;
+	commonUtil->getGLPrimitiveMode( mode, pMode );
+
+	/* Apply Properties */
+	bind( rp );
+
+	/* Set Rendering Data */
+	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
+	glTexCoordPointer( tsize, GL_DOUBLE, 0, &texcoords[0] );
+
+	/* Draw */
+	glEnableClientState( GL_VERTEX_ARRAY );
+	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+	glDrawArrays( pMode, 0, data.size() / size );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+	glDisableClientState( GL_VERTEX_ARRAY );
+
+	/* Restore Settings */
+	unbind( rp );
+}
+
+/******************************************************
+*
+* Draw Geometry.
+*
+*******************************************************/
+void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals, int tsize, vector<double> texcoords )
 {
 	unsigned int pMode = 0;
 	commonUtil->getGLPrimitiveMode( mode, pMode );
@@ -262,7 +290,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 	/* Set Rendering Data */
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
 	glNormalPointer( GL_DOUBLE, 0, &normals[0] );
-	glTexCoordPointer( 2, GL_DOUBLE, 0, &texcoords[0] );
+	glTexCoordPointer( tsize, GL_DOUBLE, 0, &texcoords[0] );
 
 	/* Draw */
 	glEnableClientState( GL_VERTEX_ARRAY );
@@ -312,12 +340,27 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, float* matrix, int
 * Draw Geometry.
 *
 *******************************************************/
-void GL11Renderer::draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals, vector<double> texcoords )
+void GL11Renderer::draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, int tsize, vector<double> texcoords )
 {
 	glPushMatrix();
 	glMultMatrixf( (GLfloat*)matrix );
 
-	draw( mode, rp, size, data, normals, texcoords );
+	draw( mode, rp, size, data, tsize, texcoords );
+
+	glPopMatrix();
+}
+
+/******************************************************
+*
+* Draw Geometry.
+*
+*******************************************************/
+void GL11Renderer::draw( Primitive mode, RenderProperties rp, float* matrix, int size, vector<double> data, vector<double> normals, int tsize, vector<double> texcoords )
+{
+	glPushMatrix();
+	glMultMatrixf( (GLfloat*)matrix );
+
+	draw( mode, rp, size, data, normals, tsize, texcoords );
 
 	glPopMatrix();
 }
@@ -386,21 +429,27 @@ void GL11Renderer::bind( RenderProperties rp )
 	}
 
 	/* DepthMask */
-	unsigned int depthfunc = 0;
-	commonUtil->getGLParameter( rp.mode.depthMaskMode.depthfunc.func, depthfunc );
-
 	if ( rp.mode.depthMaskMode.enabled )
-	{
-		glDepthFunc( depthfunc );
 		glDepthMask( GL_TRUE );
+	else
+		glDepthMask( GL_FALSE );
+
+	/* DepthTest */
+	if ( rp.mode.depthTestMode.enabled )
+	{
+		unsigned int depthfunc = 0;
+		commonUtil->getGLParameter( rp.mode.depthTestMode.depthfunc.func, depthfunc );
+
+		glDepthFunc( depthfunc );
+		glEnable( GL_DEPTH_TEST );
 	}
 
 	/* Alpha test */
-	unsigned int alphaTestfunc = 0;
-	commonUtil->getGLParameter( rp.mode.alphaTestMode.alphafunc.func, alphaTestfunc );
-
 	if ( rp.mode.alphaTestMode.enabled )
 	{
+		unsigned int alphaTestfunc = 0;
+		commonUtil->getGLParameter( rp.mode.alphaTestMode.alphafunc.func, alphaTestfunc );
+
 		glAlphaFunc( alphaTestfunc, rp.mode.alphaTestMode.alphafunc.ref );
 		glEnable( GL_ALPHA_TEST );
 	}
@@ -424,13 +473,13 @@ void GL11Renderer::bind( RenderProperties rp )
 	}
 
 	/* Blend */
-	unsigned int sfactor, dfactor;
-	sfactor = dfactor = 0;
-	commonUtil->getGLBlendMode( rp.mode.blendMode.blendfunc.sfactor, sfactor );
-	commonUtil->getGLBlendMode( rp.mode.blendMode.blendfunc.dfactor, dfactor );
-
 	if ( rp.mode.blendMode.enabled )
 	{
+		unsigned int sfactor, dfactor;
+		sfactor = dfactor = 0;
+		commonUtil->getGLBlendMode( rp.mode.blendMode.blendfunc.sfactor, sfactor );
+		commonUtil->getGLBlendMode( rp.mode.blendMode.blendfunc.dfactor, dfactor );
+
 		glBlendFunc( sfactor, dfactor );
 		glEnable( GL_BLEND );
 	}
@@ -440,11 +489,11 @@ void GL11Renderer::bind( RenderProperties rp )
 		glEnable( GL_LIGHTING );
 
 	/* Cull face */
-	unsigned int cullmode = 0;
-	commonUtil->getGLParameter( rp.mode.cullFaceMode.cullface.mode, cullmode );
-
 	if ( rp.mode.cullFaceMode.enabled )
 	{
+		unsigned int cullmode = 0;
+		commonUtil->getGLParameter( rp.mode.cullFaceMode.cullface.mode, cullmode );
+
 		glCullFace( cullmode );
 		glEnable( GL_CULL_FACE );
 	}
@@ -482,9 +531,13 @@ void GL11Renderer::unbind( RenderProperties rp )
 
 	if ( rp.mode.texture2DMode.enabled )
 		glDisable( GL_TEXTURE_2D );
-
-	if ( rp.mode.depthMaskMode.enabled )
-		glDepthMask( GL_FALSE );
+	
+	// FIXME: DepthMask mode and DepthTest mode need better
+	// clean up.
+	glDepthMask( GL_TRUE );
+		
+	glDepthFunc( GL_LESS );
+	glEnable( GL_DEPTH_TEST );
 
 	if ( rp.mode.polygonOffsetMode.enabled )
 	{

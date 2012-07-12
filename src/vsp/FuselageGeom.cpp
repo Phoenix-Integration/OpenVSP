@@ -932,7 +932,7 @@ void FuselageGeom::draw()
 			mat->bind();
 			if ( mat->diff[3] > 0.99 )
 			{
-				surf.draw_shaded(*model_mat);
+				surf.draw_shaded( *model_mat );
 
 				if ( displayFlag == GEOM_TEXTURE_FLAG )
 					drawTextures(false);
@@ -1057,7 +1057,7 @@ void FuselageGeom::drawAlpha()
 	{
 		//==== Draw Geom ====//
 		mat->bind();
-		surf.draw_shaded(*model_mat);
+		surf.draw_shaded( *model_mat );
 		
 		if ( displayFlag == GEOM_TEXTURE_FLAG )
 			drawTextures(false);

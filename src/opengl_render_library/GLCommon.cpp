@@ -302,6 +302,10 @@ void GLCommon::getGLParameter( ParameterMask mask, unsigned int &out )
 			out = GL_LESS;
 			break;
 
+		case R_EQUAL:
+			out = GL_EQUAL;
+			break;
+
 		case R_LEQUAL:
 			out = GL_LEQUAL;
 			break;

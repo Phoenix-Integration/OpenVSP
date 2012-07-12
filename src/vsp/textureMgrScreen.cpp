@@ -13,6 +13,25 @@
 TexWinDraw::TexWinDraw()
 {
 	m_TexPtr = NULL;
+
+	rp_texture.mode.texture2DMode.enabled = true;
+
+	rp_texture.mode.texture2DMode.texParameteri.pname.clear();
+	rp_texture.mode.texture2DMode.texParameteri.param.clear();
+
+	rp_texture.mode.texture2DMode.texParameteri.pname.push_back( R_TEXTURE_WRAP_S );
+	rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
+
+	rp_texture.mode.texture2DMode.texParameteri.pname.push_back( R_TEXTURE_WRAP_T );
+	rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
+	
+	rp_texture.mode.blendMode.enabled = true;
+	rp_texture.mode.blendMode.blendfunc.sfactor = R_SRC_ALPHA;
+	rp_texture.mode.blendMode.blendfunc.dfactor = R_ONE_MINUS_SRC_ALPHA;
+
+	rp_texture.mode.alphaTestMode.enabled = true;
+	rp_texture.mode.alphaTestMode.alphafunc.func = R_GREATER;
+	rp_texture.mode.alphaTestMode.alphafunc.ref = 0;
 }
 
 TexWinDraw::~TexWinDraw()
@@ -28,72 +47,96 @@ void TexWinDraw::SetTexture( AppliedTex * tex )
 void TexWinDraw::draw()
 {
 	int i;
+	vector<double> data, colors, texcoords;
+
 	//==== Draw Grid ====//
 	float gridSize = 0.1f;
 
-	glLineWidth(1.0);
-	glColor3f(0.8f, 0.8f, 0.8f);
-	glBegin( GL_LINES );
+	renderer->setLineWidth( 1.0 );
+	renderer->setColor3d( 0.8f, 0.8f, 0.8f );
+
 	for ( i = 0 ; i < 41 ; i++ )
 	{
 		if ( i == 20 )
-			glColor3f(0.8f, 0.8f, 0.8f);
+		{
+			for ( int vIter = 0; vIter < 4; vIter++ )
+			{
+				for ( int cIter = 0; cIter < 3; cIter++ )
+				{
+					colors.push_back( 0.8 );
+				}
+			}
+		}
 		else
-			glColor3f(0.9f, 0.9f, 0.9f);
+		{
+			for ( int vIter = 0; vIter < 4; vIter++ )
+			{
+				for ( int cIter = 0; cIter < 3; cIter++ )
+				{
+					colors.push_back( 0.9 );
+				}
+			}
+		}
 
-		glVertex2f( gridSize*(float)i - 20.0f*gridSize, -20.0f*gridSize );
-		glVertex2f( gridSize*(float)i - 20.0f*gridSize,  20.0f*gridSize );
-		glVertex2f( -20.0f*gridSize, gridSize*(float)i - 20.0f*gridSize );
-		glVertex2f(  20.0f*gridSize, gridSize*(float)i - 20.0f*gridSize );
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
+		data.push_back( -20.0f*gridSize );
+
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
+		data.push_back( 20.0f*gridSize );
+
+		data.push_back( -20.0f*gridSize );
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
+
+		data.push_back( 20.0f*gridSize );
+		data.push_back( gridSize*(float)i - 20.0f*gridSize );
 	}
-	glEnd();
+	renderer->draw( R_LINES, 3, colors, 2, data );
+	data.clear();
 
 	if ( m_TexPtr )
-	{
-		glDisable( GL_LIGHTING );
-		glEnable( GL_TEXTURE_2D );			// Turn On Texturing 
-		glDepthMask(GL_FALSE);				// Turn Off Depth Buffer
-		glDepthFunc(GL_EQUAL);
-		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		glEnable(GL_ALPHA_TEST);  
-		glAlphaFunc(GL_GREATER, 0);   
+	{  
+		renderer->setColor4d( 1.0, 1.0, 1.0, m_TexPtr->alpha );
 
-		glColor4d(1.0, 1.0, 1.0, m_TexPtr->alpha );
+		rp_texture.mode.texture2DMode.bindTexture.texture = m_TexPtr->texID;
 
-		glBindTexture(GL_TEXTURE_2D, m_TexPtr->texID );
-		if (m_TexPtr->repeatFlag )
+		rp_texture.mode.texture2DMode.texParameteri.param.clear();
+		if ( m_TexPtr->repeatFlag )
 		{
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+			rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_REPEAT );
+			rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_REPEAT );
 		}
 		else
 		{
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+			rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
+			rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
 		}
 
-		glBegin( GL_POLYGON );
-	
-		glTexCoord2d( 0.0, 0.0 );
-		glVertex2d(-0.5, -0.5);
+		texcoords.push_back( 0.0 );
+		texcoords.push_back( 0.0 );
 
-		glTexCoord2d( 1.0, 0.0 );
-		glVertex2d( 0.5, -0.5);
+		texcoords.push_back( 1.0 );
+		texcoords.push_back( 0.0 );
 
-		glTexCoord2d( 1.0, 1.0 );
-		glVertex2d(0.5,  0.5);
+		texcoords.push_back( 1.0 );
+		texcoords.push_back( 1.0 );
 
-		glTexCoord2d( 0.0, 1.0 );
-		glVertex2d(-0.5, 0.5);
+		texcoords.push_back( 0.0 );
+		texcoords.push_back( 1.0 );
 
-		glEnd();
+		data.push_back( -0.5 );
+		data.push_back( -0.5 );
+
+		data.push_back( 0.5);
+		data.push_back( -0.5 );
+
+		data.push_back( 0.5);
+		data.push_back( 0.5 );
+
+		data.push_back( -0.5);
+		data.push_back( 0.5 );
+
+		renderer->draw( R_QUADS, rp_texture, 2, data, 2, texcoords );
 	}
-
-	glDepthMask(GL_TRUE);				// Turn On Depth Buffer
-	glDepthFunc(GL_LESS);
-	glDisable( GL_TEXTURE_2D );			// Turn Off Texturing
-	glDisable( GL_LIGHTING );
 }
 
 

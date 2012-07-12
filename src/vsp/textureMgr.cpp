@@ -57,7 +57,7 @@ TextureMgr::TextureMgr()
 {
 	textureLoaderPtr = new ITextureLoader();
 
-	bool renderFlag = 1;
+	int renderFlag = 1;
 	if ( renderFlag )
 	{
 		delete textureLoaderPtr;

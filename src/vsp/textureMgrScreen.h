@@ -27,6 +27,7 @@ protected:
 
 	AppliedTex* m_TexPtr;
 
+	RenderProperties rp_texture;
 };
 
 
@@ -65,7 +66,6 @@ private:
 
 	TexWinDraw m_TexWinDraw;
 	XSecGlWindow* m_TexGLWin;
-
 
 	int m_currGeomID;
 };

@@ -14,27 +14,10 @@
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 #include "xmlvsp.h"
-
-
-
 #include <stdio.h>
-
-
-
-#ifdef WIN32
-#include <windows.h>		
-#endif
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif
-
 #include "stringc.h"
 #include <vector>				//jrg windows??	
-using namespace std;			//jrg windows??
-
+//using namespace std;			//jrg windows??
 
 class Material
 {
@@ -57,7 +40,6 @@ public:
 
 };
 
-
 class MaterialMgr
 {
 public:
@@ -67,17 +49,14 @@ public:
 
 	virtual void readFile( xmlNodePtr mat_node );
 
-	int  getNumMaterial()				{ return matVec.size(); }
-	Material* getMaterial(int i);
+	virtual int  getNumMaterial()				{ return matVec.size(); }
+	virtual Material* getMaterial(int i);
 
-	Material getMaterialCopy(int i);
+	virtual Material getMaterialCopy(int i);
 
-	Material getWhiteMaterial( float brightness, float shine );
-
-
+	virtual Material getWhiteMaterial( float brightness, float shine );
 
 private:
-
 	vector< Material* > matVec;
 };
 

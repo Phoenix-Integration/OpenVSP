@@ -59,6 +59,11 @@ void renderMgr::transform( double * tMatrix )
 	renderPtr->transform( tMatrix );
 }
 
+void renderMgr::setMaterial( float * amb, float * diff, float * spec, float * emiss, float shine )
+{
+	renderPtr->setMaterial( amb, diff, spec, emiss, shine );
+}
+
 void renderMgr::draw( Primitive mode, int size, vector< double > data )
 {
 	renderPtr->draw( mode, size, data );

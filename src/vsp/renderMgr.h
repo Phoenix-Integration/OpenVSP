@@ -25,6 +25,7 @@ public:
 	virtual void setLineWidth( float width );
 	virtual void setPointSize( float size );
 	virtual void transform( double * tMatrix );
+	virtual void setMaterial( float * amb, float * diff, float * spec, float * emiss, float shine );
 
 public:
 	virtual void draw( Primitive mode, int size, vector<double> data );

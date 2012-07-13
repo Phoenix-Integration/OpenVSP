@@ -112,6 +112,20 @@ void GL11Renderer::transform( double * tMatrix )
 
 /******************************************************
 *
+* Set Material.
+*
+*******************************************************/
+void GL11Renderer::setMaterial( float * amb, float * diff, float * spec, float * emiss, float shine )
+{
+	glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,   amb );	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,   diff );	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,  spec );	
+	glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION,  emiss );	
+	glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS, shine );
+}
+
+/******************************************************
+*
 * Draw Geometry.
 *
 *******************************************************/

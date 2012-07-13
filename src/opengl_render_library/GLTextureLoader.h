@@ -1,5 +1,5 @@
-#ifndef OPENGL_TEXTURE_LOADER_1
-#define OPENGL_TEXTURE_LOADER_1
+#ifndef OPENGL_TEXTURE_LOADER_H_1
+#define OPENGL_TEXTURE_LOADER_H_1
 
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>

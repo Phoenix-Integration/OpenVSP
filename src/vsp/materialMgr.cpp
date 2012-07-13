@@ -8,6 +8,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "materialMgr.h"
+#include "renderMgr.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -36,11 +37,12 @@ Material::Material()
 
 void Material::bind()
 {
-	glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,   amb );	
-	glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,   diff );	
-	glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,  spec );	
-	glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION,  emiss );	
-	glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS, shine );	
+	//glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,   amb );	
+	//glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,   diff );	
+	//glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,  spec );	
+	//glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION,  emiss );	
+	//glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS, shine );
+	renderer->setMaterial( amb, diff, spec, emiss, shine );
 
 }
 

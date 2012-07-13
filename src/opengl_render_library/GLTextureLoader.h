@@ -25,7 +25,7 @@
 #include <vector>
 #include <map>
 
-#include "ITextureLoader.h"
+#include "IRenderer.h"
 
 #define JPG_EXT	".jpg"
 #define JPEG_EXT	".jpeg"

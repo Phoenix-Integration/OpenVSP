@@ -2,6 +2,7 @@
 #define _OPENGL_RENDER_INTERFACE_H
 
 #include "util.h"
+#include "stringc.h"
 
 enum Primitive
 {
@@ -267,5 +268,15 @@ public:
 public:
 	virtual void drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, vector<double> data ) {}
 	virtual void drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, float* matrix, vector<double> data ) {}
+};
+
+class ITextureLoader
+{
+public:
+	ITextureLoader() {}
+	virtual ~ITextureLoader() {}
+
+public:
+	virtual int loadTex( const char* name ) { return 0; }
 };
 #endif

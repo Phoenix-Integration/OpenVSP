@@ -9,7 +9,7 @@
 #if !defined(AFX_TEXTUREMGR_H__635B9760_A025_11D7_AC31_0003473A025A__INCLUDED_)
 #define AFX_TEXTUREMGR_H__635B9760_A025_11D7_AC31_0003473A025A__INCLUDED_
 
-#include "ITextureLoader.h"
+#include "IRenderer.h"
 #include "GLTextureLoader.h"
 
 class AppliedTex

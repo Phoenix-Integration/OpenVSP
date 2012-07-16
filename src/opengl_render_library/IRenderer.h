@@ -4,6 +4,8 @@
 #include "util.h"
 #include "stringc.h"
 
+#define FONT_BASE_SCALE (1.0 / (double)1024.0)
+
 enum Primitive
 {
 	R_POINTS,
@@ -278,5 +280,18 @@ public:
 
 public:
 	virtual int loadTex( const char* name ) { return 0; }
+};
+
+class IVSPFont
+{
+public:
+	IVSPFont() {}
+	virtual ~IVSPFont() {}
+
+public:
+	virtual int loadFont( const char* name ) { return 0; }
+
+public:
+	virtual void draw( Stringc str, float scale, float x0, float y0, float xoffset, float yoffset ) {}
 };
 #endif

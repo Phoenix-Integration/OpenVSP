@@ -25,25 +25,24 @@
 #include <map>
 using namespace std;
 
-#include "glfont2.h"
-using namespace glfont;
-
+#include "IRenderer.h"
+//#include "GLVSPFont.h"
 
 #define FONT_BASE_SCALE (1.0 / (double)1024.0)
-
 
 class FontMgr
 {
 public:	
-	VSPDLL FontMgr() {}
+	VSPDLL FontMgr();
 	VSPDLL virtual ~FontMgr();
 
-	GLFont * loadFont(const char * file);
+public:
+	int loadFont( const char * file );
+	void draw( Stringc str, float scale, float x0, float y0, float xoffset, float yoffset );
 
-private:
-	vector< pair< Stringc, GLFont * > > fontVec;
+protected:
+	IVSPFont * VSPFontPtr;
 };
-
 
 class SingleFont {
 public:

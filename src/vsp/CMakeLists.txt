@@ -10,8 +10,8 @@ IF(WIN32)
     zlib
     rpcrt4)
   SET(OPENNURBS_LINK_DIR
-    ${VSP_SOURCE_DIR}/opennurbs/release
-    ${VSP_SOURCE_DIR}/opennurbs/zlib/Release)
+    ${VSP_SOURCE_DIR}/opennurbs/debug
+    ${VSP_SOURCE_DIR}/opennurbs/zlib/Debug)
 ELSE(WIN32)
   SET(OPENNURBS_LIBRARIES
     openNURBS)
@@ -28,6 +28,7 @@ INCLUDE_DIRECTORIES( ${VSP_SOURCE_DIR}
     ${JPEG_INCLUDE_DIR}
     ${FLTK_INCLUDE_DIR}
     ${LIBXML2_INCLUDE_DIR}
+    ${RENDER_LIB_INCLUDE_DIR}
     ${VSP_SOURCE_DIR}/opennurbs )
 
 LINK_DIRECTORIES(
@@ -90,6 +91,7 @@ parmScreen.cpp
 part.cpp
 propGeom.cpp
 propScreen.cpp
+renderMgr.cpp
 screenMgr.cpp
 scriptMgr.cpp
 SCurve.cpp
@@ -122,6 +124,7 @@ TARGET_LINK_LIBRARIES(vsp
     screens
     xmlvsp
     sixseries
+    render_library
     ${JPEG_LIBRARIES}
     ${LIBXML2_LIBRARIES}
     ${FLTK_LIBRARIES}

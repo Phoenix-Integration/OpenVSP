@@ -64,7 +64,6 @@ FuselageXSec.cpp
 fuseScreen.cpp
 geom.cpp
 geomScreen.cpp
-glfont2.cpp
 GridDensity.cpp
 groupScreen.cpp
 gui_device.cpp

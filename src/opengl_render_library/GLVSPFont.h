@@ -17,6 +17,7 @@ public:
 
 public:
 	virtual void draw( Stringc str, float scale, float x0, float y0, float xoffset, float yoffset );
+	virtual void draw( Stringc str, float scale, float * trans_mat, float x0, float y0, float xoffset, float yoffset );
 
 protected:
 	GLFont * font;

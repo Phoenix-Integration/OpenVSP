@@ -61,6 +61,7 @@ protected:
 	float textSize;
 	double viewScale;
 	vec2d cursor;
+	RenderProperties rp_font;
 
 };
 
@@ -94,13 +95,12 @@ public:
 protected:
 	virtual void writeTextLabel(Aircraft * airPtr, xmlNodePtr node);
 	virtual void readTextLabel(Aircraft * airPtr, xmlNodePtr node);
-	vec2d drawString(GLFont * glfont, float scale, Stringc str, float x0, float y0, float xoffset, float yoffset);
-
 
 	VertexID vertex1;
 //	int vertexLock;
 
-	GLFont * font;
+	////GLFont * font;
+	int font;
 	double textOffset;
 
 	bool fixedLabelFlag;

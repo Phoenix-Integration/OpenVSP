@@ -6,6 +6,7 @@
 #include "labelGeom.h"
 #include "screenMgr.h"
 #include "aircraft.h"
+#include "renderMgr.h"
 
 
 LabelGeom::LabelGeom() 
@@ -15,6 +16,7 @@ LabelGeom::LabelGeom()
 	viewScale = 1.0;
 	cursor = vec2d(0,0);
 
+	rp_font.mode.texture2DMode.enabled = true;
 }
 
 void LabelGeom::writeLabelGeom(xmlNodePtr root)
@@ -66,6 +68,7 @@ TextLabel::TextLabel() : LabelGeom()
 
 	color = vec3d( 100,100,100 );
 	font = fontMgr->loadFont("fonts/basic_font.glf");
+	//font = fontMgr->loadFont("C:/OpenVSP GitHub Second Clone/examples/fonts/basic_font.glf");
 
 	textOffset = 0.6f;
 
@@ -79,29 +82,10 @@ void TextLabel::reset()
 	vertex1.reset();
 }
 
-vec2d TextLabel::drawString(GLFont * glfont, float scale, Stringc str, float x0, float y0, float xoffset, float yoffset) 
-{
-
-	double w = 0; 
-	double h = 0;
-	if (str.get_length() > 0) {
-
-		//alignment 
-		pair< int, int > dimension;
-		glfont->GetStringSize(str.get_char_star(), &dimension);
-		w = ((float) dimension.first) * FONT_BASE_SCALE * scale;		
-		h = ((float) dimension.second) * FONT_BASE_SCALE * scale;
-		double x = x0 - w/2  + w*xoffset;
-		double y = y0 + h/2 + h*yoffset;
-
-		glfont->Begin();
-		glfont->DrawString(str.get_char_star(), (float)(FONT_BASE_SCALE * scale), (float)x, (float)y);
-	}
-	return vec2d(w,h);
-}
-
 void TextLabel::draw(int sel) 
 {
+	vector<double> data;  // use to store rendering data
+
 	if ( (vertex1.isSet() || fixedLabelFlag) && drawMode != DRAW_HIDDEN)
 	{
 		vec2d v2;
@@ -111,24 +95,24 @@ void TextLabel::draw(int sel)
 		else
 			v2 = vertex1.pos2d();//geomPtr->getVertex2d(geomIndex);
 
-		glColor3ub((int)color.x(), (int)color.y(), (int)color.z());
+		renderer->setColor3ub((int)color.x(), (int)color.y(), (int)color.z());
 
-		glEnable(GL_TEXTURE_2D);
 		if ( font )
-			drawString(font, (float)(textSize * sqrt(viewScale)), getName(), (float)v2.x(), (float)v2.y(), (float)textOffset, 0);
-		glDisable(GL_TEXTURE_2D);
-	
+			fontMgr->draw( getName(), (float)(textSize * sqrt(viewScale)), (float)v2.x(), (float)v2.y(), (float)textOffset, 0);
+
 		if (drawMode == DRAW_HIGHLIGHT)
 		{
+			/* Set Rendering Data */
+			data.push_back( v2.x() );
+			data.push_back( v2.y() );
+
+			/* Draw Point */
 			if (sel)
-				glColor3ub(255, 0, 0);
-			glPointSize(sel ? 8.0f : 6.0f);
-			glBegin(GL_POINTS);
-			glVertex2d(v2.x(), v2.y());
-			glEnd();
+				renderer->setColor3ub( 255, 0, 0 );
+			renderer->setPointSize( sel ? 8.0f : 6.0f );
+			renderer->draw( R_POINTS, 2, data );
 		}
 	}
-
 }
 
 
@@ -303,7 +287,8 @@ double RulerLabel::calculateDistance()
 void RulerLabel::draw(int sel) 
 {
 	if (drawMode == DRAW_HIDDEN) return;
-
+	
+	vector<double> data;
 	
 	if (vertex1.isSet())
 	{
@@ -334,17 +319,23 @@ void RulerLabel::draw(int sel)
 		}
 
 		if (sel)
-			glColor3ub(255, 0, 0);
+			renderer->setColor3ub( 255, 0, 0 );
 		else
-			glColor3ub((int)color.x(), (int)color.y(), (int)color.z());
+			renderer->setColor3ub((int)color.x(), (int)color.y(), (int)color.z());
 		//==== Draw Points ====//
 		if (drawMode == DRAW_HIGHLIGHT)
 		{
-			glPointSize(sel ? 7.0f : 6.0f);
-			glBegin(GL_POINTS);
-			glVertex2d(startPnt.x(), startPnt.y());
-			glVertex2d(endPnt.x(), endPnt.y());
-			glEnd();
+			/* Set Rendering Dat */
+			data.push_back( startPnt.x() );
+			data.push_back( startPnt.y() );
+			data.push_back( endPnt.x() );
+			data.push_back( endPnt.y() );
+
+			/* Draw Points */
+			renderer->setPointSize( sel ? 7.0f : 6.0f );
+			renderer->draw( R_POINTS, 2, data );
+
+			data.clear();
 		}
 
 		//==== Calculate Offset ====//
@@ -357,13 +348,16 @@ void RulerLabel::draw(int sel)
 		vec2d endOff = endPnt   + offset * rulerOffset * viewScale;
 
 		//==== Draw Lines ====//
-		glLineWidth(sel ? 2.0f : 1.0f);
-		glBegin(GL_LINE_STRIP);
-			glVertex2d(startPnt.x(), startPnt.y());
-			glVertex2d(startOff.x(), startOff.y());
-			glVertex2d(endOff.x(), endOff.y());
-			glVertex2d(endPnt.x(), endPnt.y());
-		glEnd();
+		data.push_back( startPnt.x() );	data.push_back( startPnt.y() );
+		data.push_back( startOff.x() );	data.push_back( startOff.y() );
+
+		data.push_back( endOff.x() );		data.push_back( endOff.y() );
+		data.push_back( endPnt.x() );		data.push_back( endPnt.y() );
+
+		renderer->setLineWidth( sel ? 2.0f : 1.0f );
+		renderer->draw( R_LINE_STRIP, 2, data );
+
+		data.clear();
 
 		//==== Draw Text ====//
 		vec2d vc = (startOff + endOff) * 0.5;
@@ -371,20 +365,40 @@ void RulerLabel::draw(int sel)
 		if (deltavec.x() > 0.0001 || deltavec.x() < -0.0001) // ~!= 0
 			ang = atan( (deltavec.y()) / (deltavec.x()) );
 
-		glColor3ub((int)color.x(), (int)color.y(), (int)color.z());
-		glPushMatrix();
-		{
-			glTranslated(vc.x(), vc.y(), 0);
-			glRotatef((float)RAD2DEG(ang), 0,0,1);
-			glEnable(GL_TEXTURE_2D);
-			if ( font )
-				drawString(font, textSize * (float)sqrt(viewScale), label, 0,0, (float)textOffset, 0.7f);
-			glDisable(GL_TEXTURE_2D);
-		}
-		glPopMatrix();
-	}
+		/* Set Color */
+		renderer->setColor3ub((int)color.x(), (int)color.y(), (int)color.z() );
 
+		/* Set Transformation Matrix */
+		float trans_mat[4][4];
+
+		/* Initialize the Transformation Matrix */
+		for ( int i = 0; i < 4; i++ )
+			for ( int j = 0; j < 4; j++ )
+				trans_mat[i][j] = 0.0;
+
+		/* Set Scale */
+		trans_mat[0][0] = 1.0;
+		trans_mat[1][1] = 1.0;
+		trans_mat[2][2] = 1.0;
+		trans_mat[3][3] = 1.0;
+
+		/* Set Translation */
+		trans_mat[3][0] = vc.x();
+		trans_mat[3][1] = vc.y();
+		trans_mat[3][2] = 0;
+
+		/* Set Rotation */
+		trans_mat[0][0] = cos(ang);
+		trans_mat[0][1] = sin(ang);
+		trans_mat[1][0] = -sin(ang);
+		trans_mat[1][1] = cos(ang);
+
+		/* Draw Font If Font is Loaded */
+		if ( font )
+			fontMgr->draw( label, textSize * (float)sqrt(viewScale), *trans_mat, 0, 0, (float)textOffset, 0.7f );
+	}
 }
+
 void RulerLabel::writeRulerLabel(Aircraft * airPtr, xmlNodePtr root)
 {
 	xmlNodePtr ruler_node = xmlNewChild( root, NULL, (const xmlChar *)"Ruler_Parms", NULL );

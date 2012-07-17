@@ -26,7 +26,6 @@
 using namespace std;
 
 #include "IRenderer.h"
-//#include "GLVSPFont.h"
 
 #define FONT_BASE_SCALE (1.0 / (double)1024.0)
 
@@ -38,7 +37,10 @@ public:
 
 public:
 	int loadFont( const char * file );
+
+public:
 	void draw( Stringc str, float scale, float x0, float y0, float xoffset, float yoffset );
+	void draw( Stringc str, float scale, float * trans_mat, float x0, float y0, float xoffset, float yoffset );
 
 protected:
 	IVSPFont * VSPFontPtr;

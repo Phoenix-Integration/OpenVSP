@@ -1,3 +1,20 @@
+#ifdef _MSC_VER
+#	pragma comment(lib, "opengl32.lib")
+#endif
+
+#ifdef _WIN32
+#	include <windows.h>
+#endif
+
+#ifdef __APPLE__
+#	include <OpenGL\gl.h>
+#else
+#	include <gl\GL.h>
+#	include "glext.h"
+#endif
+
+#include <assert.h>
+
 #include "GLVSPFont.h"
 
 GLVSPFont::GLVSPFont()
@@ -20,9 +37,6 @@ int GLVSPFont::loadFont( const char * file )
 
 		if ((char*)fontPair.first == file)
 		{
-			if ( font )
-				delete font;
-
 			font = fontPair.second;
 			return 1;
 		}
@@ -43,9 +57,6 @@ int GLVSPFont::loadFont( const char * file )
 		delete texfont;
 		texfont = 0;
 
-		if ( font )
-			delete font;
-
 		font = texfont;
 		return 0;
 	}
@@ -54,9 +65,6 @@ int GLVSPFont::loadFont( const char * file )
 		fontVec.push_back( pair< Stringc, GLFont * >(Stringc(file), texfont) );
 		glDisable(GL_TEXTURE_2D);
 		glDisable(GL_BLEND);
-
-		if ( font )
-			delete font;
 
 		font = texfont;
 		return 1;
@@ -67,6 +75,8 @@ void GLVSPFont::draw( Stringc str, float scale, float x0, float y0, float xoffse
 {
 	if ( !font )
 		return;
+
+	glEnable( GL_TEXTURE_2D );
 
 	double w = 0; 
 	double h = 0;
@@ -83,4 +93,16 @@ void GLVSPFont::draw( Stringc str, float scale, float x0, float y0, float xoffse
 		font->Begin();
 		font->DrawString(str.get_char_star(), (float)(FONT_BASE_SCALE * scale), (float)x, (float)y);
 	}
+
+	glDisable( GL_TEXTURE_2D );
+}
+
+void GLVSPFont::draw( Stringc str, float scale, float * trans_mat, float x0, float y0, float xoffset, float yoffset )
+{
+	glPushMatrix();
+	glMultMatrixf( (GLfloat*)trans_mat );
+
+	draw( str, scale, x0, y0, xoffset, yoffset );
+
+	glPopMatrix();
 }

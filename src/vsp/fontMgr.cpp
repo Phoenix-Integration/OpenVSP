@@ -4,11 +4,12 @@
 //
 
 #include "fontMgr.h"
+#include "GLVSPFont.h"
 
 FontMgr::FontMgr()
 {
-	VSPFontPtr = new IVSPFont();
-	//VSPFontPtr = new GLVSPFont();
+	//VSPFontPtr = new IVSPFont();
+	VSPFontPtr = new GLVSPFont();
 }
 
 FontMgr::~FontMgr() 
@@ -24,4 +25,9 @@ int FontMgr::loadFont( const char * file )
 void FontMgr::draw( Stringc str, float scale, float x0, float y0, float xoffset, float yoffset )
 {
 	VSPFontPtr->draw( str, scale, x0, y0, xoffset, yoffset );
+}
+
+void FontMgr::draw( Stringc str, float scale, float * trans_mat, float x0, float y0, float xoffset, float yoffset )
+{
+	VSPFontPtr->draw( str, scale, trans_mat, x0, y0, xoffset, yoffset );
 }

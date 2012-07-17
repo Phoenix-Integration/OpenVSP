@@ -95,19 +95,6 @@ Aircraft::Aircraft()
 
 	dragBuildTsvFileName = "VspAircraft_DragBuild.tsv";
 	exportDragBuildTsvFile = false;
-
-	/* Initialize Identity Matrix */
-	for ( int i = 0; i < 4; i++ )
-	{
-		for ( int j = 0; j < 4; j++ )
-		{
-			identityMatrix[i][j] = 0.0;
-		}
-	}
-	identityMatrix[0][0] = 1.0;
-	identityMatrix[1][1] = 1.0;
-	identityMatrix[2][2] = 1.0;
-	identityMatrix[3][3] = 1.0;
 }
 
 Aircraft::~Aircraft()
@@ -1353,9 +1340,12 @@ void Aircraft::drawHighlight()
 			data.push_back( highlight.x() );
 			data.push_back( highlight.y() );
 
+			renderer->pushMatrix();
 			renderer->setColor4d( 1.0, 0, 0, 0.7 );
 			renderer->setPointSize( 8.0 );
-			renderer->draw( R_POINTS, *identityMatrix, 2, data );
+			renderer->loadIdentity();
+			renderer->draw( R_POINTS, 2, data );
+			renderer->popMatrix();
 		}
 	}
 }

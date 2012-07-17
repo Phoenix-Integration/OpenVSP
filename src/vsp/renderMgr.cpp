@@ -59,6 +59,21 @@ void renderMgr::transform( double * tMatrix )
 	renderPtr->transform( tMatrix );
 }
 
+void renderMgr::loadIdentity()
+{
+	renderPtr->loadIdentity();
+}
+
+void renderMgr::pushMatrix()
+{
+	renderPtr->pushMatrix();
+}
+
+void renderMgr::popMatrix()
+{
+	renderPtr->popMatrix();
+}
+
 void renderMgr::setMaterial( float * amb, float * diff, float * spec, float * emiss, float shine )
 {
 	renderPtr->setMaterial( amb, diff, spec, emiss, shine );

@@ -77,6 +77,7 @@ void GLVSPFont::draw( Stringc str, float scale, float x0, float y0, float xoffse
 		return;
 
 	glEnable( GL_TEXTURE_2D );
+	glEnable( GL_BLEND );
 
 	double w = 0; 
 	double h = 0;
@@ -95,6 +96,7 @@ void GLVSPFont::draw( Stringc str, float scale, float x0, float y0, float xoffse
 	}
 
 	glDisable( GL_TEXTURE_2D );
+	glDisable( GL_BLEND );
 }
 
 void GLVSPFont::draw( Stringc str, float scale, float * trans_mat, float x0, float y0, float xoffset, float yoffset )

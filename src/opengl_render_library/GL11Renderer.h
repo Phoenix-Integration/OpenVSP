@@ -22,6 +22,9 @@ public:
 	virtual void setLineWidth( float width );
 	virtual void setPointSize( float size );
 	virtual void transform( double * tMatrix );
+	virtual void loadIdentity();
+	virtual void pushMatrix();
+	virtual void popMatrix();
 	virtual void setMaterial( float * amb, float * diff, float * spec, float * emiss, float shine );
 
 public:

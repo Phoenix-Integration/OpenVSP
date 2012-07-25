@@ -651,8 +651,7 @@ void VspGlWindow::draw()
 
 	if ( clearFlag < 2 )
 	{
-		glClearColor(0.95f,0.95f,0.95f,0);  
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		renderer->clearBuffer();
 		clearFlag++;
 	}
 
@@ -1056,8 +1055,7 @@ void VspGlWindow::screenGrab()
 
 	unsigned char *pRGB = new unsigned char [3 * (nPixW+1) * (nPixH+1) ];
 
-	glReadBuffer( GL_BACK );   
-	glReadPixels( nStartX, nStartY, nPixW, nPixH, GL_RGB, GL_UNSIGNED_BYTE, pRGB);
+	renderer->getBackBufferImage( pRGB );
 
 	unsigned char *pRGBFlip = new unsigned char [3 * (nPixW+1) * (nPixH+1) ];
 

@@ -259,6 +259,8 @@ public:
 
 	virtual void setMaterial( float * amb, float * diff, float * spec, float * emiss, float shine ) {}
 
+	virtual void getModelViewMatrix( float * model_mat, float * refl_mat, float * view_mat_out, float * model_mat_out, float * refl_mat_out ) {}
+
 	virtual void transform( double * tMatrix ) {}
 
 /* Window / View Port */
@@ -273,6 +275,11 @@ public:
 
 	virtual void setBackgroundImage( float x, float y, float width, float height, float scaleW, float scaleH, unsigned char * imageData ) {}
 	virtual void removeBackgroundImage() {}
+
+/* Render Buffer */
+public:
+	virtual void clearBuffer() {}
+	virtual void getBackBufferImage( unsigned char* data_out ) {}
 
 /* Draw Functions */
 public:

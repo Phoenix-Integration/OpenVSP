@@ -1419,17 +1419,11 @@ void Geom::dump_xsec_file(int geom_no, FILE* dump_file)
 
 void  Geom::storeModelMatrix()
 {
-	glGetFloatv(GL_MODELVIEW_MATRIX, viewMatrix.data());		// Retrieve The View Matrix
-
-	glPushMatrix();
-	glMultMatrixf((GLfloat*)model_mat); 
-	glGetFloatv(GL_MODELVIEW_MATRIX, modelMatrix.data());		// Retrieve The Modelview Matrix
-	glPopMatrix();
-
-	glPushMatrix();
-	glMultMatrixf((GLfloat*)reflect_mat); 
-	glGetFloatv(GL_MODELVIEW_MATRIX, reflMatrix.data());		// Retrieve The Modelview Matrix
-	glPopMatrix();
+	renderer->getModelViewMatrix( *model_mat, 
+											*reflect_mat, 
+											viewMatrix.data(), 
+											modelMatrix.data(), 
+											reflMatrix.data() ); 
 }
 
 vec2d Geom::projectPoint(vec3d point, int refl)

@@ -205,6 +205,26 @@ void GL11Renderer::enablePointSmooth( bool enableFlag )
 
 /******************************************************
 *
+* Get Model, View, and Reflection Matrix.
+*
+*******************************************************/
+void GL11Renderer::getModelViewMatrix( float * model_mat, float* refl_mat, float * view_mat_out, float * model_mat_out, float * refl_mat_out )
+{
+	glGetFloatv( GL_MODELVIEW_MATRIX, view_mat_out );
+
+	glPushMatrix();
+	glMultMatrixf( (GLfloat*)model_mat );
+	glGetFloatv( GL_MODELVIEW_MATRIX, model_mat_out );
+	glPopMatrix();
+
+	glPushMatrix();
+	glMultMatrixf( (GLfloat*)refl_mat );
+	glGetFloatv( GL_MODELVIEW_MATRIX, refl_mat_out );
+	glPopMatrix();
+}
+
+/******************************************************
+*
 * Matrix Transformation.
 *
 *******************************************************/
@@ -516,8 +536,6 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, float* matrix, int
 *
 * Draw Line Stipple ( data format - 3 doubles ).
 *
-* //FIXME: This function uses deprecated OpenGL API.
-*
 *******************************************************/
 void GL11Renderer::drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, vector<double> data )
 {
@@ -794,4 +812,16 @@ void GL11Renderer::createGLWindow()
 	glOrtho( orthoL, orthoR, orthoT, orthoB, orthoN, orthoF );
 
 	glMatrixMode( GL_MODELVIEW );
+}
+
+void GL11Renderer::clearBuffer()
+{
+	glClearColor( 1.0f, 1.0f, 1.0f, 0.0f );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+}
+
+void GL11Renderer::getBackBufferImage( unsigned char* data_out )
+{
+	glReadBuffer( GL_BACK );
+	glReadPixels( winX, winY, winW, winH, GL_RGB, GL_UNSIGNED_BYTE, data_out ); 
 }

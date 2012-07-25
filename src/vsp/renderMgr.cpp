@@ -148,6 +148,11 @@ void renderMgr::enablePointSmooth( bool enableFlag )
 	renderPtr->enablePointSmooth( enableFlag );
 }
 
+void renderMgr::getModelViewMatrix( float * model_mat, float * refl_mat, float * view_mat_out, float * model_mat_out, float * refl_mat_out ) 
+{
+	renderPtr->getModelViewMatrix( model_mat, refl_mat, view_mat_out, model_mat_out, refl_mat_out );
+}
+
 void renderMgr::transform( double * tMatrix )
 {
 	renderPtr->transform( tMatrix );
@@ -266,6 +271,16 @@ void renderMgr::setProjection( double left, double right, double top, double bot
 void renderMgr::setBackgroundImage( float x, float y, float width, float height, float scaleW, float scaleH, unsigned char * imageData )
 {
 	renderPtr->setBackgroundImage( x, y, width, height, scaleW, scaleH, imageData );
+}
+
+void renderMgr::clearBuffer()
+{
+	renderPtr->clearBuffer();
+}
+
+void renderMgr::getBackBufferImage( unsigned char* data_out )
+{
+	renderPtr->getBackBufferImage( data_out );
 }
 
 void renderMgr::removeBackgroundImage()

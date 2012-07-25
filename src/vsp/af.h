@@ -101,8 +101,6 @@ class Af : public DrawBase
   herm_curve upper_curve;
   herm_curve lower_curve;
 
-  renderMgr* renderPtr;
-
   void generate_4_series();
   void generate_biconvex();
   void generate_6_series();

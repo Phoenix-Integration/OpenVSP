@@ -444,9 +444,6 @@ herm_curve EditCurve::getHermCurve()
 
 void EditCurve::draw()
 {
-	renderMgr renderMgrPtr = renderMgr();
-	renderMgrPtr.init();
-
 	int i;
 	int numPnts = crv.get_num_sections()*3 + 1;
 
@@ -470,8 +467,8 @@ void EditCurve::draw()
 	else if ( drawScaleFactor < 0.25 )	gridSize = 1.0f;
 	else								gridSize = 0.1f;
 
-	renderMgrPtr.setLineWidth( 1.0 );
-	renderMgrPtr.setColor3d( 0.8, 0.8, 0.8 );
+	renderer->setLineWidth( 1.0 );
+	renderer->setColor3d( 0.8, 0.8, 0.8 );
 
 	vector<double> data;
 	vector<double> colors;
@@ -527,19 +524,19 @@ void EditCurve::draw()
 		data.push_back( 20.0f*gridSize );
 		data.push_back( gridSize*(float)i - 20.0f*gridSize );
 	}
-	renderMgrPtr.draw( R_LINES, *scale_mat, 3, colors, 2, data );
+	renderer->draw( R_LINES, *scale_mat, 3, colors, 2, data );
 
 	data.clear();
 
 	//==== Draw Control Grid ====//
-	renderMgrPtr.setColor3d( 0.0, 0.0, 1.0 );
+	renderer->setColor3d( 0.0, 0.0, 1.0 );
 	for (i = 0 ; i < numPnts ; i++ )
 	{
 		vec3d p = crv.get_pnt(i);
 		data.push_back( p.x() );
 		data.push_back( p.y() );
 	}
-	renderMgrPtr.draw( R_LINE_STRIP, *scale_mat, 2, data );
+	renderer->draw( R_LINE_STRIP, *scale_mat, 2, data );
 
 	data.clear();
 
@@ -547,14 +544,14 @@ void EditCurve::draw()
 	int currSect = selectPntID/3;
 	if ( currSect < (int)pntVec.size()-1 )
 	{
-		renderMgrPtr.setColor3d( 0.0, 1.0, 0.0 );
+		renderer->setColor3d( 0.0, 1.0, 0.0 );
 		for ( i = 3*currSect ; i < 3*currSect+4 ; i++ )
 		{
 			vec3d p = crv.get_pnt(i);
 			data.push_back( p.x() );
 			data.push_back( p.y() );
 		}
-		renderMgrPtr.draw( R_LINE_STRIP, *scale_mat, 2, data );
+		renderer->draw( R_LINE_STRIP, *scale_mat, 2, data );
 	}
 
 	data.clear();
@@ -562,8 +559,8 @@ void EditCurve::draw()
 	//==== Draw Curve ====//
 	Bezier_curve refl_crv = getBezierCurve();
 
-	renderMgrPtr.setLineWidth(2.0);
-	renderMgrPtr.setColor3d( 1.0, 0.0, 0.0 );
+	renderer->setLineWidth(2.0);
+	renderer->setColor3d( 1.0, 0.0, 0.0 );
 
 	for ( int isec = 0 ; isec < refl_crv.get_num_sections() ; isec++ )
 	{
@@ -575,13 +572,13 @@ void EditCurve::draw()
 			data.push_back( p.y() );
 		}
 	}
-	renderMgrPtr.draw( R_LINE_STRIP, *scale_mat, 2, data );
+	renderer->draw( R_LINE_STRIP, *scale_mat, 2, data );
 
 	data.clear();
 	colors.clear();
 
 	//==== Draw Control Points ====//
-	renderMgrPtr.setPointSize( 4.0 );
+	renderer->setPointSize( 4.0 );
 	for ( i = 0 ; i < numPnts ; i++ )
 	{
 		if ( i%3 == 0  )
@@ -601,30 +598,30 @@ void EditCurve::draw()
 		data.push_back( p.x() );
 		data.push_back( p.y() );
 	}
-	renderMgrPtr.draw( R_POINTS, *scale_mat, 3, colors, 2, data );
+	renderer->draw( R_POINTS, *scale_mat, 3, colors, 2, data );
 
 	data.clear();
 
 	//==== Draw Selected Control Points ====//
-	renderMgrPtr.setPointSize( 4.0 );
-	renderMgrPtr.setColor3d( 1.0, 1.0, 0.0 );
+	renderer->setPointSize( 4.0 );
+	renderer->setColor3d( 1.0, 1.0, 0.0 );
 
 	vec3d p = crv.get_pnt( nearPntID );
 	data.push_back( p.x() );
 	data.push_back( p.y() );
 
-	renderMgrPtr.draw( R_POINTS, *scale_mat, 2, data );
+	renderer->draw( R_POINTS, *scale_mat, 2, data );
 
 	data.clear();
 
-	renderMgrPtr.setPointSize( 8.0 );
-	renderMgrPtr.setColor3d( 0.0, 1.0, 0.0 );
+	renderer->setPointSize( 8.0 );
+	renderer->setColor3d( 0.0, 1.0, 0.0 );
 	
 	p = crv.get_pnt( selectPntID );
 	data.push_back( p.x() );
 	data.push_back( p.y() );
 
-	renderMgrPtr.draw( R_POINTS, *scale_mat, 2, data );
+	renderer->draw( R_POINTS, *scale_mat, 2, data );
 }
 
 int EditCurve::processKeyEvent()

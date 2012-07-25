@@ -23,10 +23,6 @@
 Af::Af(Geom* geom_ptr_in)
 {
   geom_ptr = geom_ptr_in;
-
-  //==== Renderer ====//
-  renderPtr = new renderMgr();
-  renderPtr->init();
   
   //==== Defaults ====//
   type = NACA_4_SERIES;
@@ -91,7 +87,6 @@ Af::Af(Geom* geom_ptr_in)
 //===== Destructor  =====//
 Af::~Af()
 {
-	delete renderPtr;
 }
 
 //===== Copy  =====//
@@ -1728,8 +1723,8 @@ void Af::draw()
 	//==== Draw Grid ====//
 	float gridSize = 0.1f;
 
-	renderPtr->setLineWidth( 1.0 );
-	renderPtr->setColor3d( 0.8, 0.8, 0.8 );
+	renderer->setLineWidth( 1.0 );
+	renderer->setColor3d( 0.8, 0.8, 0.8 );
 
 	vector<double> data;
 	vector<double> colors;
@@ -1785,16 +1780,16 @@ void Af::draw()
 		data.push_back( 20.0f*gridSize );
 		data.push_back( gridSize*(float)i - 20.0f*gridSize );
 	}
-	renderPtr->draw( R_LINES, 3, colors, 2, data );
+	renderer->draw( R_LINES, 3, colors, 2, data );
 
 	data.clear();
-	renderPtr->setColor3d( 1.0, 0.0, 0.0 );
+	renderer->setColor3d( 1.0, 0.0, 0.0 );
 	for (  i = 0 ; i < num_pnts ; i++)
    {
 		data.push_back( pnts[i].x() - 0.5 );
 		data.push_back( pnts[i].z() );
 	}
-	renderPtr->draw( R_LINE_STRIP, 2, data );
+	renderer->draw( R_LINE_STRIP, 2, data );
 }
 
 

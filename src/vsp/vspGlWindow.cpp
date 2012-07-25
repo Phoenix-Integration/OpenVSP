@@ -46,6 +46,18 @@ VirtGlWindow::VirtGlWindow(int xi, int yi, int wi, int hi)
 	{
 		savedUserViewFlag[i] = 0;
 	}
+
+	/* Initialize Transformation Matrix */
+	for ( int i = 0; i < 4; i++ )
+	{
+		for ( int j = 0; j < 4; j++ )
+		{
+			if ( i == j )
+				trans_mat[i][j] = 1.0;
+			else
+				trans_mat[i][j] = 0.0;
+		}
+	}
 }
 
 VirtGlWindow::~VirtGlWindow()
@@ -177,53 +189,26 @@ void VirtGlWindow::setBackImgFile( const char* fname )
 
 void VirtGlWindow::predraw()
 {
-	glEnable(GL_SCISSOR_TEST);
+	renderer->setWindowSize( wx, wy, ww, wh );
+	renderer->setClearColor( clearR, clearG, clearB );
+	renderer->setProjection( orthoL, orthoR, orthoT, orthoB, -10.0, 10.0 );
 
-	glViewport( wx, wy, ww, wh );
-	glScissor(wx, wy, ww, wh);
-	glClearColor(  (float)clearR/255.0f, (float)clearG/255.0f, (float)clearB/255.0f, 0);  
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	if ( drawBackImgFlag && jpgImgData.data != 0  )
+	if ( drawBackImgFlag && jpgImgData.data != 0 )
 	{
-		glDisable(GL_DEPTH_TEST);
-
-		glRasterPos2f( (float)backImgOffsetX, (float)backImgOffsetY );
-		glBitmap (0, 0, 0, 0, (float)(-jpgImgData.w/2), (float)(jpgImgData.h/2), NULL);
-		glPixelZoom((float)backImgScaleW, -(float)backImgScaleH);
-		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-		glDrawPixels( jpgImgData.w, jpgImgData.h, GL_RGB, GL_UNSIGNED_BYTE, jpgImgData.data );
-		glPixelZoom(1.0,  1.0);
-
-		glEnable(GL_DEPTH_TEST);
+		renderer->setBackgroundImage( backImgOffsetX, 
+												backImgOffsetY, 
+												jpgImgData.w, 
+												jpgImgData.h, 
+												backImgScaleW, 
+												-backImgScaleH, 
+												jpgImgData.data );
 	}
-
-
-	glDisable(GL_SCISSOR_TEST);
-
-	glMatrixMode( GL_PROJECTION );
-    glLoadIdentity(); 
-
-	glOrtho( orthoL, orthoR, orthoT, orthoB, -10.0, 10.0); 
-
-	glMatrixMode( GL_MODELVIEW );
-		
-	glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
- 		
-    glPushMatrix(); 
-	glLoadIdentity(); 
-	currTrack.transform();
-
-	glTranslatef( (float)cx, (float)cy, (float)cz );
-
-
+	renderer->createGLWindow();
 }
 
 void VirtGlWindow::postdraw()
 {
-   glPopMatrix();
-
+   //glPopMatrix();
 }
 
 void VirtGlWindow::draw( Aircraft* airPtr )
@@ -235,35 +220,46 @@ void VirtGlWindow::draw( Aircraft* airPtr )
 
 	predraw();
 
+	renderer->bindAttrib( renderer->rp_draw3D );
+	renderer->bindMatrix();
+	renderer->loadIdentity();
+
+	/* Set Transformation */
+	currTrack.transform();
+	trans_mat[3][0] = cx;
+	trans_mat[3][1] = cy;
+	trans_mat[3][2] = cz;
+	renderer->transform( *trans_mat );
+
+	/* Draw */
 	airPtr->draw();
 	if (focusFlag)
 	{
-		glDisable(GL_DEPTH_TEST);
+		renderer->bindAttrib( renderer->rp_draw2D );
 		airPtr->drawHighlight();
 		airPtr->draw2D();
-		glEnable(GL_DEPTH_TEST);
+		renderer->releaseAttrib();
 	}
+	renderer->releaseMatrix();
+	renderer->releaseAttrib();
 
-	postdraw();
-
- 
-	glDisable(GL_DEPTH_TEST);
-
-	glLineWidth(2.0);
-
+	/* Draw Window Outline */
+	renderer->bindAttrib( renderer->rp_draw2D);
+	renderer->setLineWidth( 2.0 );
 	if ( activeFlag )
-		glColor3d( 1.0, 0.2, 0.2 );
+		renderer->setColor3d( 1.0, 0.2, 0.2 );
 	else
-		glColor3d( 0.2, 0.2, 0.2 );
+		renderer->setColor3d( 0.2, 0.2, 0.2 );
 
-	glBegin( GL_LINE_STRIP );
-		glVertex2d( orthoL, orthoB );
-		glVertex2d( orthoL, orthoT );
-		glVertex2d( orthoR, orthoT );
-		glVertex2d( orthoR, orthoB );
-		glVertex2d( orthoL, orthoB );
-	glEnd();
-	glEnable(GL_DEPTH_TEST);
+	vector<double> data;
+	data.push_back( orthoL );	data.push_back( orthoB );
+	data.push_back( orthoL );	data.push_back( orthoT );
+	data.push_back( orthoR );	data.push_back( orthoT );
+	data.push_back( orthoR );	data.push_back( orthoB );
+	data.push_back( orthoL );	data.push_back( orthoB );
+
+	renderer->draw( R_LINE_STRIP, 2, data );
+	renderer->releaseAttrib();
 }
 
 int VirtGlWindow::mousePress( int mx, int my )
@@ -508,9 +504,11 @@ void VspGlWindow::init()
 	if ( ++count > 1 )
 	{
 		defineLights();
-		glEnable( GL_NORMALIZE );
-		glEnable( GL_LINE_SMOOTH );
-		glEnable(GL_POINT_SMOOTH);
+		//glEnable( GL_NORMALIZE );
+		//glEnable( GL_LINE_SMOOTH );
+		//glEnable(GL_POINT_SMOOTH);
+		renderer->enableLineSmooth( true );
+		renderer->enablePointSmooth( true );
 	}
 }
 
@@ -557,60 +555,52 @@ void VspGlWindow::defineLights()
 	specular[0] = specular[1] = specular[2] = (float)lightSpec;	specular[3] = 1.0f;
 
     static GLfloat position0[] = { 10.0f, 0.0f, 0.0f, 1.0f  };
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
-    glLightfv(GL_LIGHT0, GL_POSITION, position0);
+	 renderer->setLight( 0, ambient, diffuse, specular, position0 );
 
     static GLfloat position1[] = { 0.0f, 10.0f, 0.0f, 1.0f  };
-    glLightfv(GL_LIGHT1, GL_AMBIENT, ambient);
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse);
-    glLightfv(GL_LIGHT1, GL_SPECULAR, specular);
-    glLightfv(GL_LIGHT1, GL_POSITION, position1);
+	 renderer->setLight( 1, ambient, diffuse, specular, position1 );
 
     static GLfloat position2[] = { 0.0f, 0.0f, 10.0f, 1.0f  };
-    glLightfv(GL_LIGHT2, GL_AMBIENT, ambient);
-    glLightfv(GL_LIGHT2, GL_DIFFUSE, diffuse);
-    glLightfv(GL_LIGHT2, GL_SPECULAR, specular);
-    glLightfv(GL_LIGHT2, GL_POSITION, position2);
+	 renderer->setLight( 2, ambient, diffuse, specular, position2 );
 
     static GLfloat position3[] = {  10.0f, 0.0f, 10.0f, 1.0f  };
-    glLightfv(GL_LIGHT3, GL_AMBIENT, ambient);
-    glLightfv(GL_LIGHT3, GL_DIFFUSE, diffuse);
-    glLightfv(GL_LIGHT3, GL_SPECULAR, specular);
-    glLightfv(GL_LIGHT3, GL_POSITION, position3);
+	 renderer->setLight( 3, ambient, diffuse, specular, position3 );
 
     static GLfloat position4[] = {  0.0f, -10.0f, 10.0f, 1.0f  };
-    glLightfv(GL_LIGHT4, GL_AMBIENT, ambient);
-    glLightfv(GL_LIGHT4, GL_DIFFUSE, diffuse);
-    glLightfv(GL_LIGHT4, GL_SPECULAR, specular);
-    glLightfv(GL_LIGHT4, GL_POSITION, position4);
+	 renderer->setLight( 4, ambient, diffuse, specular, position4 );
 
     static GLfloat position5[] = { -10.0f, -10.0f, -10.0f, 10.0f  };
-    glLightfv(GL_LIGHT5, GL_AMBIENT, ambient);
-    glLightfv(GL_LIGHT5, GL_DIFFUSE, diffuse);
-    glLightfv(GL_LIGHT5, GL_SPECULAR, specular);
-    glLightfv(GL_LIGHT5, GL_POSITION, position5);
+	 renderer->setLight( 5, ambient, diffuse, specular, position5 );
 
-	if ( lightFlags[0] )	glEnable( GL_LIGHT0 );
-	else					glDisable( GL_LIGHT0 );
+	 if ( lightFlags[0] )	
+		 renderer->enableLight( 0 );
+	 else
+		 renderer->disableLight( 0 );
 
-	if ( lightFlags[1] )	glEnable( GL_LIGHT1 );
-	else					glDisable( GL_LIGHT1 );
+	 if ( lightFlags[1] )
+		 renderer->enableLight( 1 );
+	 else
+		 renderer->disableLight( 1 );
 
-	if ( lightFlags[2] )	glEnable( GL_LIGHT2 );
-	else					glDisable( GL_LIGHT2 );
+	 if ( lightFlags[2] )
+		 renderer->enableLight( 2 );
+	 else
+		 renderer->disableLight( 2 );
 
-	if ( lightFlags[3] )	glEnable( GL_LIGHT3 );
-	else					glDisable( GL_LIGHT3 );
+	 if ( lightFlags[3] )
+		 renderer->enableLight( 3 );
+	 else
+		 renderer->disableLight( 3 );
 
-	if ( lightFlags[4] )	glEnable( GL_LIGHT4 );
-	else					glDisable( GL_LIGHT4 );
+	 if ( lightFlags[4] )
+		 renderer->enableLight( 4 );
+	 else
+		 renderer->disableLight( 4 );
 
-	if ( lightFlags[5] )	glEnable( GL_LIGHT5 );
-	else					glDisable( GL_LIGHT5 );
-
-
+	 if ( lightFlags[5] )
+		 renderer->enableLight( 5 );
+	 else
+		 renderer->disableLight( 5 );
 }
 
 void VspGlWindow::setLightFlag( int id, int flag )
@@ -1110,6 +1100,17 @@ Fl_Gl_Window(x,y,w,h,"Vsp XSec Window")
 
 	resize( xi, yi, wi, hi  );
 
+	/* Initialize Transformation Matrix */
+	for ( int i = 0; i < 4; i++ )
+	{
+		for ( int j = 0; j < 4; j++ )
+		{
+			if ( i == j )
+				trans_mat[i][j] = 1.0;
+			else
+				trans_mat[i][j] = 0.0;
+		}
+	}
 }
 
 XSecGlWindow::~XSecGlWindow()
@@ -1242,53 +1243,31 @@ int XSecGlWindow::handle(int event)
 
 void XSecGlWindow::draw()
 {
-	glViewport( 0, 0, w, h );
-	glMatrixMode( GL_PROJECTION );
-    glLoadIdentity(); 
-
-	glOrtho( orthoL, orthoR, orthoT, orthoB, -1.0, 1.0); 
-
-	glMatrixMode( GL_MODELVIEW );
-		
-	glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
- 		
-    glPushMatrix(); 
-	glLoadIdentity(); 
-
-	glClearColor(0.95f, 0.95f, 0.95f, 0);  
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glDisable(GL_DEPTH_TEST);
-
+	/* Initialize Viewport and Background Image */
+	renderer->setWindowSize( 0, 0, w, h );
+	renderer->setProjection( orthoL, orthoR, orthoT, orthoB, -1.0, 1.0 );
 	if ( drawBackImgFlag && jpgImgData.data != 0 )
 	{
-		glRasterPos2f(  0.0,0.0);
-		glBitmap (0, 0, 0, 0, (float)(-jpgImgData.w/2), (float)(jpgImgData.h/2), NULL);
-		glPixelZoom(1.0, -1.0);
-		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-		glDrawPixels( jpgImgData.w, jpgImgData.h, GL_RGB, GL_UNSIGNED_BYTE, jpgImgData.data );
-		glPixelZoom(1.0,  1.0);
+		renderer->setBackgroundImage( 0.0f, 0.0f, jpgImgData.w, jpgImgData.h, 1.0, -1.0, jpgImgData.data );
 	}
+	renderer->createGLWindow();
 
+	/* Store Current Matrix */
+	renderer->bindMatrix();
+
+	/* Apply Scaling */
 	double sf = (orthoL - orthoR)/(orthoT - orthoB);
-	glScalef( (float)sf, (float)sf, 1.0 );
+	trans_mat[0][0] = sf;
+	trans_mat[1][1] = sf;
+	trans_mat[2][2] = 1.0;
+	renderer->transform( *trans_mat );
 
+	/* Draw */
+	renderer->bindAttrib( renderer->rp_draw2D );
 	if ( drawBasePtr )
 		drawBasePtr->draw();
 
-
-	glEnable(GL_DEPTH_TEST);
-
-	glPopMatrix();
-
-
+	/* Restore State */
+	renderer->releaseAttrib();
+	renderer->releaseMatrix();
 }
-
-
-
-
-
-
-
-

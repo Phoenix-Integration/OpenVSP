@@ -968,15 +968,15 @@ void ScreenMgr::menuCB( Fl_Widget* w )
 		if (antialias)
 		{
 			mainWinUI->AntialiasMenu->label("Antialias Lines");
-			glDisable( GL_LINE_SMOOTH );
-			glDisable(GL_POINT_SMOOTH);
+			renderer->enableLineSmooth( false );
+			renderer->enablePointSmooth( false );
 			antialias = 0;
 		}
 		else
 		{
 			mainWinUI->AntialiasMenu->label("Alias Lines");
-			glEnable( GL_LINE_SMOOTH );
-			glEnable(GL_POINT_SMOOTH);
+			renderer->enableLineSmooth( true );
+			renderer->enablePointSmooth( true );
 			antialias = 1;
 		}
 	}

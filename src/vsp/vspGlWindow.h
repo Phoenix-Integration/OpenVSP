@@ -12,14 +12,8 @@
 
 #include <stdio.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>		
-#endif
-
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
 #endif
 
 #include <FL/Fl.H>
@@ -145,9 +139,7 @@ private:
 
 	int backImgPreserveAspect;
 
-
-
-
+	double trans_mat[4][4];
 };
 
 class VspGlWindow : public Fl_Gl_Window 
@@ -256,11 +248,6 @@ private:
 	int drawBackImgFlag;
 	JpgData jpgImgData;
 
+	double trans_mat[4][4];
 };
-
-
-
-
-
-
 #endif

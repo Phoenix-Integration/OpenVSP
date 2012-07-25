@@ -19,13 +19,32 @@ public:
 	virtual void getColor4d( double color[4] );
 
 public:
+	virtual void setLight( int index, float* ambient, float* diffuse, float* specular, float* position );
+	virtual void enableLight( int index );
+	virtual void disableLight( int index );
+
+public:
 	virtual void setLineWidth( float width );
+	virtual void enableLineSmooth( bool enableFlag );
+
 	virtual void setPointSize( float size );
-	virtual void transform( double * tMatrix );
-	virtual void loadIdentity();
-	virtual void pushMatrix();
-	virtual void popMatrix();
+	virtual void enablePointSmooth( bool enableFlag );
+
 	virtual void setMaterial( float * amb, float * diff, float * spec, float * emiss, float shine );
+
+	virtual void transform( double * tMatrix );
+
+public:
+	virtual void createGLWindow();
+
+	virtual void setWindowSize( int x, int y, int width, int height );
+
+	virtual void setClearColor( unsigned char r, unsigned char g, unsigned char b );
+
+	virtual void setProjection( double left, double right, double top, double bottom, double clipNear, double clipFar );
+
+	virtual void setBackgroundImage( float x, float y, float width, float height, float scaleW, float scaleH, unsigned char * imageData );
+	virtual void removeBackgroundImage();
 
 public:
 	virtual void draw( Primitive mode, int size, vector<double> data );
@@ -49,11 +68,26 @@ public:
 	virtual void drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, vector<double> data );
 	virtual void drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, float* matrix, vector<double> data );
 
-protected:
-	virtual void bind( RenderProperties rp );
-	virtual void unbind( RenderProperties rp );
+public:
+	virtual void bindAttrib( RenderProperties rp );
+	virtual void releaseAttrib();
+
+	virtual void bindMatrix();
+	virtual void releaseMatrix();
+
+	virtual void loadIdentity();
 
 protected:
 	GLCommon* commonUtil;
+	int winX, winY, winW, winH;
+
+	double orthoL, orthoR, orthoT, orthoB, orthoN, orthoF;
+
+	double jpgImgX, jpgImgY, jpgImgW, jpgImgH, jpgImgScaleW, jpgImgScaleH;
+	unsigned char * jpgImgData;
+
+	unsigned char clearR;
+	unsigned char clearG; 
+	unsigned char clearB;
 };
 #endif

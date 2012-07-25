@@ -694,9 +694,7 @@ void FeaSpliceLine::draw()
 
 	ldata.clear();
 
-	RenderProperties rp;
-	rp.mode.lineSmoothMode.enabled = true;
-
+	renderer->enableLineSmooth( true );
 	renderer->setColor4d( 0.0, 0.0, 1.0, 1.0 );
 	renderer->setLineWidth( 2.0 );
 
@@ -720,8 +718,9 @@ void FeaSpliceLine::draw()
 		ldata.push_back( m_WinXScale*sp1->m_Pos - m_WinXScale*0.5 );
 		ldata.push_back( t1*0.5 );
 
-		renderer->draw( R_LINE_LOOP, rp, 2, ldata );
+		renderer->draw( R_LINE_LOOP, 2, ldata );
 	}
+	renderer->enableLineSmooth( false );
 }
 
 

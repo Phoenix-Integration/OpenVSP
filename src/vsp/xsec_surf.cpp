@@ -46,66 +46,6 @@ Xsec_surf::Xsec_surf()
   highlight_xsec_color = vec3d( 0.75, 0.0, 0.0 );
 
   draw_flag = true;
-
-  /* Customized Render Properties */ 
-
-  /* Render Properties for drawing hidden */
-  rp_hidden.mode.polygonOffsetMode.enabled = true;
-  rp_hidden.mode.polygonOffsetMode.polygonOffset.factor = 2.0;
-  rp_hidden.mode.polygonOffsetMode.polygonOffset.units = 1.0;
-
-  /* Render Properties for drawing shaded */
-  rp_shaded.mode.blendMode.enabled = true;
-  rp_shaded.mode.blendMode.blendfunc.sfactor = R_SRC_ALPHA;
-  rp_shaded.mode.blendMode.blendfunc.dfactor = R_ONE_MINUS_SRC_ALPHA;
-
-  rp_shaded.mode.lightingMode.enabled = true;
-
-  rp_shaded.mode.cullFaceMode.enabled = true;
-  rp_shaded.mode.cullFaceMode.cullface.mode = R_BACK;
-
-  rp_shaded.mode.depthMaskMode.enabled = true;
-
-  rp_shaded.mode.depthTestMode.enabled = true;
-  rp_shaded.mode.depthTestMode.depthfunc.func = R_LESS;
-
-  /* Render Properties for drawing texture */
-  /* alpha test */
-  rp_texture.mode.alphaTestMode.enabled = true;
-  rp_texture.mode.alphaTestMode.alphafunc.func = R_GREATER;
-  rp_texture.mode.alphaTestMode.alphafunc.ref = 0;
-
-  /* lighting effect */
-  rp_texture.mode.lightingMode.enabled = true;
-
-  /* color blending */
-  rp_texture.mode.blendMode.enabled = true;
-  rp_texture.mode.blendMode.blendfunc.sfactor = R_SRC_ALPHA;
-  rp_texture.mode.blendMode.blendfunc.dfactor = R_ONE_MINUS_SRC_ALPHA;
-	
-  /* depth buffer */
-  rp_texture.mode.depthMaskMode.enabled = false;
-
-  /* depth test */
-  rp_texture.mode.depthTestMode.enabled = true;
-  rp_texture.mode.depthTestMode.depthfunc.func = R_EQUAL;
-
-  /* texture 2d */
-  rp_texture.mode.texture2DMode.enabled = true;
-
-  /* set texture parameter names and parameters */
-  rp_texture.mode.texture2DMode.texParameteri.pname.clear();
-  rp_texture.mode.texture2DMode.texParameteri.param.clear();
-
-  rp_texture.mode.texture2DMode.texParameteri.pname.push_back( R_TEXTURE_WRAP_S );
-  rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
-
-  rp_texture.mode.texture2DMode.texParameteri.pname.push_back( R_TEXTURE_WRAP_T );
-  rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
-
-  /* cull face */
-  rp_texture.mode.cullFaceMode.enabled = true;
-  rp_texture.mode.cullFaceMode.cullface.mode = R_BACK;
 }
 
 //==== Destructor =====//
@@ -658,7 +598,7 @@ void Xsec_surf::draw_hidden()
 			data.push_back( dpnt[2] );
 		}
 	}
-	renderer->draw( R_QUADS, rp_hidden, 3, data );
+	renderer->draw( R_QUADS, renderer->rp_hidden, 3, data );
 }
 
 /******************************************************
@@ -711,7 +651,7 @@ void Xsec_surf::draw_hidden( float* mat )
 			data.push_back( dpnt[2] );
 		}
 	}
-	renderer->draw( R_QUADS, rp_hidden, mat, 3, data );
+	renderer->draw( R_QUADS, renderer->rp_hidden, mat, 3, data );
 }
 
 //==== Draw Reflected Hidden Surf =====//
@@ -774,7 +714,7 @@ void Xsec_surf::draw_refl_hidden( int sym_code_in )
 			data.push_back(dpnt[2]);
 		}
 	}
-	renderer->draw( R_QUADS, rp_hidden, 3, data);
+	renderer->draw( R_QUADS, renderer->rp_hidden, 3, data);
 }
 
 //==== Draw Reflected Hidden Surf =====//
@@ -843,7 +783,7 @@ void Xsec_surf::draw_refl_hidden( int sym_code_in, float* mat )
 			data.push_back(dpnt[2]);
 		}
 	}
-	renderer->draw( R_QUADS, rp_hidden, mat, 3, data);
+	renderer->draw( R_QUADS, renderer->rp_hidden, mat, 3, data);
 }
 
 /******************************************************
@@ -916,7 +856,7 @@ void Xsec_surf::draw_shaded()
 			data.push_back( dpnt[2] );
 		}
 	}
-	renderer->draw( R_QUADS, rp_shaded, 3, data, norms );
+	renderer->draw( R_QUADS, renderer->rp_shaded, 3, data, norms );
 }
 
 /******************************************************
@@ -991,7 +931,7 @@ void Xsec_surf::draw_shaded( float * mat )
 			data.push_back( dpnt[2] );
 		}
 	}
-	renderer->draw( R_QUADS, rp_shaded, mat, 3, data, norms );
+	renderer->draw( R_QUADS, renderer->rp_shaded, mat, 3, data, norms );
 }
 
 /******************************************************
@@ -1251,19 +1191,19 @@ void Xsec_surf::draw_texture( AppliedTex& tex )
 	int i, j;
 
 	/* Bind Texture */
-	rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
+	renderer->rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
 
 	/* set texture parameters */
-	rp_texture.mode.texture2DMode.texParameteri.param.clear();
+	renderer->rp_texture.mode.texture2DMode.texParameteri.param.clear();
 	if ( tex.repeatFlag )
 	{
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_REPEAT );
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_REPEAT );
+		renderer->rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_REPEAT );
+		renderer->rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_REPEAT );
 	}
 	else
 	{
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
+		renderer->rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
+		renderer->rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
 	}
 
 	vector<double> data;
@@ -1416,7 +1356,7 @@ void Xsec_surf::draw_texture( AppliedTex& tex )
 			}
 		}
 	}
-	renderer->draw( R_QUADS, rp_texture, 3, data, norms, 2, texcoords );
+	renderer->draw( R_QUADS, renderer->rp_texture, 3, data, norms, 2, texcoords );
 }
 
 /******************************************************
@@ -1434,19 +1374,19 @@ void Xsec_surf::draw_texture( AppliedTex& tex, float * mat)
 	int i, j;
 
 	/* Bind Texture */
-	rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
+	renderer->rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
 
 	/* set texture parameters */
-	rp_texture.mode.texture2DMode.texParameteri.param.clear();
+	renderer->rp_texture.mode.texture2DMode.texParameteri.param.clear();
 	if ( tex.repeatFlag )
 	{
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_REPEAT );
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_REPEAT );
+		renderer->rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_REPEAT );
+		renderer->rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_REPEAT );
 	}
 	else
 	{
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
+		renderer->rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
+		renderer->rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
 	}
 
 	vector<double> data;
@@ -1599,7 +1539,7 @@ void Xsec_surf::draw_texture( AppliedTex& tex, float * mat)
 			}
 		}
 	}
-	renderer->draw( R_QUADS, rp_texture, mat, 3, data, norms, 2, texcoords );
+	renderer->draw( R_QUADS, renderer->rp_texture, mat, 3, data, norms, 2, texcoords );
 }
 
 /******************************************************
@@ -1615,22 +1555,6 @@ void Xsec_surf::draw_texture( AppliedTex& tex, RenderProperties rp_custom )
 		return;
 
 	int i, j;
-
-	/* Bind Texture */
-	rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
-
-	/* set texture parameters */
-	rp_texture.mode.texture2DMode.texParameteri.param.clear();
-	if ( tex.repeatFlag )
-	{
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_REPEAT );
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_REPEAT );
-	}
-	else
-	{
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
-	}
 
 	vector<double> data;
 	vector<double> norms;
@@ -1799,22 +1723,6 @@ void Xsec_surf::draw_texture( AppliedTex& tex, float * mat, RenderProperties rp_
 		return;
 
 	int i, j;
-
-	/* Bind Texture */
-	rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
-
-	/* set texture parameters */
-	rp_texture.mode.texture2DMode.texParameteri.param.clear();
-	if ( tex.repeatFlag )
-	{
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_REPEAT );
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_REPEAT );
-	}
-	else
-	{
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
-		rp_texture.mode.texture2DMode.texParameteri.param.push_back( R_CLAMP_TO_EDGE );
-	}
 
 	vector<double> data;
 	vector<double> norms;
@@ -1995,7 +1903,7 @@ void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in )
 	}
 
 	/* Bind Texture */
-	rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
+	renderer->rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
 
 	/* Set texture parameters */
 	vector<ParameterMask> params;
@@ -2009,7 +1917,7 @@ void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in )
 		params.push_back( R_CLAMP_TO_EDGE );
 		params.push_back( R_CLAMP_TO_EDGE );
 	}
-	rp_texture.mode.texture2DMode.texParameteri.param = params;
+	renderer->rp_texture.mode.texture2DMode.texParameteri.param = params;
 
 	vector<double> norms;
 	vector<double> data;
@@ -2160,7 +2068,7 @@ void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in )
 			}
 		}
 	}
-	renderer->draw( R_QUADS, rp_texture, 3, data, norms, 2, texcoords );	
+	renderer->draw( R_QUADS, renderer->rp_texture, 3, data, norms, 2, texcoords );	
 }
 
 /******************************************************
@@ -2191,7 +2099,7 @@ void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in, float* mat 
 	}
 
 	/* Bind Texture */
-	rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
+	renderer->rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
 
 	/* Set texture parameters */
 	vector<ParameterMask> params;
@@ -2205,7 +2113,7 @@ void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in, float* mat 
 		params.push_back( R_CLAMP_TO_EDGE );
 		params.push_back( R_CLAMP_TO_EDGE );
 	}
-	rp_texture.mode.texture2DMode.texParameteri.param = params;
+	renderer->rp_texture.mode.texture2DMode.texParameteri.param = params;
 
 	vector<double> norms;
 	vector<double> data;
@@ -2356,7 +2264,7 @@ void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in, float* mat 
 			}
 		}
 	}
-	renderer->draw( R_QUADS, rp_texture, mat, 3, data, norms, 2, texcoords );	
+	renderer->draw( R_QUADS, renderer->rp_texture, mat, 3, data, norms, 2, texcoords );	
 }
 
 /******************************************************
@@ -2385,23 +2293,6 @@ void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in, RenderPrope
 		refl_normals_code =  sym_code_in;
 		load_refl_normals();  
 	}
-
-	/* Bind Texture */
-	rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
-
-	/* Set texture parameters */
-	vector<ParameterMask> params;
-	if ( tex.repeatFlag )
-	{
-		params.push_back( R_REPEAT );
-		params.push_back( R_REPEAT );
-	}
-	else
-	{
-		params.push_back( R_CLAMP_TO_EDGE );
-		params.push_back( R_CLAMP_TO_EDGE );
-	}
-	rp_texture.mode.texture2DMode.texParameteri.param = params;
 
 	vector<double> norms;
 	vector<double> data;
@@ -2582,23 +2473,6 @@ void Xsec_surf::draw_refl_texture( AppliedTex& tex, int sym_code_in, float* mat,
 		refl_normals_code =  sym_code_in;
 		load_refl_normals();  
 	}
-
-	/* Bind Texture */
-	rp_texture.mode.texture2DMode.bindTexture.texture = tex.texID;
-
-	/* Set texture parameters */
-	vector<ParameterMask> params;
-	if ( tex.repeatFlag )
-	{
-		params.push_back( R_REPEAT );
-		params.push_back( R_REPEAT );
-	}
-	else
-	{
-		params.push_back( R_CLAMP_TO_EDGE );
-		params.push_back( R_CLAMP_TO_EDGE );
-	}
-	rp_texture.mode.texture2DMode.texParameteri.param = params;
 
 	vector<double> norms;
 	vector<double> data;
@@ -2835,7 +2709,7 @@ void Xsec_surf::draw_refl_shaded( int sym_code_in )
 			data.push_back( dpnt[2] );
 		}
 	}
-	renderer->draw( R_QUADS, rp_shaded, 3, data, norms );
+	renderer->draw( R_QUADS, renderer->rp_shaded, 3, data, norms );
 }
 
 /******************************************************
@@ -2923,7 +2797,7 @@ void Xsec_surf::draw_refl_shaded( int sym_code_in, float* mat )
 			data.push_back( dpnt[2] );
 		}
 	}
-	renderer->draw( R_QUADS, rp_shaded, mat, 3, data, norms );
+	renderer->draw( R_QUADS, renderer->rp_shaded, mat, 3, data, norms );
 }
 
 /******************************************************

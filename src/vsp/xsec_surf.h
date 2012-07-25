@@ -47,10 +47,6 @@ private:
  
 protected:
 
-	RenderProperties rp_shaded;
-	RenderProperties rp_texture;
-	RenderProperties rp_hidden;
-
    int num_xsecs;
    int num_pnts;
 

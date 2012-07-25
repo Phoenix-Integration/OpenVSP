@@ -201,11 +201,11 @@ struct CullFaceMode
 	CullFaceMode():enabled(false), cullface() {}
 };
 
-struct LineSmoothMode
+struct NormalizeMode
 {
 	bool enabled;
 
-	LineSmoothMode():enabled(false) {}
+	NormalizeMode():enabled(false) {}
 };
 
 struct RenderProperties
@@ -220,10 +220,10 @@ struct RenderProperties
 		PolygonOffsetMode polygonOffsetMode;
 		Texture2DMode texture2DMode;
 		CullFaceMode cullFaceMode;
-		LineSmoothMode lineSmoothMode;
+		NormalizeMode normalizeMode;
 
 		RenderMode():alphaTestMode(), blendMode(), depthMaskMode(), depthTestMode(), lightingMode(), polygonOffsetMode(), 
-			texture2DMode(), cullFaceMode(), lineSmoothMode() {}
+			texture2DMode(), cullFaceMode(), normalizeMode() {}
 	}	mode;
 
 	RenderProperties():mode() {}
@@ -232,9 +232,10 @@ struct RenderProperties
 class IRenderer
 {
 public:
-	IRenderer(){};
-	virtual ~IRenderer(){};
+	IRenderer() {}
+	virtual ~IRenderer(){}
 
+/* Color */
 public:
 	virtual void setColor3ub( unsigned char red, unsigned char green, unsigned char blue ) {}
 	virtual void setColor3d( double red, double green, double blue ) {}
@@ -243,15 +244,37 @@ public:
 
 	virtual void getColor4d( double color[4] ) {}
 
+/* Light */
+	virtual void setLight( int index, float* ambient, float* diffuse, float* specular, float* position ) {}
+	virtual void enableLight( int index ) {}
+	virtual void disableLight( int index ) {}
+
+/* Utility */
 public:
 	virtual void setLineWidth( float width ) {}
+	virtual void enableLineSmooth( bool enableFlag ) {}
+
 	virtual void setPointSize( float size ) {}
-	virtual void transform( double * tMatrix ) {}
-	virtual void loadIdentity() {}
-	virtual void pushMatrix() {}
-	virtual void popMatrix() {}
+	virtual void enablePointSmooth( bool enableFlag ){}
+
 	virtual void setMaterial( float * amb, float * diff, float * spec, float * emiss, float shine ) {}
 
+	virtual void transform( double * tMatrix ) {}
+
+/* Window / View Port */
+public:
+	virtual void createGLWindow() {}
+
+	virtual void setWindowSize( int x, int y, int width, int height ) {}
+
+	virtual void setClearColor( unsigned char r, unsigned char g, unsigned char b ) {}
+
+	virtual void setProjection( double left, double right, double top, double bottom, double clipNear, double clipFar ) {}
+
+	virtual void setBackgroundImage( float x, float y, float width, float height, float scaleW, float scaleH, unsigned char * imageData ) {}
+	virtual void removeBackgroundImage() {}
+
+/* Draw Functions */
 public:
 	virtual void draw( Primitive mode, int size, vector<double> data ) {}
 
@@ -273,6 +296,16 @@ public:
 public:
 	virtual void drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, vector<double> data ) {}
 	virtual void drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, float* matrix, vector<double> data ) {}
+
+/* State Control */
+public:
+	virtual void bindAttrib( RenderProperties rp ) {}
+	virtual void releaseAttrib() {}
+
+	virtual void bindMatrix() {}
+	virtual void releaseMatrix() {}
+
+	virtual void loadIdentity() {}
 };
 
 class ITextureLoader

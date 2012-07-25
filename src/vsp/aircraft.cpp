@@ -1340,12 +1340,12 @@ void Aircraft::drawHighlight()
 			data.push_back( highlight.x() );
 			data.push_back( highlight.y() );
 
-			renderer->pushMatrix();
+			renderer->bindMatrix();
 			renderer->setColor4d( 1.0, 0, 0, 0.7 );
 			renderer->setPointSize( 8.0 );
 			renderer->loadIdentity();
 			renderer->draw( R_POINTS, 2, data );
-			renderer->popMatrix();
+			renderer->releaseMatrix();
 		}
 	}
 }

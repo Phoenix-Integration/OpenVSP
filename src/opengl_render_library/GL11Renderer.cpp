@@ -24,6 +24,23 @@
 GL11Renderer::GL11Renderer() : IRenderer()
 {
 	commonUtil = new GLCommon();
+
+	winX = winY = 0;
+	winW = winH = 1;
+
+	orthoL = orthoT = 1.0;
+	orthoR = orthoB = 0.0;
+	orthoN = -1.0;
+	orthoF = 1.0;
+
+	jpgImgX = jpgImgY = 0.0;
+	jpgImgW = jpgImgH = jpgImgScaleW = jpgImgScaleH = 1.0;
+
+	jpgImgData = NULL;
+
+	clearR = 255;
+	clearG = 255;
+	clearB = 255;
 }
 GL11Renderer::~GL11Renderer()
 {
@@ -82,6 +99,66 @@ void GL11Renderer::getColor4d( double color[4] )
 
 /******************************************************
 *
+* Set Light Source Parameters.
+*
+*******************************************************/
+void GL11Renderer::setLight( int index, float* ambient, float* diffuse, float* specular, float* position )
+{
+	int max;
+	glGetIntegerv( GL_MAX_LIGHTS, &max );
+	assert( max - 1 > index );
+	if ( index > max - 1 )
+		return;
+
+	GLenum light = GL_LIGHT0;
+	light += index;
+
+	glLightfv( light, GL_AMBIENT, (GLfloat*)ambient );
+	glLightfv( light, GL_DIFFUSE, (GLfloat*)diffuse );
+	glLightfv( light, GL_SPECULAR, (GLfloat*)specular );
+	glLightfv( light, GL_POSITION, (GLfloat*)position );
+}
+
+/******************************************************
+*
+* Enable Light Source at Index.
+*
+*******************************************************/
+void GL11Renderer::enableLight( int index )
+{
+	int max;
+	glGetIntegerv( GL_MAX_LIGHTS, &max );
+	assert( max - 1 > index );
+	if ( index > max - 1 )
+		return;
+
+	GLenum light = GL_LIGHT0;
+	light += index;
+
+	glEnable( light );
+}
+
+/******************************************************
+*
+* Disable Light Source at Index.
+*
+*******************************************************/
+void GL11Renderer::disableLight( int index )
+{
+	int max;
+	glGetIntegerv( GL_MAX_LIGHTS, &max );
+	assert( max - 1 > index );
+	if ( index > max - 1 )
+		return;
+
+	GLenum light = GL_LIGHT0;
+	light += index;
+
+	glDisable( light );
+}
+
+/******************************************************
+*
 * Set Line Width.
 *
 *******************************************************/
@@ -92,12 +169,38 @@ void GL11Renderer::setLineWidth( float width )
 
 /******************************************************
 *
+* Activate or Deactivate Line Smooth.
+*
+*******************************************************/
+void GL11Renderer::enableLineSmooth( bool enableFlag )
+{
+	if ( enableFlag )
+		glEnable( GL_LINE_SMOOTH );
+	else
+		glDisable( GL_LINE_SMOOTH );
+}
+
+/******************************************************
+*
 * Set Point Size.
 *
 *******************************************************/
 void GL11Renderer::setPointSize( float size )
 {
 	glPointSize( size );
+}
+
+/******************************************************
+*
+* Activate or Deactivate Point Smooth.
+*
+*******************************************************/
+void GL11Renderer::enablePointSmooth( bool enableFlag )
+{
+	if ( enableFlag )
+		glEnable( GL_POINT_SMOOTH );
+	else
+		glDisable( GL_POINT_SMOOTH );
 }
 
 /******************************************************
@@ -125,7 +228,7 @@ void GL11Renderer::loadIdentity()
 * Store Matrix.
 *
 *******************************************************/
-void GL11Renderer::pushMatrix()
+void GL11Renderer::bindMatrix()
 {
 	glPushMatrix();
 }
@@ -135,7 +238,7 @@ void GL11Renderer::pushMatrix()
 * Release Matrix.
 *
 *******************************************************/
-void GL11Renderer::popMatrix()
+void GL11Renderer::releaseMatrix()
 {
 	glPopMatrix();
 }
@@ -249,7 +352,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
 	/* Apply Properties */
-	bind( rp );
+	bindAttrib( rp );
 
 	/* Draw */
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
@@ -259,7 +362,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 	glDisableClientState( GL_VERTEX_ARRAY );
 
 	/* Restore Settings */
-	unbind( rp );
+	releaseAttrib();
 }
 
 /******************************************************
@@ -273,7 +376,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
 	/* Apply Properties */
-	bind( rp );
+	bindAttrib( rp );
 
 	/* Set Rendering Data */
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
@@ -287,7 +390,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 	glDisableClientState( GL_VERTEX_ARRAY );
 
 	/* Restore Settings */
-	unbind( rp );
+	releaseAttrib();
 }
 
 /******************************************************
@@ -301,7 +404,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
 	/* Apply Properties */
-	bind( rp );
+	bindAttrib( rp );
 
 	/* Set Rendering Data */
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
@@ -315,7 +418,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 	glDisableClientState( GL_VERTEX_ARRAY );
 
 	/* Restore Settings */
-	unbind( rp );
+	releaseAttrib();
 }
 
 /******************************************************
@@ -329,7 +432,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
 	/* Apply Properties */
-	bind( rp );
+	bindAttrib( rp );
 
 	/* Set Rendering Data */
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
@@ -346,7 +449,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 	glDisableClientState( GL_VERTEX_ARRAY );
 
 	/* Restore Settings */
-	unbind( rp );
+	releaseAttrib();
 }
 
 /******************************************************
@@ -460,8 +563,17 @@ void GL11Renderer::drawLineStipple3d( int factor, unsigned short pattern, Primit
 * Apply Customized Rendering Properties.
 *
 *******************************************************/
-void GL11Renderer::bind( RenderProperties rp )
+void GL11Renderer::bindAttrib( RenderProperties rp )
 {
+	/* Store Attrib */
+	glPushAttrib( GL_ALL_ATTRIB_BITS );
+
+	/* Normalize */
+	if ( rp.mode.normalizeMode.enabled )
+		glEnable( GL_NORMALIZE );
+	else
+		glDisable( GL_NORMALIZE );
+
 	/* PolygonOffset */
 	if ( rp.mode.polygonOffsetMode.enabled )
 	{
@@ -469,6 +581,12 @@ void GL11Renderer::bind( RenderProperties rp )
 
 #ifndef __APPLE__
 		glEnable( GL_POLYGON_OFFSET_EXT );
+#endif
+	}
+	else
+	{
+#ifndef __APPLE__
+		glDisable( GL_POLYGON_OFFSET_EXT );
 #endif
 	}
 
@@ -487,6 +605,8 @@ void GL11Renderer::bind( RenderProperties rp )
 		glDepthFunc( depthfunc );
 		glEnable( GL_DEPTH_TEST );
 	}
+	else
+		glDisable( GL_DEPTH_TEST );
 
 	/* Alpha test */
 	if ( rp.mode.alphaTestMode.enabled )
@@ -497,6 +617,8 @@ void GL11Renderer::bind( RenderProperties rp )
 		glAlphaFunc( alphaTestfunc, rp.mode.alphaTestMode.alphafunc.ref );
 		glEnable( GL_ALPHA_TEST );
 	}
+	else
+		glDisable( GL_ALPHA_TEST );
 
 	/* Texture 2D */
 	if ( rp.mode.texture2DMode.enabled )
@@ -515,6 +637,8 @@ void GL11Renderer::bind( RenderProperties rp )
 		}
 		glEnable( GL_TEXTURE_2D );
 	}
+	else
+		glDisable( GL_TEXTURE_2D );
 
 	/* Blend */
 	if ( rp.mode.blendMode.enabled )
@@ -527,10 +651,14 @@ void GL11Renderer::bind( RenderProperties rp )
 		glBlendFunc( sfactor, dfactor );
 		glEnable( GL_BLEND );
 	}
+	else
+		glDisable( GL_BLEND );
 
 	/* Lighting */
 	if ( rp.mode.lightingMode.enabled )
 		glEnable( GL_LIGHTING );
+	else
+		glDisable( GL_LIGHTING );
 
 	/* Cull face */
 	if ( rp.mode.cullFaceMode.enabled )
@@ -541,12 +669,8 @@ void GL11Renderer::bind( RenderProperties rp )
 		glCullFace( cullmode );
 		glEnable( GL_CULL_FACE );
 	}
-
-	/* Line Smooth */
-	if ( rp.mode.lineSmoothMode.enabled )
-	{
-		glEnable( GL_LINE_SMOOTH );
-	}
+	else
+		glDisable( GL_CULL_FACE );
 }
 
 /******************************************************
@@ -554,39 +678,120 @@ void GL11Renderer::bind( RenderProperties rp )
 * Restore the changes.
 *
 *******************************************************/
-void GL11Renderer::unbind( RenderProperties rp )
+void GL11Renderer::releaseAttrib()
 {
-	/* Restore Settings */
+	/* Release Attrib */
+	glPopAttrib();
+}
 
-	if ( rp.mode.lineSmoothMode.enabled )
-		glDisable( GL_LINE_SMOOTH );
+/******************************************************
+*
+* Set GL Window Size.
+*
+*******************************************************/
+void GL11Renderer::setWindowSize( int x, int y, int width, int height )
+{
+	winX = x;
+	winY = y;
+	winW = width;
+	winH = height;
+}
 
-	if ( rp.mode.cullFaceMode.enabled )
-		glDisable( GL_CULL_FACE );
+/******************************************************
+*
+* Set Projection.
+*
+*******************************************************/
+void GL11Renderer::setProjection( double left, double right, double top, double bottom, double clipNear, double clipFar )
+{
+	orthoL = left;
+	orthoR = right;
+	orthoT = top;
+	orthoB = bottom;
+	orthoN = clipNear;
+	orthoF = clipFar;
+}
 
-	if ( rp.mode.lightingMode.enabled )
-		glDisable( GL_LIGHTING );
+/******************************************************
+*
+* Set Background Color.
+*
+*******************************************************/
+void GL11Renderer::setClearColor( unsigned char r, unsigned char g, unsigned char b )
+{
+	clearR = r;
+	clearG = g;
+	clearB = b;
+}
 
-	if ( rp.mode.blendMode.enabled )
-		glDisable( GL_BLEND );
+/******************************************************
+*
+* Set Background Image.
+*
+*******************************************************/
+void GL11Renderer::setBackgroundImage( float x, float y, float width, float height, float scaleW, float scaleH, unsigned char * imgData )
+{
+	jpgImgX = x;
+	jpgImgY = y;
+	jpgImgW = width;
+	jpgImgH = height;
+	jpgImgScaleW = scaleW;
+	jpgImgScaleH = scaleH;
+	jpgImgData = imgData;
+}
 
-	if ( rp.mode.alphaTestMode.enabled )
-		glDisable( GL_ALPHA_TEST );
+/******************************************************
+*
+* Remove Background Image.
+*
+*******************************************************/
+void GL11Renderer::removeBackgroundImage()
+{
+	jpgImgData = NULL;
+}
 
-	if ( rp.mode.texture2DMode.enabled )
-		glDisable( GL_TEXTURE_2D );
-	
-	// FIXME: DepthMask mode and DepthTest mode need better
-	// clean up.
-	glDepthMask( GL_TRUE );
-		
-	glDepthFunc( GL_LESS );
-	glEnable( GL_DEPTH_TEST );
+/******************************************************
+*
+* Create GL Window.
+*
+* This function sets up a viewport.  If 
+* setBackGroundImage() is called, this function also
+* sets up the background image.
+*
+*******************************************************/
+void GL11Renderer::createGLWindow()
+{
+	glEnable( GL_SCISSOR_TEST );
 
-	if ( rp.mode.polygonOffsetMode.enabled )
+	/* Set Viewport */
+	glViewport( winX, winY, winW, winH );
+	glScissor( winX, winY, winW, winH );
+	glClearColor( (float)clearR / 255.0f, (float)clearG / 255.0f, (float)clearB / 255.0f, 1.0 );
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+	/* Apply Background Image */
+	if ( jpgImgData )
 	{
-#ifndef __APPLE__
-		glDisable( GL_POLYGON_OFFSET_EXT );
-#endif
+		glPushAttrib( GL_DEPTH_BUFFER_BIT );
+		glDisable( GL_DEPTH_TEST );
+
+		glRasterPos2d( jpgImgX, jpgImgY );
+		glBitmap (0, 0, 0, 0, (float)(-jpgImgW/2), (float)(jpgImgH/2), NULL);
+		glPixelZoom((float)jpgImgScaleW, (float)jpgImgScaleH);
+		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+		glDrawPixels( jpgImgW, jpgImgH, GL_RGB, GL_UNSIGNED_BYTE, jpgImgData );
+		glPixelZoom(1.0,  1.0);
+
+		glPopAttrib();
 	}
+
+	glDisable( GL_SCISSOR_TEST );
+
+	/* Set Projection */
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity();
+
+	glOrtho( orthoL, orthoR, orthoT, orthoB, orthoN, orthoF );
+
+	glMatrixMode( GL_MODELVIEW );
 }

@@ -369,6 +369,12 @@ FeaMeshMgr::FeaMeshMgr()
 	m_DrawAttachPoints = false;
 	m_ClosestAttachPoint = -1;
 
+	rp_skin.mode.depthMaskMode.enabled = true;
+	rp_skin.mode.depthTestMode.enabled = true;
+	rp_skin.mode.depthTestMode.depthfunc.func = R_LESS;
+	rp_skin.mode.blendMode.enabled = true;
+	rp_skin.mode.blendMode.blendfunc.sfactor = R_SRC_ALPHA;
+	rp_skin.mode.blendMode.blendfunc.dfactor = R_ONE_MINUS_SRC_ALPHA;
 	rp_skin.mode.cullFaceMode.enabled = true;
 	rp_skin.mode.cullFaceMode.cullface.mode = R_BACK;
 }

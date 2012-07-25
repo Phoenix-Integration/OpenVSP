@@ -52,7 +52,12 @@ CfdMeshMgr::CfdMeshMgr()
 	rp_cfdmesh.mode.polygonOffsetMode.enabled = true;
 	rp_cfdmesh.mode.polygonOffsetMode.polygonOffset.factor = 2.0;
 	rp_cfdmesh.mode.polygonOffsetMode.polygonOffset.units = 1.0;
-
+	rp_cfdmesh.mode.depthMaskMode.enabled = true;
+	rp_cfdmesh.mode.depthTestMode.enabled = true;
+	rp_cfdmesh.mode.depthTestMode.depthfunc.func = R_LESS;
+	rp_cfdmesh.mode.blendMode.enabled = true;
+	rp_cfdmesh.mode.blendMode.blendfunc.sfactor = R_SRC_ALPHA;
+	rp_cfdmesh.mode.blendMode.blendfunc.dfactor = R_ONE_MINUS_SRC_ALPHA;
 	rp_cfdmesh.mode.cullFaceMode.enabled = true;
 	rp_cfdmesh.mode.cullFaceMode.cullface.mode = R_BACK;
 

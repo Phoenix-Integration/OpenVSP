@@ -73,7 +73,7 @@ public:
 	Texture();
 	virtual ~Texture()		{}
 
-	int getTexID()				{ return texID; }
+	unsigned int getTexID()				{ return texID; }
 
 	enum { TEX_TYPE_INVALID, TEX_TYPE_TGA, TEX_TYPE_JPG };
 

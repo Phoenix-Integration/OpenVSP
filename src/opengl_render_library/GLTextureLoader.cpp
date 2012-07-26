@@ -39,7 +39,7 @@ bool Texture::readFile( const char* fileName, int type )
 		width  = tgaimg.width;
 		height = tgaimg.height;
 		glGenTextures(1, &texID);			
-		glBindTexture(GL_TEXTURE_2D, texID);
+		glBindTexture(GL_TEXTURE_2D, (GLuint)texID);
 	   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 	   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 
@@ -74,7 +74,7 @@ bool Texture::readFile( const char* fileName, int type )
 		width  = jpgdata.w;
 		height = jpgdata.h;
 		glGenTextures(1, &texID);			
-		glBindTexture(GL_TEXTURE_2D, texID);
+		glBindTexture(GL_TEXTURE_2D, (GLuint)texID);
 	   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
 	   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 

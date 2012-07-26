@@ -284,7 +284,7 @@ void GL11Renderer::setMaterial( float * amb, float * diff, float * spec, float *
 *******************************************************/
 void GL11Renderer::draw( Primitive mode, int size, vector<double> data )
 {
-	unsigned int pMode = 0;
+	GLuint pMode = 0;
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
@@ -301,7 +301,7 @@ void GL11Renderer::draw( Primitive mode, int size, vector<double> data )
 *******************************************************/
 void GL11Renderer::draw( Primitive mode, int csize, vector<double> colors, int size, vector<double> data )
 {
-	unsigned int pMode = 0;
+	GLuint pMode = 0;
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
@@ -321,7 +321,7 @@ void GL11Renderer::draw( Primitive mode, int csize, vector<double> colors, int s
 *******************************************************/
 void GL11Renderer::draw( Primitive mode, float* matrix, int size, vector<double> data )
 {
-	unsigned int pMode = 0;
+	GLuint pMode = 0;
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
 	glPushMatrix();
@@ -343,7 +343,7 @@ void GL11Renderer::draw( Primitive mode, float* matrix, int size, vector<double>
 *******************************************************/
 void GL11Renderer::draw( Primitive mode, float* matrix, int csize, vector<double> colors, int size, vector<double> data )
 {
-	unsigned int pMode = 0;
+	GLuint pMode = 0;
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
 	glPushMatrix();
@@ -368,7 +368,7 @@ void GL11Renderer::draw( Primitive mode, float* matrix, int csize, vector<double
 *******************************************************/
 void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<double> data )
 {
-	unsigned int pMode = 0;
+	GLuint pMode = 0;
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
 	/* Apply Properties */
@@ -392,7 +392,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 *******************************************************/
 void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals )
 {
-	unsigned int pMode = 0;
+	GLuint pMode = 0;
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
 	/* Apply Properties */
@@ -420,7 +420,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 *******************************************************/
 void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<double> data, int tsize, vector<double> texcoords )
 {
-	unsigned int pMode = 0;
+	GLuint pMode = 0;
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
 	/* Apply Properties */
@@ -448,7 +448,7 @@ void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<d
 *******************************************************/
 void GL11Renderer::draw( Primitive mode, RenderProperties rp, int size, vector<double> data, vector<double> normals, int tsize, vector<double> texcoords )
 {
-	unsigned int pMode = 0;
+	GLuint pMode = 0;
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
 	/* Apply Properties */
@@ -617,7 +617,7 @@ void GL11Renderer::bindAttrib( RenderProperties rp )
 	/* DepthTest */
 	if ( rp.mode.depthTestMode.enabled )
 	{
-		unsigned int depthfunc = 0;
+		GLuint depthfunc = 0;
 		commonUtil->getGLParameter( rp.mode.depthTestMode.depthfunc.func, depthfunc );
 
 		glDepthFunc( depthfunc );
@@ -629,7 +629,7 @@ void GL11Renderer::bindAttrib( RenderProperties rp )
 	/* Alpha test */
 	if ( rp.mode.alphaTestMode.enabled )
 	{
-		unsigned int alphaTestfunc = 0;
+		GLuint alphaTestfunc = 0;
 		commonUtil->getGLParameter( rp.mode.alphaTestMode.alphafunc.func, alphaTestfunc );
 
 		glAlphaFunc( alphaTestfunc, rp.mode.alphaTestMode.alphafunc.ref );
@@ -645,7 +645,7 @@ void GL11Renderer::bindAttrib( RenderProperties rp )
 
 		glBindTexture( GL_TEXTURE_2D, rp.mode.texture2DMode.bindTexture.texture );
 
-		unsigned int pname, param;
+		GLuint pname, param;
 		pname = param = 0;
 		for ( int i = 0; i < rp.mode.texture2DMode.texParameteri.pname.size(); i++ )
 		{
@@ -661,7 +661,7 @@ void GL11Renderer::bindAttrib( RenderProperties rp )
 	/* Blend */
 	if ( rp.mode.blendMode.enabled )
 	{
-		unsigned int sfactor, dfactor;
+		GLuint sfactor, dfactor;
 		sfactor = dfactor = 0;
 		commonUtil->getGLBlendMode( rp.mode.blendMode.blendfunc.sfactor, sfactor );
 		commonUtil->getGLBlendMode( rp.mode.blendMode.blendfunc.dfactor, dfactor );
@@ -681,7 +681,7 @@ void GL11Renderer::bindAttrib( RenderProperties rp )
 	/* Cull face */
 	if ( rp.mode.cullFaceMode.enabled )
 	{
-		unsigned int cullmode = 0;
+		GLuint cullmode = 0;
 		commonUtil->getGLParameter( rp.mode.cullFaceMode.cullface.mode, cullmode );
 
 		glCullFace( cullmode );

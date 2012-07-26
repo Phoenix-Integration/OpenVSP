@@ -25,7 +25,7 @@ public:
 
 	bool allSurfFlag;		// Apply To All Surfs 
 	int surfID;				// Which Surface For This Texture
-	GLuint texID;
+	unsigned int texID;
 
 	double u;				// Pos UW
 	double w;		

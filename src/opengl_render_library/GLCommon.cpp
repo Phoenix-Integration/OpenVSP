@@ -2,17 +2,6 @@
 #	pragma comment(lib, "opengl32.lib")
 #endif
 
-#ifdef _WIN32
-#	include <windows.h>
-#endif
-
-#ifdef __APPLE__
-#	include <OpenGL\gl.h>
-#else
-#	include <gl\GL.h>
-#	include "glext.h"
-#endif
-
 #include "GLCommon.h"
 #include <assert.h>
 
@@ -21,7 +10,7 @@
 * Get GL equivalent of Primitive enum.
 *
 *******************************************************/
-void GLCommon::getGLPrimitiveMode( Primitive mask, unsigned int &out )
+void GLCommon::getGLPrimitiveMode( Primitive mask, GLuint &out )
 {
 	switch ( mask )
 	{
@@ -78,7 +67,7 @@ void GLCommon::getGLPrimitiveMode( Primitive mask, unsigned int &out )
 * Get GL equivalent of Blend Type enum.
 *
 *******************************************************/
-void GLCommon::getGLBlendMode( BlendMask mask, unsigned int &out )
+void GLCommon::getGLBlendMode( BlendMask mask, GLuint &out )
 {
 	switch ( mask )
 	{
@@ -155,7 +144,7 @@ void GLCommon::getGLBlendMode( BlendMask mask, unsigned int &out )
 * Get GL equivalent of Texture Parameter enum.
 *
 *******************************************************/
-void GLCommon::getGLTexParamName( TexParamNameMask mask, unsigned int &out )
+void GLCommon::getGLTexParamName( TexParamNameMask mask, GLuint &out )
 {
 	switch( mask )
 	{
@@ -226,7 +215,7 @@ void GLCommon::getGLTexParamName( TexParamNameMask mask, unsigned int &out )
 * Get GL equivalent of Parameter enum.
 *
 *******************************************************/
-void GLCommon::getGLParameter( ParameterMask mask, unsigned int &out )
+void GLCommon::getGLParameter( ParameterMask mask, GLuint &out )
 {
 	switch ( mask )
 	{

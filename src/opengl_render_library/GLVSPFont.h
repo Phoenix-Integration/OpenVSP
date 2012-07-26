@@ -6,6 +6,11 @@
 #include "glfont2.h"
 using namespace glfont;
 
+/******************************************************
+*
+* GLVSPFont Header Class.
+*
+*******************************************************/
 class GLVSPFont : public IVSPFont
 {
 public:

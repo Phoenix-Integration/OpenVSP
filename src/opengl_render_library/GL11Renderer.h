@@ -4,12 +4,21 @@
 #include "IRenderer.h"
 #include "GLCommon.h"
 
+/******************************************************
+*
+* GL11Renderer Header Class.
+*
+* Implementation base on OpenGL 1.1 standard.
+* This class provides basic functionalities for Rendering.
+*
+*******************************************************/
 class GL11Renderer : public IRenderer
 {
 public:
 	GL11Renderer();
 	virtual ~GL11Renderer();
 
+/* Color */
 public:
 	virtual void setColor3ub( unsigned char red, unsigned char green, unsigned char blue );
 	virtual void setColor3d( double red, double green, double blue );
@@ -18,11 +27,13 @@ public:
 
 	virtual void getColor4d( double color[4] );
 
+/* Light */
 public:
 	virtual void setLight( int index, float* ambient, float* diffuse, float* specular, float* position );
 	virtual void enableLight( int index );
 	virtual void disableLight( int index );
 
+/* Utility */
 public:
 	virtual void setLineWidth( float width );
 	virtual void enableLineSmooth( bool enableFlag );
@@ -36,6 +47,7 @@ public:
 
 	virtual void transform( double * tMatrix );
 
+/* Window / View Port */
 public:
 	virtual void createGLWindow();
 
@@ -48,10 +60,12 @@ public:
 	virtual void setBackgroundImage( float x, float y, float width, float height, float scaleW, float scaleH, unsigned char * imageData );
 	virtual void removeBackgroundImage();
 
+/* Render Buffer */
 public:
 	virtual void clearBuffer();
 	virtual void getBackBufferImage( unsigned char* data_out );
 
+/* Draw Functions */
 public:
 	virtual void draw( Primitive mode, int size, vector<double> data );
 
@@ -74,6 +88,7 @@ public:
 	virtual void drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, vector<double> data );
 	virtual void drawLineStipple3d( int factor, unsigned short pattern, Primitive mode, float* matrix, vector<double> data );
 
+/* State Control */
 public:
 	virtual void bindAttrib( RenderProperties rp );
 	virtual void releaseAttrib();

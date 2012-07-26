@@ -68,7 +68,6 @@ TextLabel::TextLabel() : LabelGeom()
 
 	color = vec3d( 100,100,100 );
 	font = fontMgr->loadFont("fonts/basic_font.glf");
-	//font = fontMgr->loadFont("C:/OpenVSP GitHub Second Clone/examples/fonts/basic_font.glf");
 
 	textOffset = 0.6f;
 

@@ -17,6 +17,18 @@
 
 #include "GLVSPFont.h"
 
+/******************************************************
+*
+* GLVSPFont Class.
+*
+* Implementation for OpenGL Font.
+*
+*******************************************************/
+/******************************************************
+*
+* Constructor / Destructor.
+*
+*******************************************************/
 GLVSPFont::GLVSPFont()
 {
 }
@@ -28,6 +40,11 @@ GLVSPFont::~GLVSPFont()
 	}
 }
 
+/******************************************************
+*
+* Load Font Data from File.
+*
+*******************************************************/
 int GLVSPFont::loadFont( const char * file )
 {
 	// get font
@@ -71,6 +88,24 @@ int GLVSPFont::loadFont( const char * file )
 	}
 }
 
+/******************************************************
+*
+* Draw String Parameters:
+*
+* str			- string.
+* scale		- size scale.
+* trans_mat	- transformation matrix.
+* x0			- x position.
+* y0			- y position.
+* xoffset	- width.
+* yoffset	- height.
+*
+*******************************************************/
+/******************************************************
+*
+* Draw String.
+*
+*******************************************************/
 void GLVSPFont::draw( Stringc str, float scale, float x0, float y0, float xoffset, float yoffset )
 {
 	if ( !font )
@@ -99,6 +134,11 @@ void GLVSPFont::draw( Stringc str, float scale, float x0, float y0, float xoffse
 	glDisable( GL_BLEND );
 }
 
+/******************************************************
+*
+* Draw String.
+*
+*******************************************************/
 void GLVSPFont::draw( Stringc str, float scale, float * trans_mat, float x0, float y0, float xoffset, float yoffset )
 {
 	glPushMatrix();

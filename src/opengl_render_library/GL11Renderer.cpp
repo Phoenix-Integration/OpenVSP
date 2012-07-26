@@ -18,6 +18,14 @@
 
 /******************************************************
 *
+* GL11Renderer Class.
+*
+* Implementation base on OpenGL 1.1 standard.
+* This class provides basic functionalities for Rendering.
+*
+*******************************************************/
+/******************************************************
+*
 * Constructor / Destructor.
 *
 *******************************************************/
@@ -279,16 +287,50 @@ void GL11Renderer::setMaterial( float * amb, float * diff, float * spec, float *
 
 /******************************************************
 *
+* Draw Function Parameters.
+*
+*
+* mode	- Type of Primitive to draw. 
+*				Ex: R_LINES
+*
+* rp		- Render Properties.
+*
+* matrix - Transformation Matrix.
+*
+* csize	- Color size for each vertex. 
+*				Ex: 3 for rgb, 4 for rgba
+*
+* colors - Color Info. 
+*				Ex: { 1.0, 0.0, 0.0, 1.0, 0.0, 0.0 } for red line.
+*
+* size	- Vertex Dimension. 
+*				Ex: 2 for xy, 3 for xyz
+*
+* data	- Vertex Info.
+*
+* normals - Normal Info.
+*
+* tsize	- Texture Coordinate Dimension.
+*				Ex: 2 for xy
+*
+* texcoords - Texture Coordinate Info.
+*
+*******************************************************/
+/******************************************************
+*
 * Draw Geometry.
 *
 *******************************************************/
 void GL11Renderer::draw( Primitive mode, int size, vector<double> data )
 {
+	/* Get GL Equivalent enum */
 	GLuint pMode = 0;
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
+	/* Set vertex pointer */
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
 
+	/* Draw */
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glDrawArrays( pMode, 0, data.size() / size );
 	glDisableClientState( GL_VERTEX_ARRAY );
@@ -301,12 +343,15 @@ void GL11Renderer::draw( Primitive mode, int size, vector<double> data )
 *******************************************************/
 void GL11Renderer::draw( Primitive mode, int csize, vector<double> colors, int size, vector<double> data )
 {
+	/* Get GL Equivalent enum */
 	GLuint pMode = 0;
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
+	/* Set vertex and color pointer */
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
 	glColorPointer( csize, GL_DOUBLE, 0, &colors[0] );
 
+	/* Draw */
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_COLOR_ARRAY );
 	glDrawArrays( pMode, 0, data.size() / size );
@@ -321,14 +366,18 @@ void GL11Renderer::draw( Primitive mode, int csize, vector<double> colors, int s
 *******************************************************/
 void GL11Renderer::draw( Primitive mode, float* matrix, int size, vector<double> data )
 {
+	/* Get GL Equivalent enum */
 	GLuint pMode = 0;
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
+	/* Apply Transformation */
 	glPushMatrix();
 	glMultMatrixf( (GLfloat*)matrix );
 
+	/* Set Vertex Pointer */
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
 
+	/* Draw */
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glDrawArrays( pMode, 0, data.size() / size );
 	glDisableClientState( GL_VERTEX_ARRAY );
@@ -343,15 +392,19 @@ void GL11Renderer::draw( Primitive mode, float* matrix, int size, vector<double>
 *******************************************************/
 void GL11Renderer::draw( Primitive mode, float* matrix, int csize, vector<double> colors, int size, vector<double> data )
 {
+	/* Get GL Equivalent enum */
 	GLuint pMode = 0;
 	commonUtil->getGLPrimitiveMode( mode, pMode );
 
+	/* Apply Transformation */
 	glPushMatrix();
 	glMultMatrixf( (GLfloat*)matrix );
 
+	/* Set vertex and color pointer */
 	glVertexPointer( size, GL_DOUBLE, 0, &data[0] );
 	glColorPointer( csize, GL_DOUBLE, 0, &colors[0] );
 
+	/* Draw */
 	glEnableClientState( GL_VERTEX_ARRAY );
 	glEnableClientState( GL_COLOR_ARRAY );
 	glDrawArrays( pMode, 0, data.size() / size );

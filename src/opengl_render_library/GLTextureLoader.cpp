@@ -5,15 +5,29 @@
 #	include <limits.h>
 #endif
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
+/******************************************************
+*
+* Texture Class.
+*
+* Utility class for loading texture from file.
+*
+*******************************************************/
+/******************************************************
+*
+* Constructor / Destructor.
+*
+*******************************************************/
 Texture::Texture()
 {
 	name = "Default";
 	texID = 0;
 }
 
+/******************************************************
+*
+* Read Texture File.
+*
+*******************************************************/
 bool Texture::readFile( const char* fileName, int type )
 {
 #ifdef WIN32
@@ -97,7 +111,11 @@ bool Texture::readFile( const char* fileName, int type )
 	return false;
 }
 
-
+/******************************************************
+*
+* Load TGA file.
+*
+*******************************************************/
 bool Texture::loadTGA(TexData * texture, const char * filename)				
 {
 	TGAHeader tgaheader;											// TGA header
@@ -333,11 +351,18 @@ bool Texture::loadTGA(TexData * texture, const char * filename)
 	return true;															// Return success
 }
 
-
-//=======================================================================//
-//=======================================================================//
-//=======================================================================//
-
+/******************************************************
+*
+* TextureLoader Class.
+*
+* This class loads texture data from file.
+*
+*******************************************************/
+/******************************************************
+*
+* Constructor / Destructor.
+*
+*******************************************************/
 TextureLoader::TextureLoader() : ITextureLoader()
 {
 }
@@ -345,6 +370,11 @@ TextureLoader::~TextureLoader()
 {
 }
 
+/******************************************************
+*
+* Load Texture.
+*
+*******************************************************/
 int TextureLoader::loadTex( const char* name) 
 {
 	if (name == NULL) return 0;

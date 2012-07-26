@@ -99,6 +99,11 @@ struct Color
 	unsigned char alpha;
 };
 
+/******************************************************
+*
+* Blend state.
+*
+*******************************************************/
 struct BlendMode
 {
 	bool enabled;
@@ -113,6 +118,11 @@ struct BlendMode
 	BlendMode():enabled(false), blendfunc() {}
 };
 
+/******************************************************
+*
+* PolygonOffsetMode.
+*
+*******************************************************/
 struct PolygonOffsetMode
 {
 	bool enabled;	
@@ -127,6 +137,11 @@ struct PolygonOffsetMode
 	PolygonOffsetMode():enabled(false), polygonOffset() {}
 }; 
 
+/******************************************************
+*
+* Lighting state.
+*
+*******************************************************/
 struct LightingMode
 {
 	bool enabled;
@@ -134,6 +149,11 @@ struct LightingMode
 	LightingMode():enabled(false) {}
 };
 
+/******************************************************
+*
+* Texture2D state.
+*
+*******************************************************/
 struct Texture2DMode
 {
 	bool enabled;
@@ -154,6 +174,11 @@ struct Texture2DMode
 	Texture2DMode():enabled(false), texParameteri(), bindTexture() {}
 };
 
+/******************************************************
+*
+* AlphaTest state.
+*
+*******************************************************/
 struct AlphaTestMode
 {
 	bool enabled;
@@ -168,6 +193,11 @@ struct AlphaTestMode
 	AlphaTestMode():enabled(false), alphafunc() {}
 };
 
+/******************************************************
+*
+* DepthMask state.
+*
+*******************************************************/
 struct DepthMaskMode
 {
 	bool enabled;
@@ -175,6 +205,11 @@ struct DepthMaskMode
 	DepthMaskMode():enabled(false) {}
 };
 
+/******************************************************
+*
+* DepthTest state.
+*
+*******************************************************/
 struct DepthTestMode
 {
 	bool enabled;
@@ -188,6 +223,11 @@ struct DepthTestMode
 	DepthTestMode():enabled(false), depthfunc() {}
 };
 
+/******************************************************
+*
+* Cull Face state.
+*
+*******************************************************/
 struct CullFaceMode
 {
 	bool enabled;
@@ -201,6 +241,11 @@ struct CullFaceMode
 	CullFaceMode():enabled(false), cullface() {}
 };
 
+/******************************************************
+*
+* Normalize.
+*
+*******************************************************/
 struct NormalizeMode
 {
 	bool enabled;
@@ -208,6 +253,11 @@ struct NormalizeMode
 	NormalizeMode():enabled(false) {}
 };
 
+/******************************************************
+*
+* Struct to keep track the render state.
+*
+*******************************************************/
 struct RenderProperties
 {
 	struct RenderMode
@@ -229,6 +279,11 @@ struct RenderProperties
 	RenderProperties():mode() {}
 };
 
+/******************************************************
+*
+* Interface for Graphic Render class.
+*
+*******************************************************/
 class IRenderer
 {
 public:
@@ -315,6 +370,11 @@ public:
 	virtual void loadIdentity() {}
 };
 
+/******************************************************
+*
+* Interface for Texture Loader.
+*
+*******************************************************/
 class ITextureLoader
 {
 public:
@@ -325,6 +385,11 @@ public:
 	virtual int loadTex( const char* name ) { return 0; }
 };
 
+/******************************************************
+*
+* Interface for Font.
+*
+*******************************************************/
 class IVSPFont
 {
 public:

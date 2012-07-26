@@ -67,6 +67,13 @@ typedef	struct
 	GLuint	type;											// Image Type (GL_RGB, GL_RGBA)
 } TexData;
 
+/******************************************************
+*
+* Texture Header Class.
+*
+* Utility class for loading texture from file.
+*
+*******************************************************/
 class Texture
 {
 public:
@@ -87,6 +94,13 @@ public:
 	bool loadTGA(TexData* texture, const char* filename);		
 };
 
+/******************************************************
+*
+* TextureLoader Header Class.
+*
+* This class loads texture data from file.
+*
+*******************************************************/
 class TextureLoader : public ITextureLoader
 {
 public:

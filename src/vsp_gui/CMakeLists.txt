@@ -1,3 +1,59 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 1.4)
 
-#Adding changes from Phoenix Int
+FIND_PACKAGE(LibXml2 REQUIRED)
+FIND_PACKAGE(JPEG REQUIRED)
+FIND_PACKAGE(FLTK REQUIRED)
+
+IF(WIN32)
+  SET(OPENNURBS_LIBRARIES
+    openNURBS_staticlib
+    zlib
+    rpcrt4)
+  SET(OPENNURBS_LINK_DIR
+    ${VSP_SOURCE_DIR}/opennurbs/Debug
+    ${VSP_SOURCE_DIR}/opennurbs/zlib/Debug)
+ELSE(WIN32)
+  SET(OPENNURBS_LIBRARIES
+    openNURBS)
+  SET(OPENNURBS_LINK_DIR
+    ${VSP_SOURCE_DIR}/opennurbs)
+ENDIF(WIN32)
+
+INCLUDE_DIRECTORIES( 
+#    ${VSP_SOURCE_DIR}/vsp
+#    ${VSP_SOURCE_DIR}/../include
+    ${UTIL_CODE_INCLUDE_DIR}
+#    ${TRIANGLE_INCLUDE_DIR}
+    ${LOAD_JPG_INCLUDE_DIR}
+    ${SCREENS_INCLUDE_DIR}
+    ${XMLVSP_INCLUDE_DIR}
+    ${JPEG_INCLUDE_DIR}
+    ${FLTK_INCLUDE_DIR}
+    ${LIBXML2_INCLUDE_DIR}
+    ${VSP_SOURCE_DIR}/opennurbs)
+
+LINK_DIRECTORIES(
+    ${OPENNURBS_LINK_DIR}
+)
+
+ADD_LIBRARY(vsp_gui
+#blankScreen.cpp
+#main.cpp
+#guiWrapper.cpp
+#vspScreen.cpp
+vspGui.cpp
+)
+
+TARGET_LINK_LIBRARIES(vsp_gui
+    util_code
+    triangle
+    load_jpg
+    screens
+    xmlvsp
+    sixseries
+    ${JPEG_LIBRARIES}
+    ${LIBXML2_LIBRARIES}
+    ${FLTK_LIBRARIES}
+    ${OPENGL_LIBRARIES}
+    ${OPENNURBS_LIBRARIES}
+)

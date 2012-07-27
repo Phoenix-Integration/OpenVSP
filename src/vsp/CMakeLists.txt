@@ -10,8 +10,8 @@ IF(WIN32)
     zlib
     rpcrt4)
   SET(OPENNURBS_LINK_DIR
-    ${VSP_SOURCE_DIR}/opennurbs/release
-    ${VSP_SOURCE_DIR}/opennurbs/zlib/Release)
+    ${VSP_SOURCE_DIR}/opennurbs/debug
+    ${VSP_SOURCE_DIR}/opennurbs/zlib/Debug)
 ELSE(WIN32)
   SET(OPENNURBS_LIBRARIES
     openNURBS)
@@ -116,6 +116,7 @@ xsec_surf.cpp
 )
 
 TARGET_LINK_LIBRARIES(vsp
+    vsp_gui
     util_code
     triangle
     load_jpg

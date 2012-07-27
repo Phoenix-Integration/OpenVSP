@@ -16,6 +16,8 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Gl_Window.H>
 
+#include <vsp_gui\vspGui.h>
+
 #ifdef __APPLE__
 #  include <OpenGL/gl.h>
 #else
@@ -620,7 +622,7 @@ int main( int argc, char** argv)
 		screenMgrPtr->showGui( argc-1, argv );
 	}
 
-	return Fl::run();
+	return vspGui::run();
 		
 //fclose(filePtr);
 

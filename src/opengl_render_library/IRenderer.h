@@ -287,7 +287,7 @@ struct RenderProperties
 class IRenderer
 {
 public:
-	IRenderer() {}
+	IRenderer();
 	virtual ~IRenderer(){}
 
 /* Color */
@@ -368,6 +368,14 @@ public:
 	virtual void releaseMatrix() {}
 
 	virtual void loadIdentity() {}
+
+/* Render Style */
+public:
+	RenderProperties rp_draw3D;
+	RenderProperties rp_draw2D;
+	RenderProperties rp_hidden;
+	RenderProperties rp_shaded;
+	RenderProperties rp_texture;
 };
 
 /******************************************************

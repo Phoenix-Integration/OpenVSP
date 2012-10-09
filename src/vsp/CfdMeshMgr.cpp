@@ -45,11 +45,19 @@ Wake::~Wake()
 
 void Wake::Draw()
 {
-	for ( int i = 0 ; i < (int)m_LeadingCurves.size() ; i++ )
-		m_LeadingCurves[i]->m_SCurve_A->Draw();
+	glColor3ub( 255, 255, 0 );
+	glBegin( GL_LINE_STRIP );
+	for ( int i = 0 ; i < (int)m_LeadingEdge.size() ; i++ )
+	{
+		glVertex3dv( m_LeadingEdge[i].data() );
+	}
+	glEnd();
 
-	for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
-		m_SurfVec[i]->Draw();
+	//for ( int i = 0 ; i < (int)m_LeadingCurves.size() ; i++ )
+	//	m_LeadingCurves[i]->m_SCurve_A->Draw();
+
+	//for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
+	//	m_SurfVec[i]->Draw();
 
 }
 	
@@ -111,6 +119,25 @@ void Wake::BuildSurfs(  )
 					vec3d te_pnt = m_WakeMgrPtr->ComputeTrailEdgePnt( le_pnts[i] );
 
 					cpnts[i][j] = le_pnts[i] + (te_pnt - le_pnts[i])*fract;
+				}
+			}
+
+			//==== Check Surf Orientation ====//
+			int nu = cpnts.size();
+			int nw = cpnts[0].size();
+			vec3d vu = cpnts[nu-1][0] - cpnts[0][0];
+			vec3d vw = cpnts[0][nw-1] - cpnts[0][0];
+			vec3d cp = cross( vu, vw );
+			if ( cp.z() < 0.0 )
+			{
+				//==== Flip Surface ====//
+				vector< vector< vec3d > > temppnts = cpnts;
+				for ( int i = 0 ; i < (int)temppnts.size() ; i++ )
+				{
+					for ( int j = 0 ; j < (int)temppnts[i].size() ; j++ )
+					{
+						cpnts[nu - 1 - i][j] = temppnts[i][j];
+					}
 				}
 			}
 
@@ -287,14 +314,30 @@ void WakeMgr::StretchWakes()
 	}
 }
 
-
-	
 void WakeMgr::Draw()
 {
+	double scale = cfdMeshMgrPtr->GetWakeScale();
+	double factor = scale - 1.0;
 
+	glColor4ub( 255, 204, 51, 255 );		// Yellowish
+	for ( int e = 0 ; e < (int)m_LeadingEdgeVec.size() ; e++ )
+	{
+		glBegin( GL_LINES );
+		for ( int i = 0 ; i < (int)m_LeadingEdgeVec[e].size() ; i++ )
+		{
+			vec3d le = m_LeadingEdgeVec[e][i];
+			glVertex3dv( le.data() );
+
+			vec3d te = ComputeTrailEdgePnt( le );
+			double numer = te.x()-m_StartStretchX;
+			double fract = numer/(m_EndX-m_StartStretchX);
+			double xx = m_StartStretchX + numer*(1.0 + factor*fract*fract);
+			double zz = te.z() + (xx - te.x())*tan( DEG2RAD(m_Angle) );
+			glVertex3d( xx, te.y(), zz );
+		}
+		glEnd();
+	}
 }
-
-
 
 //=============================================================//
 //=============================================================//
@@ -887,7 +930,7 @@ void CfdMeshMgr::Remesh(int output_type)
 	{
 		int num_tris = 0;
 
-		for ( int iter = 0 ; iter < 10 ; iter++ )
+		for ( int iter = 0 ; iter < 10 ; iter++ )  
 		{
 			m_SurfVec[i]->GetMesh()->m_Iteration = iter;
 			num_tris = 0;
@@ -1017,12 +1060,27 @@ void CfdMeshMgr::WriteSTL( const char* filename )
 	FILE* file_id = fopen(filename, "w");
 	if ( file_id )
 	{
+		int numwake = 0;
 		fprintf(file_id, "solid\n");
 		for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
 		{
-			m_SurfVec[i]->GetMesh()->WriteSTL( file_id );
+			if ( !m_SurfVec[i]->GetWakeFlag() )
+				m_SurfVec[i]->GetMesh()->WriteSTL( file_id );
+			else
+				numwake++;
 		}
 		fprintf(file_id, "endsolid\n");
+
+		if( numwake > 0 )
+		{
+			fprintf(file_id, "solid wake\n");
+			for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
+			{
+				if ( m_SurfVec[i]->GetWakeFlag() )
+					m_SurfVec[i]->GetMesh()->WriteSTL( file_id );
+			}
+			fprintf(file_id, "endsolid wake\n");
+		}
 		fclose(file_id);
 	}
 }
@@ -1333,6 +1391,22 @@ void CfdMeshMgr::WriteNASCART_Obj_Tri_Gmsh( const char* dat_fn, const char* key_
 		}
 	}
 
+	vector< int > compIDVec;
+	for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
+	{
+		if ( !m_SurfVec[i]->GetWakeFlag() )
+		{
+			compIDVec.push_back( m_SurfVec[i]->GetCompID() + 1 );
+		}
+	}
+	for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
+	{
+		if ( m_SurfVec[i]->GetWakeFlag() )
+		{
+			compIDVec.push_back( m_SurfVec[i]->GetCompID() + 1 + 10000 );
+		}
+	}
+
 	if ( key_fn )
 	{
 		//==== Open file ====//
@@ -1341,22 +1415,6 @@ void CfdMeshMgr::WriteNASCART_Obj_Tri_Gmsh( const char* dat_fn, const char* key_
 		if ( fp )
 		{
 			fprintf( fp, "Color	Name			BCType\n");
-
-			vector< int > compIDVec;
-			for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )		
-			{
-				if ( !m_SurfVec[i]->GetWakeFlag() )
-				{
-					compIDVec.push_back( m_SurfVec[i]->GetCompID()+1 );
-				}
-			}
-			for ( int i = 0 ; i < (int)m_SurfVec.size() ; i++ )
-			{
-				if ( m_SurfVec[i]->GetWakeFlag() )
-				{
-					compIDVec.push_back( m_SurfVec[i]->GetCompID()+1 + 100 );
-				}
-			}
 
 			for ( int i = 0 ; i < (int)compIDVec.size() ; i++ )
 			{
@@ -1423,7 +1481,7 @@ void CfdMeshMgr::WriteNASCART_Obj_Tri_Gmsh( const char* dat_fn, const char* key_
 				vector < SimpTri >& sTriVec = m_SurfVec[i]->GetMesh()->GetSimpTriVec();
 				for ( int t = 0 ; t <  (int)sTriVec.size() ; t++ )
 				{
-					fprintf( fp, "%d \n", m_SurfVec[i]->GetCompID()+1 );
+					fprintf( fp, "%d \n", compIDVec[i] );
 				}
 			}
 
@@ -1826,7 +1884,6 @@ int CfdMeshMgr::BuildIndMap( vector< vec3d* > & allPntVec, map< int, vector< int
 	return cnt;
 
 }
-
 
 int  CfdMeshMgr::FindPntIndex(  vec3d& pnt, vector< vec3d* > & allPntVec, map< int, vector< int > >& indMap )
 {
@@ -2528,7 +2585,7 @@ void CfdMeshMgr::TessellateChains( double minmap )
 		double t = (*c)->CalcDensity( &m_GridDensity );
 
 		double d = dist( (*c)->m_TessVec.front()->m_Pnt, (*c)->m_TessVec.back()->m_Pnt );
-		if ( d > 0.001 * t )
+		if ( d > m_GridDensity.GetMinLen() )
 		{
 			(*c)->BuildES( es_cloud, &m_GridDensity );
 		}
@@ -3215,7 +3272,8 @@ void CfdMeshMgr::Draw()
 		m_GridDensity.Draw(source);
 
 	//==== Draw Wake Lines ====//
-	m_WakeMgr.Draw();
+	if ( m_DrawSourceFlag )
+		m_WakeMgr.Draw();
 
 	if ( m_DrawMeshFlag )
 	{
